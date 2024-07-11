@@ -1,0 +1,19 @@
+{
+  "name": "@formvk/validator",
+  "version": "2.3.1",
+  "license": "MIT",
+  "main": "lib",
+  "umd:main": "dist/formvk.validator.umd.production.js",
+  "jsdelivr": "dist/formvk.validator.umd.production.js",
+  "unpkg": "dist/formvk.validator.umd.production.js",
+  "module": "esm",
+  "jsnext:main": "esm",
+  "scripts": {},
+  "dependencies": {
+    "@formvk/shared": "workspace:^"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "gitHead": "ac79c196ae9324889aca5e0501146f9b37b04283"
+}

@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "jsx": "preserve",
+    "module": "ESNext",
+    "target": "ES2022",
+    "allowJs": false,
+    "noUnusedLocals": false,
+    "preserveConstEnums": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "inlineSources": true,
+    "declaration": true,
+    "noImplicitThis": true,
+    "strictNullChecks": true,
+    "baseUrl": ".",
+    "paths": {
+      "@formvk/*": ["packages/*/src"]
+    },
+    "resolveJsonModule": true
+  }
+}
