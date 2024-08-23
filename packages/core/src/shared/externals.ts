@@ -9,7 +9,7 @@ import {
   setValidateLanguage,
 } from '@formvk/validator'
 import { Form } from '../models'
-import { IFormProps } from '../types'
+import type { IFormProps } from '../types'
 import {
   isArrayField,
   isArrayFieldState,

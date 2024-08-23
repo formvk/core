@@ -9,10 +9,13 @@ export default defineConfig({
       fileName: 'index',
       formats: ['es'],
     },
-    rollupOptions: {},
+    rollupOptions: {
+      external: ['@formvk/reactive', '@formvk/shared', '@formvk/path'],
+    },
     sourcemap: true,
+    minify: false,
   },
   esbuild: {
-    target: 'esnext',
+    target: 'es2022',
   },
 })

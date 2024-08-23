@@ -8,7 +8,9 @@
   "unpkg": "dist/formvk.validator.umd.production.js",
   "module": "esm",
   "jsnext:main": "esm",
-  "scripts": {},
+  "scripts": {
+    "test": "vitest"
+  },
   "dependencies": {
     "@formvk/shared": "workspace:^"
   },

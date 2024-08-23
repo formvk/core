@@ -1,5 +1,5 @@
 import { FormPath, merge as deepmerge, each, globalThisPolyfill, isFn, isStr, lowerCase } from '@formvk/shared'
-import {
+import type {
   IRegistryFormats,
   IRegistryLocaleMessages,
   IRegistryLocales,
@@ -10,22 +10,21 @@ import {
 
 const getIn = FormPath.getIn
 
-const self: any = globalThisPolyfill
+const self = globalThisPolyfill
 
 const defaultLanguage = 'en'
 
-const getBrowserlanguage = () => {
-  /* istanbul ignore next */
+const getBrowserLanguage = () => {
   if (!self.navigator) {
     return defaultLanguage
   }
-  return self.navigator.browserlanguage || self.navigator.language || defaultLanguage
+  return self.navigator.language || defaultLanguage
 }
 
-const registry = {
+const registry: any = {
   locales: {
     messages: {},
-    language: getBrowserlanguage(),
+    language: getBrowserLanguage(),
   },
   formats: {},
   rules: {},

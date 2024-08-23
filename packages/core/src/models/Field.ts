@@ -1,6 +1,7 @@
-import { Computed, Ref, Shallow } from '@formvk/reactive'
-import { FormPathPattern, isArr, isEmpty, isValid, toArr } from '@formvk/shared'
-import { parseValidatorDescriptions, ValidatorTriggerType } from '@formvk/validator'
+import type { FormPathPattern } from '@formvk/shared'
+import { isArr, isEmpty, isValid, toArr } from '@formvk/shared'
+import type { ValidatorTriggerType } from '@formvk/validator'
+import { parseValidatorDescriptions } from '@formvk/validator'
 import {
   allowAssignDefaultValue,
   batchReset,
@@ -26,7 +27,7 @@ import {
   updateFeedback,
   validateSelf,
 } from '../shared/internals'
-import {
+import type {
   FeedbackMessage,
   FieldDataSource,
   FieldValidator,
@@ -41,10 +42,10 @@ import {
   IModelSetter,
   ISearchFeedback,
   JSXComponent,
-  LifeCycleTypes,
 } from '../types'
+import { LifeCycleTypes } from '../types'
 import { BaseField } from './BaseField'
-import { Form } from './Form'
+import type { Form } from './Form'
 export class Field<
   Decorator extends JSXComponent = any,
   Component extends JSXComponent = any,
@@ -52,58 +53,21 @@ export class Field<
   ValueType = any,
 > extends BaseField<Decorator, Component, TextType> {
   displayName = 'Field'
-  @Shallow
-  accessor props: IFieldProps<Decorator, Component, TextType, ValueType>
-  /**
-   * Field loading state, it will be true when the field is loading, use in async dataSource or value
-   */
-  @Ref
-  accessor loading = false
-  /**
-   * Field validating state, it will be true when the field is validating, use in async validator
-   */
-  @Ref
-  accessor validating = false
-  /**
-   * Field submitting state, it will be true when the field is submitting, use in async submit
-   */
-  @Ref
-  accessor submitting = false
-  /**
-   * Field active state, it will be true when the field is active, use in focus event
-   */
-  @Ref
-  accessor active = false
-  /**
-   * Field visited state, it will be true when the field is visited, use in blur event
-   */
-  @Ref
-  accessor visited = false
-  /**
-   * Field modified state, it will be true when the field value is modified
-   */
-  @Ref
-  accessor selfModified = false
-  /**
-   * Field modified state, it will be true when the field value is modified
-   */
-  @Ref
-  accessor modified = false
-  /**
-   * Field visible state, it will be true when the field is visible
-   */
-  @Ref
-  accessor visible = true
-  @Ref
-  accessor inputValue: ValueType
-  @Ref
-  accessor inputValues: any[] = []
-  @Ref
-  accessor dataSource: FieldDataSource
-  @Shallow
-  accessor validator: FieldValidator
-  @Shallow
-  accessor feedbacks: IFieldFeedback[] = []
+
+  props: IFieldProps<Decorator, Component, TextType, ValueType>
+
+  loading?: boolean
+  validating?: boolean
+  submitting?: boolean
+  active: boolean
+  visited: boolean
+  selfModified: boolean
+  modified: boolean
+  inputValue: ValueType
+  inputValues: any[]
+  dataSource?: FieldDataSource
+  validator?: FieldValidator
+  feedbacks: IFieldFeedback[]
   caches: IFieldCaches = {}
   requests: IFieldRequests = {}
   constructor(
@@ -119,13 +83,24 @@ export class Field<
     initializeStart()
     this.locate(address)
     this.initialize()
-    this.makeObservable()
     this.makeReactive()
     this.onInit()
     initializeEnd()
   }
 
   protected initialize() {
+    this.initialized = false
+    this.loading = false
+    this.validating = false
+    this.submitting = false
+    this.selfModified = false
+    this.active = false
+    this.visited = false
+    this.mounted = false
+    this.unmounted = false
+    this.inputValues = []
+    this.inputValue = null!
+    this.feedbacks = []
     this.title = this.props.title!
     this.description = this.props.description!
     this.display = this.props.display!
@@ -142,7 +117,7 @@ export class Field<
     this.content = this.props.content!
     this.initialValue = this.props.initialValue!
     this.value = this.props.value!
-    this.data = this.props.data
+    this.data = this.props.data!
     this.decorator = toArr(this.props.decorator)
     this.component = toArr(this.props.component)
   }
@@ -159,7 +134,7 @@ export class Field<
               validateSelf(this)
             }
             if (!isEmpty(value) && this.display === 'none') {
-              this.caches.value = toJS(value)
+              // this.caches.value = toJS(value)
               this.form.deleteValuesIn(this.path)
             }
           }
@@ -181,7 +156,7 @@ export class Field<
               this.caches.value = undefined
             }
           } else {
-            this.caches.value = toJS(value) ?? toJS(this.initialValue)
+            // this.caches.value = toJS(value) ?? toJS(this.initialValue)
             this.form.deleteValuesIn(this.path)
           }
           if (display === 'none' || display === 'hidden') {
@@ -233,22 +208,18 @@ export class Field<
     })
   }
 
-  @Computed
   get successes(): IFormFeedback[] {
     return this.form.successes.filter(createChildrenFeedbackFilter(this))
   }
 
-  @Computed
   get selfValid() {
     return !this.selfErrors.length
   }
 
-  @Computed
   get valid() {
     return !this.errors.length
   }
 
-  @Computed
   get selfInvalid() {
     return !this.selfValid
   }
@@ -277,7 +248,7 @@ export class Field<
     if (this.selfSuccesses.length) return 'success'
   }
 
-  set required(required: boolean) {
+  set required(required: boolean | undefined) {
     if (this.required === required) return
     this.setValidatorRule('required', required)
   }
@@ -290,7 +261,7 @@ export class Field<
     this.setInitialValue(initialValue)
   }
 
-  set selfErrors(messages: FeedbackMessage) {
+  set selfErrors(messages: FeedbackMessage | undefined) {
     this.setFeedback({
       type: 'error',
       code: 'EffectError',
@@ -298,7 +269,7 @@ export class Field<
     })
   }
 
-  set selfWarnings(messages: FeedbackMessage) {
+  set selfWarnings(messages: FeedbackMessage | undefined) {
     this.setFeedback({
       type: 'warning',
       code: 'EffectWarning',
@@ -306,7 +277,7 @@ export class Field<
     })
   }
 
-  set selfSuccesses(messages: FeedbackMessage) {
+  set selfSuccesses(messages: FeedbackMessage | undefined) {
     this.setFeedback({
       type: 'success',
       code: 'EffectSuccess',
@@ -371,11 +342,11 @@ export class Field<
     this.form.setInitialValuesIn(this.path, initialValue)
   }
 
-  setLoading = (loading: boolean) => {
+  setLoading = (loading?: boolean) => {
     setLoading(this, loading)
   }
 
-  setValidating = (validating: boolean) => {
+  setValidating = (validating?: boolean) => {
     setValidating(this, validating)
   }
 

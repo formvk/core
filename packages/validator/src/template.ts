@@ -1,6 +1,6 @@
 import { FormPath, isFn, isStr } from '@formvk/shared'
 import { getValidateMessageTemplateEngine } from './registry'
-import { IValidateResult, IValidatorRules } from './types'
+import type { IValidateResult, IValidatorRules } from './types'
 
 export const render = (result: IValidateResult, rules: IValidatorRules): IValidateResult => {
   const { message } = result

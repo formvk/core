@@ -1,8 +1,6 @@
-import { reaction } from '@formvk/reactive'
-import { cleanupObjectChildren } from '../shared/internals'
-import { FormPathPattern, IFieldProps, JSXComponent } from '../types'
+import type { FormPathPattern, IFieldProps, JSXComponent } from '../types'
 import { Field } from './Field'
-import { Form } from './Form'
+import type { Form } from './Form'
 
 export class ObjectField<Decorator extends JSXComponent = any, Component extends JSXComponent = any> extends Field<
   Decorator,
@@ -18,15 +16,15 @@ export class ObjectField<Decorator extends JSXComponent = any, Component extends
   }
 
   protected makeAutoCleanable() {
-    this.disposers.push(
-      reaction(
-        () => Object.keys(this.value || {}),
-        newKeys => {
-          const filterKeys = this.additionalProperties.filter(key => !newKeys.includes(key))
-          cleanupObjectChildren(this, filterKeys)
-        }
-      )
-    )
+    // this.disposers.push(
+    //   reaction(
+    //     () => Object.keys(this.value || {}),
+    //     newKeys => {
+    //       const filterKeys = this.additionalProperties.filter(key => !newKeys.includes(key))
+    //       cleanupObjectChildren(this, filterKeys)
+    //     }
+    //   )
+    // )
   }
 
   addProperty = (key: string, value: any) => {

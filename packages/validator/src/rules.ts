@@ -1,6 +1,6 @@
 import { each, isArr, isBool, isEmpty, isEqual, isFn, isNum, isStr, isValid, stringLength, toArr } from '@formvk/shared'
 import { getValidateFormats } from './registry'
-import { IRegistryRules } from './types'
+import type { IRegistryRules } from './types'
 
 const isValidateEmpty = (value: any) => {
   if (isArr(value)) {
@@ -73,8 +73,9 @@ const RULES: IRegistryRules = {
   },
 
   pattern(value, rule) {
-    if (isValidateEmpty(value)) return ''
-    return !new RegExp(rule.pattern).test(value) ? rule.message : ''
+    if (isValidateEmpty(value)) return
+    if (!rule.pattern) return
+    return !new RegExp(rule.pattern).test(value) ? rule.message : undefined
   },
   async validator(value, rule, context, format) {
     if (isFn(rule.validator)) {

@@ -25,32 +25,23 @@ export interface IValidateResults {
   success?: string[]
 }
 
-export const isValidateResult = (obj: any): obj is IValidateResult =>
-  !!obj['type'] && !!obj['message']
+export const isValidateResult = (obj: any): obj is IValidateResult => !!obj['type'] && !!obj['message']
 
-export type ValidatorFunctionResponse =
-  | null
-  | string
-  | boolean
-  | IValidateResult
+export type ValidatorFunctionResponse = string | boolean | IValidateResult | undefined | null
 
 export type ValidatorFunction<Context = any> = (
   value: any,
   rule: IValidatorRules<Context>,
   ctx: Context,
   render: (message: string, scope?: any) => string
-) => ValidatorFunctionResponse | Promise<ValidatorFunctionResponse> | null
+) => ValidatorFunctionResponse | Promise<ValidatorFunctionResponse>
 
 export type ValidatorParsedFunction<Context = any> = (
   value: any,
-  ctx: Context
+  ctx?: Context
 ) => IValidateResult | Promise<IValidateResult> | null
 
-export type ValidatorTriggerType =
-  | 'onInput'
-  | 'onFocus'
-  | 'onBlur'
-  | (string & {})
+export type ValidatorTriggerType = 'onInput' | 'onFocus' | 'onBlur' | (string & {})
 
 export interface IValidatorRules<Context = any> {
   triggerType?: ValidatorTriggerType
@@ -103,9 +94,7 @@ export type ValidatorDescription<Context = any> =
 
 export type MultiValidator<Context = any> = ValidatorDescription<Context>[]
 
-export type Validator<Context = any> =
-  | ValidatorDescription<Context>
-  | MultiValidator<Context>
+export type Validator<Context = any> = ValidatorDescription<Context> | MultiValidator<Context>
 
 export interface IValidatorOptions<Context = any> {
   validateFirst?: boolean

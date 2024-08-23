@@ -1,5 +1,6 @@
 import { action, batch, define, observable } from '@formvk/reactive'
-import { FormPathPattern, toArr } from '@formvk/shared'
+import type { FormPathPattern } from '@formvk/shared'
+import { toArr } from '@formvk/shared'
 import {
   createReactions,
   createStateGetter,
@@ -7,19 +8,24 @@ import {
   initializeEnd,
   initializeStart,
 } from '../shared/internals'
-import { IModelGetter, IModelSetter, IVoidFieldProps, IVoidFieldState } from '../types'
+import type { IModelGetter, IModelSetter, IVoidFieldProps, IVoidFieldState } from '../types'
 import { BaseField } from './BaseField'
-import { Form } from './Form'
+import type { Form } from './Form'
 
 export class VoidField<Decorator = any, Component = any, TextType = any> extends BaseField<
   Decorator,
   Component,
   TextType
 > {
-  displayName: 'VoidField' = 'VoidField'
+  displayName = 'VoidField' as const
   props: IVoidFieldProps<Decorator, Component>
 
-  constructor(address: FormPathPattern, props: IVoidFieldProps<Decorator, Component>, form: Form, designable: boolean) {
+  constructor(
+    address: FormPathPattern,
+    props: IVoidFieldProps<Decorator, Component>,
+    form: Form,
+    designable?: boolean
+  ) {
     super()
     this.form = form
     this.props = props

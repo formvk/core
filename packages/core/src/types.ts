@@ -1,6 +1,6 @@
-import { FormPath } from '@formvk/shared'
-import { IValidatorRules, Validator, ValidatorTriggerType } from '@formvk/validator'
-import { ArrayField, Field, Form, LifeCycle, ObjectField, Query, VoidField } from './models'
+import type { FormPath } from '@formvk/shared'
+import type { IValidatorRules, Validator, ValidatorTriggerType } from '@formvk/validator'
+import type { ArrayField, Field, Form, LifeCycle, ObjectField, Query, VoidField } from './models'
 
 export type NonFunctionPropertyNames<T> = {
   [K in keyof T]: T[K] extends (...args: any) => any ? never : K
@@ -96,7 +96,7 @@ export interface INodePatch<T> {
 }
 
 export interface IHeartProps<Context> {
-  lifeCycles?: LifeCycle[]
+  lifecycles?: LifeCycle[]
   context?: Context
 }
 
@@ -151,8 +151,8 @@ export type FieldFeedbackCodeTypes =
   | 'EffectWarning'
   | (string & {})
 
-export type FormPatternTypes = 'editable' | 'readOnly' | 'disabled' | 'readPretty'
-export type FormDisplayTypes = 'none' | 'hidden' | 'visible'
+export type FormPatternTypes = 'editable' | 'readOnly' | 'disabled' | 'readPretty' | ({} & string)
+export type FormDisplayTypes = 'none' | 'hidden' | 'visible' | ({} & string)
 
 export type FormPathPattern =
   | string
@@ -192,7 +192,11 @@ type OmitState<P> = Omit<
   | 'record'
 >
 
-export type IVoidFieldState = Partial<Pick<VoidField, NonFunctionPropertyNames<OmitState<VoidField<any, any, string>>>>>
+export type IFieldState = Partial<Pick<Field, Exclude<NonFunctionPropertyNames<OmitState<Field>>, undefined>>>
+
+export type IVoidFieldState = Partial<
+  Pick<VoidField, Exclude<NonFunctionPropertyNames<OmitState<VoidField>>, undefined>>
+>
 
 export type IFormState<T extends Record<any, any> = any> = Pick<
   Form<T>,
@@ -248,9 +252,9 @@ export interface IFieldCaches {
   inputting?: boolean
 }
 
-export type DisplayTypes = 'none' | 'hidden' | 'visible'
+export type FieldDisplayTypes = 'none' | 'hidden' | 'visible' | ({} & string)
 
-export type PatternTypes = 'editable' | 'readOnly' | 'disabled' | 'readPretty'
+export type FieldPatternTypes = 'editable' | 'readOnly' | 'disabled' | 'readPretty' | ({} & string)
 
 export type FieldValidatorContext = IValidatorRules & {
   field?: Field

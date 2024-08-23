@@ -60,7 +60,7 @@ export const isArrayFieldState = (state: any): state is IFieldState => {
   return state?.displayName === 'ArrayField'
 }
 
-export const isDataField = (node: GeneralField): node is DataField => {
+export const isDataField = (node: any): node is DataField => {
   return isField(node) || isArrayField(node) || isObjectField(node)
 }
 

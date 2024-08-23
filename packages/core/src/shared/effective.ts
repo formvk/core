@@ -47,7 +47,7 @@ const FormEffectContext = createEffectContext<Form>()
 
 export const useEffectForm = FormEffectContext.consume
 
-export const runEffects = <Context>(context: Context, ...args: ((context: Context) => void)[]): LifeCycle[] => {
+export const runEffects = <Context>(context?: Context, ...args: ((context: Context) => void)[]): LifeCycle[] => {
   GlobalState.lifecycles = []
   GlobalState.context = []
   GlobalState.effectStart = true

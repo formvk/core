@@ -1,7 +1,8 @@
-import { DataChange, autorun, batch, contains, isObservable, reaction, toJS, untracked } from '@formvk/reactive'
+import type { DataChange } from '@formvk/reactive'
+import { autorun, batch, contains, isObservable, reaction, toJS, untracked } from '@formvk/reactive'
+import type { FormPathPattern } from '@formvk/shared'
 import {
   FormPath,
-  FormPathPattern,
   clone,
   each,
   isEmpty,
@@ -13,10 +14,11 @@ import {
   pascalCase,
   toArr,
 } from '@formvk/shared'
-import { ValidatorTriggerType, parseValidatorDescriptions, validate } from '@formvk/validator'
-import { ArrayField, Field, Form, ObjectField } from '../models'
-import { BaseField } from '../models/BaseField'
-import {
+import type { ValidatorTriggerType } from '@formvk/validator'
+import { parseValidatorDescriptions, validate } from '@formvk/validator'
+import type { ArrayField, Field, Form, ObjectField } from '../models'
+import type { BaseField } from '../models/BaseField'
+import type {
   FieldFeedbackTypes,
   FieldMatchPattern,
   GeneralField,
@@ -27,8 +29,8 @@ import {
   INodePatch,
   ISearchFeedback,
   ISpliceArrayStateProps,
-  LifeCycleTypes,
 } from '../types'
+import { LifeCycleTypes } from '../types'
 import {
   GlobalState,
   MutuallyExclusiveProperties,
@@ -123,8 +125,8 @@ export const patchFieldStates = (target: Record<string, GeneralField>, patches: 
     } else if (type === 'update') {
       if (payload) {
         target[address] = payload
-        if (target[oldAddress] === payload) {
-          target[oldAddress] = undefined
+        if (oldAddress && target[oldAddress] === payload) {
+          delete target[oldAddress]
         }
       }
       if (address && payload) {
@@ -541,7 +543,7 @@ export const deserialize = (model: any, setter: any) => {
   if (isFn(setter)) {
     setter(model)
   } else {
-    for (let key in setter) {
+    for (const key in setter) {
       if (!hasOwnProperty.call(setter, key)) continue
       if (ReadOnlyProperties[key] || ReservedProperties[key]) continue
       const MutuallyExclusiveKey = MutuallyExclusiveProperties[key]
@@ -564,7 +566,7 @@ export const serialize = (model: any, getter?: any) => {
     return getter(model)
   } else {
     const results = {}
-    for (let key in model) {
+    for (const key in model) {
       if (!hasOwnProperty.call(model, key)) continue
       if (ReservedProperties[key]) continue
       if (key === 'address' || key === 'path') {
@@ -650,7 +652,7 @@ export const triggerFormValuesChange = (form: Form, change: DataChange) => {
   }
 }
 
-export const setValidating = (target: Form | Field, validating: boolean) => {
+export const setValidating = (target: Form | Field, validating?: boolean) => {
   clearTimeout(target.requests.validate)
   if (validating) {
     target.requests.validate = setTimeout(() => {
@@ -686,7 +688,7 @@ export const setSubmitting = (target: Form | Field, submitting: boolean) => {
   }
 }
 
-export const setLoading = (target: Form | Field, loading: boolean) => {
+export const setLoading = (target: Form | Field, loading?: boolean) => {
   clearTimeout(target.requests.loading)
   if (loading) {
     target.requests.loading = setTimeout(() => {
@@ -918,18 +920,18 @@ export const initializeEnd = () => {
   })
 }
 
-export const getArrayParent = (field: BaseField, index = field.index) => {
-  if (index > -1) {
-    let parent: any = field.parent
-    while (parent) {
-      if (isArrayField(parent)) return parent
-      if (parent === field.form) return
-      parent = parent.parent
-    }
+export const getArrayParent = (field: BaseField): ArrayField | undefined => {
+  const index = field.index
+  if (index === -1) return
+  let parent: any = field.parent
+  while (parent) {
+    if (isArrayField(parent)) return parent
+    if (parent === field.form) return
+    parent = parent.parent
   }
 }
 
-export const getObjectParent = (field: BaseField) => {
+export const getObjectParent = (field: BaseField): ObjectField | undefined => {
   let parent: any = field.parent
   while (parent) {
     if (isArrayField(parent)) return

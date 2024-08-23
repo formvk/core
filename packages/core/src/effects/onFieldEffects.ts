@@ -2,7 +2,7 @@ import { autorun, batch, reaction } from '@formvk/reactive'
 import { FormPath, isFn, toArr } from '@formvk/shared'
 import { Form } from '../models'
 import { createEffectHook, useEffectForm } from '../shared/effective'
-import { DataField, FormPathPattern, GeneralField, LifeCycleTypes } from '../types'
+import { DataField, FormPathPattern, GeneralField, IFieldState, LifeCycleTypes } from '../types'
 
 function createFieldEffect<Result extends GeneralField = GeneralField>(type: LifeCycleTypes) {
   return createEffectHook(
@@ -41,7 +41,7 @@ export const onFieldSubmitValidateFailed = createFieldEffect<DataField>(LifeCycl
 export const onFieldReset = createFieldEffect<DataField>(LifeCycleTypes.ON_FIELD_RESET)
 export const onFieldLoading = createFieldEffect<DataField>(LifeCycleTypes.ON_FIELD_LOADING)
 
-export function onFieldInit(pattern: FormPathPattern, callback: (field: GeneralField, form: Form) => void) {
+export function onFieldInit(pattern: FormPathPattern, callback?: (field: GeneralField, form: Form) => void) {
   const form = useEffectForm()
   const count = form.query(pattern).reduce((count, field) => {
     callback(field, form)

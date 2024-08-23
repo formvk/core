@@ -68,7 +68,7 @@ export function isEmpty<T>(val: T, strict = false): boolean {
       case '[object File]':
       case '[object Map]':
       case '[object Set]': {
-        return val.size === 0
+        return (val as any).size === 0
       }
 
       // Plain objects...
