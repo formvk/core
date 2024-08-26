@@ -33,4 +33,10 @@ export default defineConfig({
       ...getWorkspaceAlias(),
     },
   },
+  esbuild: {
+    target: 'es2022',
+  },
+  build: {
+    minify: false,
+  },
 })

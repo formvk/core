@@ -155,7 +155,7 @@ export type FieldFeedbackCodeTypes =
  * Form Pattern
  * @see https://formvk.com/docs/guide/pattern.html
  */
-export type FormPatternTypes = 'editable' | 'readOnly' | 'disabled' | 'readPretty'
+export type FormPatternTypes = 'editable' | 'readPretty' | 'readOnly' | 'disabled'
 
 export type FormDisplayTypes = 'none' | 'hidden' | 'visible'
 

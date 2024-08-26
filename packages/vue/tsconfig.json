@@ -1,4 +1,11 @@
 {
   "extends": "../../tsconfig.json",
-  "include": ["./src/**/*.ts", "./test/**/*.ts"]
+  "compilerOptions": {
+    "jsxImportSource": "vue"
+  },
+  "include": [
+    "./src/**/*.ts",
+    "./src/**/*.tsx",
+    "./test/**/*.ts"
+  ]
 }

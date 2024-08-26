@@ -19,9 +19,7 @@ export function Observable<This, Value>(
 
   return {
     set(this, value) {
-      ;(target as ClassAccessorDecoratorTarget<This, Value>).set.call(this, value)
-      const newValue = target!.get.call(this)
-      valueRef.value = newValue
+      valueRef.value = value
     },
     get(this) {
       return valueRef.value

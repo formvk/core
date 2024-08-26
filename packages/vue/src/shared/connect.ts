@@ -1,0 +1,85 @@
+import { each, FormPath, isFn, isStr, isValid } from '@formvk/shared'
+import type { Field, GeneralField } from '@formvk/vk-core'
+import { isVueOptions } from './render'
+
+export interface IComponentMapper<T = any> {
+  (target: T): Record<string, any>
+}
+
+export type IStateMapper<Props> =
+  | {
+      [key in keyof Field]?: keyof Props | boolean
+    }
+  | ((props: Props, field: GeneralField) => Props)
+
+export function connect<T = any>(target: T, ...args: IComponentMapper[]) {
+  return args.reduce((acc, mapper) => {
+    const result = mapper(target)
+    if (isFn(result)) return result
+    if (isVueOptions(result)) return result
+    if (typeof result === 'object') Object.assign(acc, result)
+    return acc
+  }, {})
+}
+
+const ReadPrettySymbol = Symbol('ReadPretty')
+
+const ReadPrettyPropsSymbol = Symbol('ReadPrettyProps')
+
+export function mapReadPretty(component: any, readPrettyProps?: Record<string, any>) {
+  return () => {
+    return {
+      [ReadPrettySymbol]: component,
+      [ReadPrettyPropsSymbol]: readPrettyProps,
+    }
+  }
+}
+
+export function getReadPrettyInfo(component: any) {
+  return {
+    component: component[ReadPrettySymbol],
+    props: component[ReadPrettyPropsSymbol],
+  }
+}
+
+const PropsSymbol = Symbol('Props')
+
+export type VueComponentOptionsWithProps = {
+  props: unknown
+}
+
+export type VueComponentProps<T = any> = T extends VueComponentOptionsWithProps ? T['props'] : T
+
+export type TransformFn<T = any> = (input: VueComponentProps<T>, field: GeneralField) => VueComponentProps<T>
+
+export function mapProps<T>(...args: IStateMapper<VueComponentProps<T>>[]) {
+  return () => {
+    const transform: TransformFn<T> = (input, field) =>
+      args.reduce((props, mapper) => {
+        if (isFn(mapper)) {
+          props = Object.assign(props, mapper(props, field))
+        } else {
+          each(mapper, (to, extract) => {
+            const extractValue = FormPath.getIn(field, extract)
+            const targetValue = isStr(to) ? to : extract
+            const originalValue = FormPath.getIn(props, targetValue)
+            if (extract === 'value') {
+              if (to !== extract) {
+                delete props['value']
+              }
+            }
+            if (isValid(originalValue) && !isValid(extractValue)) return
+            FormPath.setIn(props, targetValue, extractValue)
+          })
+        }
+        return props
+      }, input as any)
+    return {
+      [PropsSymbol]: transform,
+    }
+  }
+}
+
+export function getPropsTransformer(component: any): TransformFn | undefined {
+  return component[PropsSymbol]
+}

@@ -8,8 +8,7 @@ import {
 import { Matcher } from './matcher'
 import { Parser } from './parser'
 import { isArr, isEqual, isFn, isNum, isObj, isRegExp, isStr } from './shared'
-import type { Node, Segments } from './types'
-import { Pattern } from './types'
+import type { Node, Pattern, Segments } from './types'
 
 const pathCache = new Map()
 

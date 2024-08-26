@@ -17,5 +17,12 @@
   "scripts": {
     "build": "vite build"
   },
-  "devDependencies": {}
+  "dependencies": {
+    "camel-case": "^4.1.2",
+    "lower-case": "^2.0.2",
+    "no-case": "^3.0.4",
+    "param-case": "^3.0.4",
+    "pascal-case": "^3.1.2",
+    "upper-case": "^2.0.2"
+  }
 }

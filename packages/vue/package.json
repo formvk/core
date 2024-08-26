@@ -17,5 +17,7 @@
   "scripts": {
     "build": "vite build"
   },
-  "devDependencies": {}
+  "dependencies": {
+    "vue": "^3.4.38"
+  }
 }
