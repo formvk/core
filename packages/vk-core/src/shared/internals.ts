@@ -1,7 +1,8 @@
 import { batch, toJS } from '@formvk/reactive'
 import type { FormPathPattern } from '@formvk/shared'
-import { FormPath, isFn, isNumberLike, isValid } from '@formvk/shared'
-import type { BaseField } from '../models/types'
+import { FormPath, isFn, isNumberLike, isPlainObj, isValid } from '@formvk/shared'
+import { parseValidatorDescriptions } from '@formvk/validator'
+import type { BaseField, Field } from '../models/types'
 import type { GeneralField } from '../types'
 import { isArrayField, isObjectField, isVoidField } from './checkers'
 import { MutuallyExclusiveProperties, ReadOnlyProperties, ReservedProperties } from './constants'
@@ -120,4 +121,28 @@ export const createStateSetter = (model: any) => {
 
 export const createStateGetter = (model: any) => {
   return (getter?: any) => serialize(model, getter)
+}
+
+export const setValidatorRule = (field: Field, name: string, value: any) => {
+  if (!isValid(value)) return
+  const validators = parseValidatorDescriptions(field.validator)
+  const hasRule = validators.some(desc => name in desc)
+  const rule = {
+    [name]: value,
+  }
+  if (hasRule) {
+    field.validator = validators.map((desc: any) => {
+      if (isPlainObj(desc) && hasOwnProperty.call(desc, name)) {
+        desc[name] = value
+        return desc
+      }
+      return desc
+    })
+  } else {
+    if (name === 'required') {
+      field.validator = [rule].concat(validators)
+    } else {
+      field.validator = validators.concat(rule)
+    }
+  }
 }

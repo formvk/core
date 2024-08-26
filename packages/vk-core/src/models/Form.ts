@@ -76,6 +76,14 @@ export class Form<ValueType extends object = any> {
   @Observable
   accessor initialValues: ValueType
 
+  getInitialValuesIn(pattern: FormPathPattern) {
+    return FormPath.getIn(this.initialValues, pattern)
+  }
+
+  setInitialValuesIn(pattern: FormPathPattern, value: any) {
+    return FormPath.setIn(this.initialValues, pattern, value)
+  }
+
   @Observable.Ref
   accessor initialized = false
 

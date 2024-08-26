@@ -2,7 +2,7 @@ import { each, FormPath } from '@formvk/shared'
 import { isVoidField, type GeneralField, type IFieldProps, type IVoidFieldProps } from '@formvk/vk-core'
 import type { ComputedRef, Ref } from 'vue'
 import { computed, shallowRef, unref, watch } from 'vue'
-import { getPropsTransformer, getReadPrettyInfo, isVueOptions, mergeRender } from '../shared'
+import { getPropsTransformer, getReadPrettyInfo, getValueProp, isVueOptions, mergeRender } from '../shared'
 import { useAttach } from './useAttach'
 import { provideField, useField } from './useField'
 import { useForm } from './useForm'
@@ -73,7 +73,6 @@ export function useFieldRender(
       ...props,
       basePath: props.basePath ?? parent?.address,
     })
-    console.log('field', field)
     return field
   }
 
@@ -87,9 +86,30 @@ export function useFieldRender(
   useAttach(fieldRef)
   const optionsRef = useSchemaOptions()
 
-  const componentProps = computed(() => {
-    const field = fieldRef.value
-    return field?.componentProps
+  const getComponents = (componentType: any) => {
+    const options = optionsRef.value
+    const components = options?.components || {}
+    if (typeof componentType !== 'string') {
+      return componentType
+    }
+    return FormPath.getIn(components, componentType) ?? componentType
+  }
+
+  const valueRef = computed({
+    get() {
+      if (isVoidField(fieldRef.value)) {
+        return
+      }
+
+      return fieldRef.value.value
+    },
+    set(value: any) {
+      if (isVoidField(fieldRef.value)) {
+        return
+      }
+
+      fieldRef.value.onInput(value)
+    },
   })
 
   return () => {
@@ -97,20 +117,8 @@ export function useFieldRender(
     if (!field?.visible) {
       return null
     }
-    console.log('renderField', field)
 
     const mergedSlots = mergeSlots(field, slots, field.content)
-
-    const options = optionsRef.value
-
-    const components = options?.components || {}
-
-    const getComponents = (componentType: any) => {
-      if (typeof componentType !== 'string') {
-        return componentType
-      }
-      return FormPath.getIn(components, componentType) ?? field.componentType
-    }
 
     const renderDecorator = (childNodes: any[]) => {
       if (!field.decoratorType) {
@@ -118,7 +126,6 @@ export function useFieldRender(
       }
       const Decorator = getComponents(field.decoratorType)
       const decoratorProps = field.decorator[1]
-      console.log('decoratorProps', field.decorator[1])
 
       each(decoratorProps, (value, eventKey) => {
         const atEvent = eventKey.startsWith('@')
@@ -138,6 +145,8 @@ export function useFieldRender(
       }
 
       let Component = getComponents(field.componentType)
+      const valueProp = getValueProp(Component)
+
       let componentProps = { ...field.component[1] }
 
       const readPrettyInfo = getReadPrettyInfo(Component)
@@ -154,10 +163,6 @@ export function useFieldRender(
         componentProps = propsTransformer(componentProps, field)
       }
 
-      const originChange = componentProps['@change'] || componentProps['onChange']
-      const originFocus = componentProps['@focus'] || componentProps['onFocus']
-      const originBlur = componentProps['@blur'] || componentProps['onBlur']
-
       each(componentProps, (value, eventKey) => {
         const atEvent = eventKey.startsWith('@')
         if (!atEvent) return
@@ -167,35 +172,36 @@ export function useFieldRender(
         }
       })
 
-      if (!isVoidField(field)) {
-        componentProps.onChange = (...args: any[]) => {
-          field.onInput(...args)
-          originChange?.(...args)
-        }
-        componentProps.onFocus = (...args: any[]) => {
-          field.onFocus(...args)
-          originFocus?.(...args)
-        }
-        componentProps.blur = (...args: any[]) => {
-          field.onBlur(...args)
-          originBlur?.(...args)
-        }
+      if (isVoidField(field)) {
+        return <Component {...componentProps} v-slots={mergedSlots} />
+      }
+
+      const getModifiers = () => {
+        const modifiers = field.modifiers
+        if (!modifiers) return
+        return modifiers.reduce((prev, next) => {
+          prev[next] = true
+          return prev
+        }, {})
       }
 
       return (
         <Component
           {...componentProps}
-          value={!isVoidField(field) ? field.value : componentProps.value}
+          onFocus={field.onFocus}
+          onBlur={field.onBlur}
+          {...{
+            [valueProp]: valueRef.value,
+            [`onUpdate:${valueProp}`]: (value: any) => {
+              valueRef.value = value
+            },
+            [`${valueProp}Modifiers`]: getModifiers(),
+          }}
           v-slots={mergedSlots}
         />
       )
     }
 
-    return (
-      <>
-        {componentProps.value.msg}
-        {renderDecorator([renderComponent()])}
-      </>
-    )
+    return <>{renderDecorator([renderComponent()])}</>
   }
 }

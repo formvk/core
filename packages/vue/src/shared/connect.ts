@@ -26,6 +26,20 @@ const ReadPrettySymbol = Symbol('ReadPretty')
 
 const ReadPrettyPropsSymbol = Symbol('ReadPrettyProps')
 
+const ValuePropSymbol = Symbol('ValueProp')
+
+export function markValueEvent(valueProp: string) {
+  return () => {
+    return {
+      [ValuePropSymbol]: valueProp,
+    }
+  }
+}
+
+export function getValueProp(component: any) {
+  return component[ValuePropSymbol] || 'modelValue'
+}
+
 export function mapReadPretty(component: any, readPrettyProps?: Record<string, any>) {
   return () => {
     return {
@@ -53,7 +67,8 @@ export type VueComponentProps<T = any> = T extends VueComponentOptionsWithProps 
 export type TransformFn<T = any> = (input: VueComponentProps<T>, field: GeneralField) => VueComponentProps<T>
 
 export function mapProps<T>(...args: IStateMapper<VueComponentProps<T>>[]) {
-  return () => {
+  return (component: T) => {
+    const valueProp = getValueProp(component)
     const transform: TransformFn<T> = (input, field) =>
       args.reduce((props, mapper) => {
         if (isFn(mapper)) {
@@ -63,9 +78,9 @@ export function mapProps<T>(...args: IStateMapper<VueComponentProps<T>>[]) {
             const extractValue = FormPath.getIn(field, extract)
             const targetValue = isStr(to) ? to : extract
             const originalValue = FormPath.getIn(props, targetValue)
-            if (extract === 'value') {
+            if (extract === valueProp) {
               if (to !== extract) {
-                delete props['value']
+                delete props[valueProp]
               }
             }
             if (isValid(originalValue) && !isValid(extractValue)) return

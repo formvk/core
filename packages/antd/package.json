@@ -1,0 +1,26 @@
+{
+  "name": "@formvk/antd",
+  "version": "1.0.0",
+  "description": "Formvk Shared",
+  "keywords": [
+    "formvk",
+    "shared",
+    "formvk-shared",
+    "form"
+  ],
+  "license": "MIT",
+  "author": "yiyunwan",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "vite build"
+  },
+  "dependencies": {
+    "vue": "^3.4.38"
+  },
+  "devDependencies": {
+    "ant-design-vue": "^4.2.3"
+  }
+}

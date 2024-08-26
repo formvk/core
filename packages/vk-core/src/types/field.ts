@@ -137,6 +137,7 @@ export interface IFieldProps<
   reactions?: FieldReaction[] | FieldReaction
   content?: any
   data?: any
+  modifiers?: string[]
 }
 
 export interface IFieldFactoryProps<

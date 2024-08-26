@@ -56,6 +56,7 @@ export interface FieldProps<
   reactions?: FieldReaction[] | FieldReaction
   content?: any
   data?: any
+  modifiers?: string[]
 }
 
 export type IVoidFieldProps<
