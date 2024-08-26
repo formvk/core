@@ -1,6 +1,6 @@
-import { reaction } from '@formvk/reactive'
-import { isArr } from '@formvk/shared'
-import { cleanupArrayChildren, spliceArrayState } from '../shared/internals'
+import { action, reaction } from '@formvk/reactive'
+import { isArr, move } from '@formvk/shared'
+import { cleanupArrayChildren, exchangeArrayState, spliceArrayState } from '../shared/internals'
 import type { FormPathPattern, IFieldProps, JSXComponent } from '../types'
 import { Field } from './Field'
 import type { Form } from './Form'
@@ -13,7 +13,7 @@ export class ArrayField<Decorator extends JSXComponent = any, Component extends 
 > {
   displayName = 'ArrayField' as const
 
-  constructor(address: FormPathPattern, props: IFieldProps<Decorator, Component>, form: Form, designable: boolean) {
+  constructor(address: FormPathPattern, props: IFieldProps<Decorator, Component>, form: Form, designable?: boolean) {
     super(address, props, form, designable)
     this.makeAutoCleanable()
   }
@@ -34,43 +34,43 @@ export class ArrayField<Decorator extends JSXComponent = any, Component extends 
   }
 
   push = (...items: any[]) => {
-    // return action(() => {
-    //   if (!isArr(this.value)) {
-    //     this.value = []
-    //   }
-    //   this.value.push(...items)
-    //   return this.onInput(this.value)
-    // })
+    return action(() => {
+      if (!isArr(this.value)) {
+        this.value = []
+      }
+      this.value.push(...items)
+      return this.onInput(this.value)
+    })
   }
 
   pop = () => {
     if (!isArr(this.value)) return
-    // return action(() => {
-    //   const index = this.value.length - 1
-    //   spliceArrayState(this, {
-    //     startIndex: index,
-    //     deleteCount: 1,
-    //   })
-    //   this.value.pop()
-    //   return this.onInput(this.value)
-    // })
+    return action(() => {
+      const index = this.value.length - 1
+      spliceArrayState(this, {
+        startIndex: index,
+        deleteCount: 1,
+      })
+      this.value.pop()
+      return this.onInput(this.value)
+    })
   }
 
   insert = (index: number, ...items: any[]) => {
-    // return action(() => {
-    //   if (!isArr(this.value)) {
-    //     this.value = []
-    //   }
-    //   if (items.length === 0) {
-    //     return
-    //   }
-    //   spliceArrayState(this, {
-    //     startIndex: index,
-    //     insertCount: items.length,
-    //   })
-    //   this.value.splice(index, 0, ...items)
-    //   return this.onInput(this.value)
-    // })
+    return action(() => {
+      if (!isArr(this.value)) {
+        this.value = []
+      }
+      if (items.length === 0) {
+        return
+      }
+      spliceArrayState(this, {
+        startIndex: index,
+        insertCount: items.length,
+      })
+      this.value.splice(index, 0, ...items)
+      return this.onInput(this.value)
+    })
   }
 
   remove = (index: number) => {
@@ -110,14 +110,14 @@ export class ArrayField<Decorator extends JSXComponent = any, Component extends 
   move = (fromIndex: number, toIndex: number) => {
     if (!isArr(this.value)) return
     if (fromIndex === toIndex) return
-    // return action(() => {
-    //   move(this.value, fromIndex, toIndex)
-    //   exchangeArrayState(this, {
-    //     fromIndex,
-    //     toIndex,
-    //   })
-    //   return this.onInput(this.value)
-    // })
+    return action(() => {
+      move(this.value, fromIndex, toIndex)
+      exchangeArrayState(this, {
+        fromIndex,
+        toIndex,
+      })
+      return this.onInput(this.value)
+    })
   }
 
   moveUp = (index: number) => {

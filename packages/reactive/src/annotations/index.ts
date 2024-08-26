@@ -1,4 +1,5 @@
+export * from './box'
 export * from './computed'
-export * from './reactive'
+export * from './observable'
 export * from './ref'
 export * from './shallow'

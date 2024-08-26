@@ -217,7 +217,7 @@ export const queryFeedbacks = (field: Field, search?: ISearchFeedback) => {
 
 export const queryFeedbackMessages = (field: Field, search: ISearchFeedback) => {
   if (!field.feedbacks.length) return []
-  return queryFeedbacks(field, search).reduce(
+  return queryFeedbacks(field, search).reduce<any[]>(
     (buf, info) => (isEmpty(info.messages) ? buf : buf.concat(info.messages)),
     []
   )
@@ -234,7 +234,7 @@ export const updateFeedback = (field: Field, feedback?: IFieldFeedback) => {
     } else {
       const searched = queryFeedbacks(field, feedback)
       if (searched.length) {
-        field.feedbacks = field.feedbacks.reduce((buf, item) => {
+        field.feedbacks = field.feedbacks.reduce<IFieldFeedback[]>((buf, item) => {
           if (searched.includes(item)) {
             if (feedback.messages?.length) {
               item.messages = feedback.messages
@@ -406,7 +406,7 @@ export const exchangeArrayState = (field: ArrayField, props: IExchangeArrayState
   const moveIndex = (identifier: string) => {
     const preStr = identifier.substring(0, addrLength)
     const afterStr = identifier.substring(addrLength)
-    const number = afterStr.match(NumberIndexReg)[1]
+    const number = afterStr.match(NumberIndexReg)?.[1]
     const current = Number(number)
     let index = current
     if (index === fromIndex) {
@@ -584,6 +584,7 @@ export const serialize = (model: any, getter?: any) => {
 export const createChildrenFeedbackFilter = (field: Field) => {
   const identifier = field.address?.toString()
   return ({ address }: IFormFeedback) => {
+    if (!address) return false
     return address === identifier || address.indexOf(identifier + '.') === 0
   }
 }
@@ -670,7 +671,7 @@ export const setValidating = (target: Form | Field, validating?: boolean) => {
   }
 }
 
-export const setSubmitting = (target: Form | Field, submitting: boolean) => {
+export const setSubmitting = (target: Form | Field, submitting?: boolean) => {
   clearTimeout(target.requests.submit)
   if (submitting) {
     target.requests.submit = setTimeout(() => {
@@ -752,7 +753,7 @@ export const batchValidate = async (
   else {
     if (target.pattern !== 'editable' || target.display !== 'visible') return
   }
-  const tasks = []
+  const tasks: any[] = []
   target.query(pattern).forEach(field => {
     if (!isVoidField(field)) {
       tasks.push(validateSelf(field, triggerType, field === target))

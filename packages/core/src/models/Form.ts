@@ -37,11 +37,11 @@ import type {
   JSXComponent,
 } from '../types'
 import { LifeCycleTypes } from '../types'
-import { ArrayField } from './ArrayField'
-import { Field } from './Field'
+import type { ArrayField } from './ArrayField'
+import type { Field } from './Field'
 import { Graph } from './Graph'
 import { Heart } from './Heart'
-import { ObjectField } from './ObjectField'
+import type { ObjectField } from './ObjectField'
 import { Query } from './Query'
 import { VoidField } from './VoidField'
 
@@ -69,9 +69,8 @@ export class Form<ValueType extends object = any> {
   indexes: Record<string, string> = {}
   disposers: (() => void)[] = []
 
-  constructor(props: IFormProps<ValueType>) {
+  constructor(props: IFormProps<ValueType> = {}) {
     this.initialize(props)
-    // this.makeObservable()
     this.makeReactive()
     this.makeValues()
     this.onInit()

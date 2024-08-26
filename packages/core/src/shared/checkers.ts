@@ -1,7 +1,7 @@
 import { isFn } from '@formvk/shared'
-import { DataField, JSXComponent } from '..'
+import type { DataField, JSXComponent } from '..'
 import { ArrayField, Field, Form, ObjectField, Query, VoidField } from '../models'
-import { GeneralField, IFieldState, IFormState, IGeneralFieldState, IVoidFieldState } from '../types'
+import type { GeneralField, IFieldState, IFormState, IGeneralFieldState, IVoidFieldState } from '../types'
 
 export const isForm = (node: any): node is Form => {
   return node instanceof Form

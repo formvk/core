@@ -18,8 +18,8 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
   title?: TextType
   description?: TextType
 
-  selfDisplay: FieldDisplayTypes
-  selfPattern: FieldPatternTypes
+  accessor selfDisplay: FieldDisplayTypes
+  accessor selfPattern: FieldPatternTypes
   initialized: boolean
   mounted: boolean
   unmounted: boolean
@@ -224,11 +224,11 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
     this.description = description
   }
 
-  setDisplay = (type?: FieldDisplayTypes) => {
+  setDisplay = (type: FieldDisplayTypes) => {
     this.display = type
   }
 
-  setPattern = (type?: FieldPatternTypes) => {
+  setPattern = (type: FieldPatternTypes) => {
     this.pattern = type
   }
 

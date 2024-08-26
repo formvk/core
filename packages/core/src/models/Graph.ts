@@ -1,17 +1,13 @@
-import { batch, define } from '@formvk/reactive'
 import { each, FormPath } from '@formvk/shared'
 import { isArrayFieldState, isFieldState, isFormState, isObjectFieldState } from '../shared/checkers'
-import { IFormGraph } from '../types'
-import { Form } from './Form'
+import type { IFormGraph } from '../types'
+import type { Form } from './Form'
 
 export class Graph {
   form: Form
 
   constructor(form: Form) {
     this.form = form
-    define(this, {
-      setGraph: batch,
-    })
   }
 
   getGraph = (): IFormGraph => {
@@ -39,6 +35,7 @@ export class Graph {
         return this.form.createVoidField({ name, basePath })
       }
     }
+
     each(graph, (state, address) => {
       if (isFormState(state)) {
         form.setState(state)
@@ -47,7 +44,7 @@ export class Graph {
         if (field) {
           field.setState(state)
         } else {
-          createField(address, state).setState(state)
+          createField(address, state)?.setState(state)
         }
       }
     })

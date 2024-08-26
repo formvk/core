@@ -74,7 +74,7 @@ export class Field<
     address: FormPathPattern,
     props: IFieldProps<Decorator, Component, TextType, ValueType>,
     form: Form,
-    designable: boolean
+    designable?: boolean
   ) {
     super()
     this.form = form

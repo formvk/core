@@ -151,8 +151,13 @@ export type FieldFeedbackCodeTypes =
   | 'EffectWarning'
   | (string & {})
 
-export type FormPatternTypes = 'editable' | 'readOnly' | 'disabled' | 'readPretty' | ({} & string)
-export type FormDisplayTypes = 'none' | 'hidden' | 'visible' | ({} & string)
+/**
+ * Form Pattern
+ * @see https://formvk.com/docs/guide/pattern.html
+ */
+export type FormPatternTypes = 'editable' | 'readOnly' | 'disabled' | 'readPretty'
+
+export type FormDisplayTypes = 'none' | 'hidden' | 'visible'
 
 export type FormPathPattern =
   | string

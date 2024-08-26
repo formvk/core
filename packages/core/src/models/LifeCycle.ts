@@ -1,5 +1,5 @@
 import { each, isFn, isStr } from '@formvk/shared'
-import { LifeCycleHandler, LifeCyclePayload } from '../types'
+import type { LifeCycleHandler, LifeCyclePayload } from '../types'
 
 type LifeCycleParams<Payload> = Array<string | LifeCycleHandler<Payload> | { [key: string]: LifeCycleHandler<Payload> }>
 export class LifeCycle<Payload = any> {
@@ -9,9 +9,9 @@ export class LifeCycle<Payload = any> {
     this.listener = this.buildListener(params)
   }
   buildListener = (params: any[]) => {
-    return function (payload: { type: string; payload: Payload }, ctx: any) {
+    return function (this: any, payload: { type: string; payload: Payload }, ctx: any) {
       for (let index = 0; index < params.length; index++) {
-        let item = params[index]
+        const item = params[index]
         if (isFn(item)) {
           item.call(this, payload, ctx)
         } else if (isStr(item) && isFn(params[index + 1])) {
