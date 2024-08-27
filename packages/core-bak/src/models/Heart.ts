@@ -1,12 +1,12 @@
 import { isArr, isStr, Subscribable } from '@formvk/shared'
-import type { IHeartProps } from '../types'
+import { IHeartProps } from '../types'
 import { LifeCycle } from './LifeCycle'
 export class Heart<Payload = any, Context = any> extends Subscribable {
   lifecycles: LifeCycle<Payload>[] = []
 
   outerLifecycles: Map<any, LifeCycle<Payload>[]> = new Map()
 
-  context?: Context
+  context: Context
 
   constructor({ lifecycles, context }: IHeartProps<Context> = {}) {
     super()
@@ -15,7 +15,7 @@ export class Heart<Payload = any, Context = any> extends Subscribable {
   }
 
   buildLifeCycles = (lifecycles: LifeCycle[]) => {
-    return lifecycles.reduce<any[]>((buf, item) => {
+    return lifecycles.reduce((buf, item) => {
       if (item instanceof LifeCycle) {
         return buf.concat(item)
       } else {

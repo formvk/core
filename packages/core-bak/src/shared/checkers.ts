@@ -1,6 +1,7 @@
 import { isFn } from '@formvk/shared'
+import type { DataField, JSXComponent } from '..'
 import { ArrayField, Field, Form, ObjectField, Query, VoidField } from '../models'
-import type { GeneralField, IFieldState, IFormState, IGeneralFieldState, IVoidFieldState, JSXComponent } from '../types'
+import type { GeneralField, IFieldState, IFormState, IGeneralFieldState, IVoidFieldState } from '../types'
 
 export const isForm = (node: any): node is Form => {
   return node instanceof Form
@@ -59,9 +60,9 @@ export const isArrayFieldState = (state: any): state is IFieldState => {
   return state?.displayName === 'ArrayField'
 }
 
-// export const isDataField = (node: any): node is DataField => {
-//   return isField(node) || isArrayField(node) || isObjectField(node)
-// }
+export const isDataField = (node: any): node is DataField => {
+  return isField(node) || isArrayField(node) || isObjectField(node)
+}
 
 export const isDataFieldState = (node: any) => {
   return isFieldState(node) || isObjectFieldState(node) || isArrayFieldState(node)

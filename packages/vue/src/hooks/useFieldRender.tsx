@@ -1,5 +1,5 @@
+import { isVoidField, type GeneralField, type IFieldProps, type IVoidFieldProps } from '@formvk/core'
 import { each, FormPath } from '@formvk/shared'
-import { isVoidField, type GeneralField, type IFieldProps, type IVoidFieldProps } from '@formvk/vk-core'
 import type { ComputedRef, Ref } from 'vue'
 import { computed, shallowRef, unref, watch } from 'vue'
 import { getPropsTransformer, getReadPrettyInfo, getValueProp, isVueOptions, mergeRender } from '../shared'

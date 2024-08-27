@@ -1,4 +1,3 @@
-import type { FormPathPattern } from '@formvk/shared'
 import type {
   DisplayTypes,
   FieldComponent,
@@ -9,7 +8,8 @@ import type {
   IFieldFactoryProps,
   IVoidFieldFactoryProps,
   PatternTypes,
-} from '@formvk/vk-core'
+} from '@formvk/core'
+import type { FormPathPattern } from '@formvk/shared'
 import type { Component } from 'vue'
 
 export type VueComponent = Component

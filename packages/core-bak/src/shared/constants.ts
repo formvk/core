@@ -47,7 +47,7 @@ export const RESPONSE_REQUEST_DURATION = 100
 
 export const GlobalState = {
   lifecycles: [],
-  context: [] as any[],
+  context: [],
   effectStart: false,
   effectEnd: false,
   initializing: false,

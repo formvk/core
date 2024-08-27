@@ -1,7 +1,28 @@
 import { isFn, isValid } from '@formvk/shared'
-import type { Form, LifeCycle } from '../models/types'
+import type { Form } from '../models'
+import { LifeCycle } from '../models'
+import type { AnyFunction } from '../types'
 import { isForm } from './checkers'
 import { GlobalState } from './constants'
+
+export const createEffectHook = <F extends (payload: any, ...ctxs: any[]) => AnyFunction>(
+  type: string,
+  callback?: F
+) => {
+  return (...args: Parameters<ReturnType<F>>) => {
+    if (GlobalState.effectStart) {
+      GlobalState.lifecycles.push(
+        new LifeCycle(type, (payload, ctx) => {
+          if (isFn(callback)) {
+            callback(payload, ctx, ...GlobalState.context)(...args)
+          }
+        })
+      )
+    } else {
+      throw new Error('Effect hooks cannot be used in asynchronous function body')
+    }
+  }
+}
 
 export const createEffectContext = <T = any>(defaultValue?: T) => {
   let index: number
@@ -25,7 +46,9 @@ export const createEffectContext = <T = any>(defaultValue?: T) => {
 
 const FormEffectContext = createEffectContext<Form>()
 
-export const runEffects = <Context>(context: Context, ...args: ((context: Context) => void)[]): LifeCycle[] => {
+export const useEffectForm = FormEffectContext.consume
+
+export const runEffects = <Context>(context?: Context, ...args: ((context: Context) => void)[]): LifeCycle[] => {
   GlobalState.lifecycles = []
   GlobalState.context = []
   GlobalState.effectStart = true

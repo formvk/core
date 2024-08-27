@@ -1,5 +1,5 @@
+import type { Field, GeneralField } from '@formvk/core'
 import { each, FormPath, isFn, isStr, isValid } from '@formvk/shared'
-import type { Field, GeneralField } from '@formvk/vk-core'
 import { isVueOptions } from './render'
 
 export interface IComponentMapper<T = any> {

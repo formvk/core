@@ -1,99 +1,56 @@
+import { batch, Observable } from '@formvk/reactive'
 import type { FormPathPattern } from '@formvk/shared'
-import { FormPath, globalThisPolyfill, isPlainObj, isValid, merge, uid } from '@formvk/shared'
-import { isVoidField } from '../shared/checkers'
+import { FormPath, isArr, isBool, isObj, uid } from '@formvk/shared'
 import { runEffects } from '../shared/effective'
-import {
-  batchReset,
-  batchSubmit,
-  batchValidate,
-  createBatchStateGetter,
-  createBatchStateSetter,
-  createStateGetter,
-  createStateSetter,
-  getValidFormValues,
-  setLoading,
-  setSubmitting,
-  setValidating,
-} from '../shared/internals'
+import { createStateGetter, createStateSetter } from '../shared/internals'
 import type {
-  FormDisplayTypes,
-  FormPatternTypes,
-  HeartSubscriber,
   IFieldFactoryProps,
-  IFieldResetOptions,
-  IFieldStateGetter,
-  IFieldStateSetter,
-  IFormFeedback,
   IFormFields,
-  IFormGraph,
-  IFormMergeStrategy,
   IFormProps,
-  IFormRequests,
   IFormState,
   IModelGetter,
   IModelSetter,
-  ISearchFeedback,
   IVoidFieldFactoryProps,
   JSXComponent,
 } from '../types'
-import { LifeCycleTypes } from '../types'
-import type { ArrayField } from './ArrayField'
-import type { Field } from './Field'
+import { DisplayTypes, PatternTypes } from '../types'
+import { ArrayField } from './ArrayField'
+import { Field } from './Field'
 import { Graph } from './Graph'
 import { Heart } from './Heart'
-import type { ObjectField } from './ObjectField'
+import { ObjectField } from './ObjectField'
 import { Query } from './Query'
 import { VoidField } from './VoidField'
 
-const DEV_TOOLS_HOOK = '__FORMILY_DEV_TOOLS_HOOK__'
-
 export class Form<ValueType extends object = any> {
-  displayName = 'Form'
+  readonly displayName = 'Form' as const
+  /**
+   * 表单的唯一标识, 用于__FORMVK_DEVTOOLS__调试
+   */
   id: string
-  initialized: boolean
-  validating: boolean
-  submitting: boolean
-  loading: boolean
-  modified: boolean
-  pattern: FormPatternTypes
-  display: FormDisplayTypes
-  values: ValueType
-  initialValues: ValueType
-  mounted: boolean
-  unmounted: boolean
-  props: IFormProps<ValueType>
+
+  designable?: boolean
+
   heart: Heart
+
   graph: Graph
-  fields: IFormFields = {}
-  requests: IFormRequests = {}
-  indexes: Record<string, string> = {}
-  disposers: (() => void)[] = []
 
   constructor(props: IFormProps<ValueType> = {}) {
     this.initialize(props)
-    this.makeReactive()
-    this.makeValues()
-    this.onInit()
   }
 
   protected initialize(props: IFormProps<ValueType>) {
     this.id = uid()
     this.props = { ...props }
-    this.initialized = false
-    this.submitting = false
-    this.validating = false
-    this.loading = false
-    this.modified = false
-    this.mounted = false
-    this.unmounted = false
-    this.display = this.props.display || 'visible'
-    this.pattern = this.props.pattern || 'editable'
+    this.setDisplay(this.props.display)
+    this.setPattern(this.props.pattern)
     this.editable = this.props.editable!
     this.disabled = this.props.disabled!
     this.readOnly = this.props.readOnly!
     this.readPretty = this.props.readPretty!
     this.visible = this.props.visible!
     this.hidden = this.props.hidden!
+    this.designable = props.designable
     this.graph = new Graph(this)
     this.heart = new Heart({
       lifecycles: this.lifecycles,
@@ -101,343 +58,183 @@ export class Form<ValueType extends object = any> {
     })
   }
 
-  protected makeValues() {
-    this.values = getValidFormValues(this.props.values)
-    this.initialValues = getValidFormValues(this.props.initialValues)
-  }
+  indexes: Record<string, string> = {}
 
-  protected makeReactive() {
-    this.disposers
-      .push
-      // observe(
-      //   this,
-      //   change => {
-      //     triggerFormInitialValuesChange(this, change)
-      //     triggerFormValuesChange(this, change)
-      //   },
-      //   true
-      // )
-      ()
-  }
+  /** 响应式变量区域 STARTS */
 
-  get valid() {
-    return !this.invalid
-  }
+  @Observable
+  accessor values: ValueType
 
-  get invalid() {
-    return this.errors.length > 0
-  }
-
-  get errors() {
-    return this.queryFeedbacks({
-      type: 'error',
-    })
-  }
-
-  get warnings() {
-    return this.queryFeedbacks({
-      type: 'warning',
-    })
-  }
-
-  get successes() {
-    return this.queryFeedbacks({
-      type: 'success',
-    })
-  }
-
-  get lifecycles() {
-    return runEffects(this, this.props.effects)
-  }
-
-  get hidden() {
-    return this.display === 'hidden'
-  }
-
-  get visible() {
-    return this.display === 'visible'
-  }
-
-  set hidden(hidden: boolean) {
-    if (!isValid(hidden)) return
-    if (hidden) {
-      this.display = 'hidden'
-    } else {
-      this.display = 'visible'
-    }
-  }
-
-  set visible(visible: boolean) {
-    if (!isValid(visible)) return
-    if (visible) {
-      this.display = 'visible'
-    } else {
-      this.display = 'none'
-    }
-  }
-
-  get editable() {
-    return this.pattern === 'editable'
-  }
-
-  set editable(editable: boolean) {
-    if (!isValid(editable)) return
-    if (editable) {
-      this.pattern = 'editable'
-    } else {
-      this.pattern = 'readPretty'
-    }
-  }
-
-  get readOnly() {
-    return this.pattern === 'readOnly'
-  }
-
-  set readOnly(readOnly) {
-    if (!isValid(readOnly)) return
-    if (readOnly) {
-      this.pattern = 'readOnly'
-    } else {
-      this.pattern = 'editable'
-    }
-  }
-
-  get disabled() {
-    return this.pattern === 'disabled'
-  }
-
-  set disabled(disabled) {
-    if (!isValid(disabled)) return
-    if (disabled) {
-      this.pattern = 'disabled'
-    } else {
-      this.pattern = 'editable'
-    }
-  }
-
-  get readPretty() {
-    return this.pattern === 'readPretty'
-  }
-
-  set readPretty(readPretty) {
-    if (!isValid(readPretty)) return
-    if (readPretty) {
-      this.pattern = 'readPretty'
-    } else {
-      this.pattern = 'editable'
-    }
-  }
-
-  /** 创建字段 **/
-
-  createField<Decorator extends JSXComponent, Component extends JSXComponent>(
-    props: IFieldFactoryProps<Decorator, Component>
-  ): Field<Decorator, Component> | undefined {
-    const address = FormPath.parse(props.basePath).concat(props.name)
-    const identifier = address.toString()
-    if (!identifier) return
-    if (!this.fields[identifier] || this.props.designable) {
-      // batch(() => {
-      //   new Field(address, props, this, this.props.designable)
-      // })
-      this.notify(LifeCycleTypes.ON_FORM_GRAPH_CHANGE)
-    }
-    return this.fields[identifier] as any
-  }
-
-  createArrayField<Decorator extends JSXComponent, Component extends JSXComponent>(
-    props: IFieldFactoryProps<Decorator, Component>
-  ) {
-    const address = FormPath.parse(props.basePath).concat(props.name)
-    const identifier = address.toString()
-    if (!identifier) return
-    if (!this.fields[identifier] || this.props.designable) {
-      // batch(() => {
-      //   new ArrayField(
-      //     address,
-      //     {
-      //       ...props,
-      //       value: isArr(props.value) ? props.value : [],
-      //     },
-      //     this,
-      //     this.props.designable
-      //   )
-      // })
-      this.notify(LifeCycleTypes.ON_FORM_GRAPH_CHANGE)
-    }
-    return this.fields[identifier] as ArrayField<Decorator, Component>
-  }
-
-  createObjectField<Decorator extends JSXComponent, Component extends JSXComponent>(
-    props: IFieldFactoryProps<Decorator, Component>
-  ) {
-    const address = FormPath.parse(props.basePath).concat(props.name)
-    const identifier = address.toString()
-    if (!identifier) return
-    if (!this.fields[identifier] || this.props.designable) {
-      // batch(() => {
-      //   new ObjectField(
-      //     address,
-      //     {
-      //       ...props,
-      //       value: isObj(props.value) ? props.value : {},
-      //     },
-      //     this,
-      //     this.props.designable
-      //   )
-      // })
-      this.notify(LifeCycleTypes.ON_FORM_GRAPH_CHANGE)
-    }
-    return this.fields[identifier] as ObjectField<Decorator, Component>
-  }
-
-  createVoidField<Decorator extends JSXComponent, Component extends JSXComponent>(
-    props: IVoidFieldFactoryProps<Decorator, Component>
-  ) {
-    const address = FormPath.parse(props.basePath).concat(props.name)
-    const identifier = address.toString()
-    if (!identifier) return
-    if (!this.fields[identifier] || this.props.designable) {
-      // batch(() => {
-      new VoidField(address, props, this, this.props.designable)
-      // })
-      this.notify(LifeCycleTypes.ON_FORM_GRAPH_CHANGE)
-    }
-    return this.fields[identifier] as VoidField<Decorator, Component>
-  }
-
-  /** 状态操作模型 **/
-
-  setValues = (values: any, strategy: IFormMergeStrategy = 'merge') => {
-    if (!isPlainObj(values)) return
-    if (strategy === 'merge' || strategy === 'deepMerge') {
-      merge(this.values, values, {
-        // never reach
-        arrayMerge: (target, source) => source,
-        assign: true,
-      })
-    } else if (strategy === 'shallowMerge') {
-      Object.assign(this.values, values)
-    } else {
-      this.values = values as any
-    }
-  }
-
-  setInitialValues = (initialValues: any, strategy: IFormMergeStrategy = 'merge') => {
-    if (!isPlainObj(initialValues)) return
-    if (strategy === 'merge' || strategy === 'deepMerge') {
-      merge(this.initialValues, initialValues, {
-        // never reach
-        arrayMerge: (target, source) => source,
-        assign: true,
-      })
-    } else if (strategy === 'shallowMerge') {
-      Object.assign(this.initialValues, initialValues)
-    } else {
-      this.initialValues = initialValues as any
-    }
-  }
-
-  setValuesIn = (pattern: FormPathPattern, value: any) => {
-    FormPath.setIn(this.values, pattern, value)
-  }
-
-  deleteValuesIn = (pattern: FormPathPattern) => {
-    FormPath.deleteIn(this.values, pattern)
-  }
-
-  existValuesIn = (pattern: FormPathPattern) => {
-    return FormPath.existIn(this.values, pattern)
-  }
-
-  getValuesIn = (pattern: FormPathPattern) => {
+  getValuesIn(pattern: FormPathPattern) {
     return FormPath.getIn(this.values, pattern)
   }
 
-  setInitialValuesIn = (pattern: FormPathPattern, initialValue: any) => {
-    FormPath.setIn(this.initialValues, pattern, initialValue)
+  setValuesIn(pattern: FormPathPattern, value: any) {
+    return FormPath.setIn(this.values, pattern, value)
   }
 
-  deleteInitialValuesIn = (pattern: FormPathPattern) => {
-    FormPath.deleteIn(this.initialValues, pattern)
-  }
+  @Observable
+  accessor initialValues: ValueType
 
-  existInitialValuesIn = (pattern: FormPathPattern) => {
-    return FormPath.existIn(this.initialValues, pattern)
-  }
-
-  getInitialValuesIn = (pattern: FormPathPattern) => {
+  getInitialValuesIn(pattern: FormPathPattern) {
     return FormPath.getIn(this.initialValues, pattern)
   }
 
-  setLoading = (loading: boolean) => {
-    setLoading(this, loading)
+  setInitialValuesIn(pattern: FormPathPattern, value: any) {
+    return FormPath.setIn(this.initialValues, pattern, value)
   }
 
-  setSubmitting = (submitting: boolean) => {
-    setSubmitting(this, submitting)
+  @Observable.Ref
+  accessor initialized = false
+
+  @Observable.Ref
+  accessor submitting = false
+
+  @Observable.Ref
+  accessor loading = false
+
+  @Observable.Ref
+  accessor modified = false
+
+  @Observable.Ref
+  accessor mounted = false
+
+  @Observable.Ref
+  accessor unmounted = false
+
+  @Observable
+  accessor props: IFormProps<ValueType>
+
+  get lifecycles() {
+    return runEffects(this, this.props.effects!)
   }
 
-  setValidating = (validating: boolean) => {
-    setValidating(this, validating)
+  /** 表单字段默认显示状态 starts */
+
+  @Observable.Ref
+  accessor display: DisplayTypes
+
+  setDisplay(display?: DisplayTypes) {
+    this.display = display || DisplayTypes.VISIBLE
   }
 
-  setDisplay = (display: FormDisplayTypes) => {
-    this.display = display
+  get hidden() {
+    return this.display === DisplayTypes.HIDDEN
   }
 
-  setPattern = (pattern: FormPatternTypes) => {
-    this.pattern = pattern
+  /**
+   * 设置表单字段是否隐藏
+   * - `true` 等同于 `display: 'hidden'`
+   * - `false` 等同于 `display: 'visible'`
+   */
+  set hidden(hidden: boolean) {
+    if (!isBool(hidden)) return
+    this.display = hidden ? DisplayTypes.HIDDEN : DisplayTypes.VISIBLE
   }
 
-  addEffects = (id: any, effects: IFormProps['effects']) => {
-    if (!this.heart.hasLifeCycles(id)) {
-      this.heart.addLifeCycles(id, runEffects(this, effects))
-    }
+  get visible() {
+    return this.display === DisplayTypes.VISIBLE
   }
 
-  removeEffects = (id: any) => {
-    this.heart.removeLifeCycles(id)
+  /**
+   * 设置表单字段是否显示,
+   * - `true` 等同于 `display: 'visible'`
+   * - `false` 等同于 `display: 'none'`
+   */
+  set visible(visible: boolean) {
+    if (!isBool(visible)) return
+    this.display = visible ? DisplayTypes.VISIBLE : DisplayTypes.NONE
   }
 
-  setEffects = (effects: IFormProps['effects']) => {
-    this.heart.setLifeCycles(runEffects(this, effects))
+  /** 表单字段默认显示状态 ends */
+
+  /** 表单字段默认模式 starts */
+
+  /**
+   * 表单字段的模式类型
+   * - `editable` 可编辑模式
+   * - `readPretty` 阅读模式
+   * - `readOnly` 只读模式
+   * - `disabled` 禁用模式
+   */
+  @Observable.Ref
+  accessor pattern = PatternTypes.EDITABLE
+
+  setPattern(pattern?: PatternTypes) {
+    this.pattern = pattern || PatternTypes.EDITABLE
   }
 
-  clearErrors = (pattern: FormPathPattern = '*') => {
-    this.query(pattern).forEach(field => {
-      if (!isVoidField(field)) {
-        field.setFeedback({
-          type: 'error',
-          messages: [],
-        })
-      }
-    })
+  @Observable.Computed
+  get editable() {
+    return this.pattern === PatternTypes.EDITABLE
   }
 
-  clearWarnings = (pattern: FormPathPattern = '*') => {
-    this.query(pattern).forEach(field => {
-      if (!isVoidField(field)) {
-        field.setFeedback({
-          type: 'warning',
-          messages: [],
-        })
-      }
-    })
+  /**
+   * 设置表单字段是否可编辑
+   * - `true` 等同于 `pattern: 'editable'`
+   * - `false` 等同于 `pattern: 'disabled'`
+   */
+  set editable(editable: boolean) {
+    if (!isBool(editable)) return
+    this.pattern = editable ? PatternTypes.EDITABLE : PatternTypes.DISABLED
   }
 
-  clearSuccesses = (pattern: FormPathPattern = '*') => {
-    this.query(pattern).forEach(field => {
-      if (!isVoidField(field)) {
-        field.setFeedback({
-          type: 'success',
-          messages: [],
-        })
-      }
-    })
+  @Observable.Computed
+  get readPretty() {
+    return this.pattern === PatternTypes.READ_PRETTY
   }
 
-  query = (pattern: FormPathPattern): Query => {
+  /**
+   * 设置表单字段是否阅读模式
+   * - `true` 等同于 `pattern: 'readPretty'`
+   * - `false` 等同于 `pattern: 'editable'`
+   */
+  set readPretty(readPretty: boolean) {
+    if (!isBool(readPretty)) return
+    this.pattern = readPretty ? PatternTypes.READ_PRETTY : PatternTypes.EDITABLE
+  }
+
+  @Observable.Computed
+  get readOnly() {
+    return this.pattern === PatternTypes.READ_ONLY
+  }
+
+  /**
+   * 设置表单字段是否只读
+   * - `true` 等同于 `pattern: 'readOnly'`
+   * - `false` 等同于 `pattern: 'editable'`
+   */
+  set readOnly(readOnly: boolean) {
+    if (!isBool(readOnly)) return
+    this.pattern = readOnly ? PatternTypes.READ_ONLY : PatternTypes.EDITABLE
+  }
+
+  /**
+   * 设置表单字段是否禁用
+   * - 当字段 `pattern` 为 `disabled` 时返回 `true`，或 `pattern` 为 `readPretty` 时返回 `true`
+   * - 否则返回 `false`
+   */
+  @Observable.Computed
+  get disabled() {
+    if (this.readPretty) return true
+    return this.pattern === PatternTypes.DISABLED
+  }
+
+  /**
+   * 设置表单字段是否禁用
+   * - `true` 等同于 `pattern: 'disabled'`
+   * - `false` 等同于 `pattern: 'editable'`
+   */
+  set disabled(disabled: boolean) {
+    if (!isBool(disabled)) return
+    this.pattern = disabled ? PatternTypes.DISABLED : PatternTypes.EDITABLE
+  }
+  /** 表单字段默认模式 ends */
+
+  @Observable.Shallow
+  accessor fields: IFormFields = {}
+
+  query(pattern: FormPathPattern): Query {
     return new Query({
       pattern,
       base: '',
@@ -445,96 +242,89 @@ export class Form<ValueType extends object = any> {
     })
   }
 
-  queryFeedbacks = (search: ISearchFeedback): IFormFeedback[] => {
-    return this.query(search.address || search.path || '*').reduce((messages, field) => {
-      if (isVoidField(field)) return messages
-      return messages.concat(
-        field
-          .queryFeedbacks(search)
-          .map(feedback => ({
-            ...feedback,
-            address: field.address.toString(),
-            path: field.path.toString(),
-          }))
-          .filter(feedback => feedback.messages.length > 0)
-      )
-    }, [])
-  }
-
-  notify = (type: string, payload?: any) => {
-    this.heart.publish(type, payload ?? this)
-  }
-
-  subscribe = (subscriber?: HeartSubscriber) => {
-    return this.heart.subscribe(subscriber)
-  }
-
-  unsubscribe = (id: number) => {
-    this.heart.unsubscribe(id)
-  }
-
-  /**事件钩子**/
-
-  onInit = () => {
-    this.initialized = true
-    this.notify(LifeCycleTypes.ON_FORM_INIT)
-  }
-
-  onMount = () => {
-    this.mounted = true
-    this.notify(LifeCycleTypes.ON_FORM_MOUNT)
-    if (globalThisPolyfill[DEV_TOOLS_HOOK] && !this.props.designable) {
-      globalThisPolyfill[DEV_TOOLS_HOOK].inject(this.id, this)
-    }
-  }
-
-  onUnmount = () => {
-    this.notify(LifeCycleTypes.ON_FORM_UNMOUNT)
-    this.query('*').forEach(field => field.destroy(false))
-    this.disposers.forEach(dispose => dispose())
-    this.unmounted = true
-    this.indexes = {}
-    this.heart.clear()
-    if (globalThisPolyfill[DEV_TOOLS_HOOK] && !this.props.designable) {
-      globalThisPolyfill[DEV_TOOLS_HOOK].unmount(this.id)
-    }
-  }
-
   setState: IModelSetter<IFormState<ValueType>> = createStateSetter(this)
 
   getState: IModelGetter<IFormState<ValueType>> = createStateGetter(this)
 
-  setFormState: IModelSetter<IFormState<ValueType>> = createStateSetter(this)
-
-  getFormState: IModelGetter<IFormState<ValueType>> = createStateGetter(this)
-
-  setFieldState: IFieldStateSetter = createBatchStateSetter(this)
-
-  getFieldState: IFieldStateGetter = createBatchStateGetter(this)
-
-  getFormGraph = () => {
-    return this.graph.getGraph()
+  createField = <Decorator extends JSXComponent, Component extends JSXComponent>(
+    props: IFieldFactoryProps<Decorator, Component>
+  ): Field<Decorator, Component> => {
+    const address = FormPath.parse(props.basePath).concat(props.name)
+    const identifier = address.toString()
+    if (!identifier) {
+      throw new Error(`Can not create field without name ${props.name} in ${props.basePath}`)
+    }
+    if (!this.fields[identifier] || this.props.designable) {
+      batch(() => {
+        new Field(address, props, this)
+      })
+      // this.notify(LifeCycleTypes.ON_FORM_GRAPH_CHANGE)
+    }
+    return this.fields[identifier] as any
   }
 
-  setFormGraph = (graph: IFormGraph) => {
-    this.graph.setGraph(graph)
+  createArrayField = <Decorator extends JSXComponent, Component extends JSXComponent>(
+    props: IFieldFactoryProps<Decorator, Component>
+  ): ArrayField<Decorator, Component> => {
+    const address = FormPath.parse(props.basePath).concat(props.name)
+    const identifier = address.toString()
+    if (!identifier) {
+      throw new Error(`Can not create field without name ${props.name} in ${props.basePath}`)
+    }
+    if (!this.fields[identifier] || this.props.designable) {
+      batch(() => {
+        new ArrayField(
+          address,
+          {
+            ...props,
+            value: isArr(props.value) ? props.value : [],
+          },
+          this
+        )
+      })
+      // this.notify(LifeCycleTypes.ON_FORM_GRAPH_CHANGE)
+    }
+    return this.fields[identifier] as any
   }
 
-  clearFormGraph = (pattern: FormPathPattern = '*', forceClear = true) => {
-    this.query(pattern).forEach(field => {
-      field.destroy(forceClear)
-    })
+  createObjectField = <Decorator extends JSXComponent, Component extends JSXComponent>(
+    props: IFieldFactoryProps<Decorator, Component>
+  ): ObjectField<Decorator, Component> => {
+    const address = FormPath.parse(props.basePath).concat(props.name)
+    const identifier = address.toString()
+    if (!identifier) {
+      throw new Error(`Can not create field without name ${props.name} in ${props.basePath}`)
+    }
+    if (!this.fields[identifier] || this.props.designable) {
+      batch(() => {
+        new ObjectField(
+          address,
+          {
+            ...props,
+            value: isObj(props.value) ? props.value : {},
+          },
+          this
+        )
+      })
+      // this.notify(LifeCycleTypes.ON_FORM_GRAPH_CHANGE)
+    }
+    return this.fields[identifier] as any
   }
 
-  validate = (pattern: FormPathPattern = '*') => {
-    return batchValidate(this, pattern)
-  }
-
-  submit = <T>(onSubmit?: (values: ValueType) => Promise<T> | void): Promise<T> => {
-    return batchSubmit(this, onSubmit)
-  }
-
-  reset = (pattern: FormPathPattern = '*', options?: IFieldResetOptions) => {
-    return batchReset(this, pattern, options)
+  createVoidField = <Decorator extends JSXComponent, Component extends JSXComponent>(
+    props: IVoidFieldFactoryProps<Decorator, Component>
+  ): VoidField<Decorator, Component> => {
+    const address = FormPath.parse(props.basePath).concat(props.name)
+    const identifier = address.toString()
+    if (!identifier) {
+      throw new Error(`Can not create field without name ${props.name} in ${props.basePath}`)
+    }
+    if (!this.fields[identifier] || this.props.designable) {
+      batch(() => {
+        new VoidField(address, props, this)
+      })
+      // this.notify(LifeCycleTypes.ON_FORM_GRAPH_CHANGE)
+    }
+    return this.fields[identifier] as any
   }
 }
