@@ -51,6 +51,10 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
     return this.form.values
   }
 
+  get destroyed() {
+    return !this.form.fields[this.address.toString()]
+  }
+
   @Observable.Ref
   accessor initialized = false
   @Observable.Ref
@@ -339,13 +343,13 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
     locateNode(this as any, address)
   }
 
-  onMount = () => {
+  onMount() {
     this.mounted = true
     this.unmounted = false
     this.notify(LifeCycleTypes.ON_FIELD_MOUNT)
   }
 
-  onUnmount = () => {
+  onUnmount() {
     this.mounted = false
     this.unmounted = true
     this.notify(LifeCycleTypes.ON_FIELD_UNMOUNT)

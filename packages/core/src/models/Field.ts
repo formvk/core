@@ -1,6 +1,7 @@
-import { Observable } from '@formvk/reactive'
-import { isArr, toArr, type FormPathPattern } from '@formvk/shared'
+import { Observable, toJS } from '@formvk/reactive'
+import { isArr, isEmpty, isValid, toArr, type FormPathPattern } from '@formvk/shared'
 import { parseValidatorDescriptions } from '@formvk/validator'
+import { allowAssignDefaultValue, createReaction, createReactions, getValidFieldDefaultValue } from '../internals'
 import {
   createStateGetter,
   createStateSetter,
@@ -14,6 +15,7 @@ import type {
   FeedbackMessage,
   FieldDataSource,
   FieldValidator,
+  IFieldCaches,
   IFieldFeedback,
   IFieldProps,
   IFieldState,
@@ -22,6 +24,7 @@ import type {
   IRequests,
   JSXComponent,
 } from '../types'
+import { LifeCycleTypes } from '../types'
 import { BaseField } from './BaseField'
 import type { Form } from './types'
 
@@ -31,10 +34,6 @@ export class Field<
   TextType = any,
   ValueType = any,
 > extends BaseField<Decorator, Component, TextType> {
-  inputValue: ValueType
-
-  accessor inputValues: ValueType[] = []
-
   constructor(address: FormPathPattern, props: IFieldProps<Decorator, Component, TextType, ValueType>, form: Form) {
     super()
     this.form = form
@@ -43,8 +42,27 @@ export class Field<
     this.locate(address)
     this.initialize()
     // this.makeObservable()
-    // this.makeReactive()
+    this.makeReactive()
     this.onInit()
+  }
+
+  inputValue: ValueType
+
+  accessor inputValues: ValueType[] = []
+
+  setValue(value?: ValueType) {
+    if (this.destroyed) return
+    if (!this.initialized) {
+      if (this.display === 'none') {
+        this.caches.value = value
+        return
+      }
+      value = getValidFieldDefaultValue(value, this.initialValue)
+      if (!allowAssignDefaultValue(this.value, value) && !this.form.designable) {
+        return
+      }
+    }
+    this.form.setValuesIn(this.path, value)
   }
 
   protected initialize() {
@@ -68,6 +86,68 @@ export class Field<
     this.modifiers = toArr(this.props.modifiers)
     this.decorator = toArr(this.props.decorator)
     this.component = toArr(this.props.component)
+  }
+
+  caches: IFieldCaches = {}
+
+  protected makeReactive() {
+    if (this.form.designable) return
+    this.disposers.push(
+      createReaction(
+        () => this.value,
+        value => {
+          this.notify(LifeCycleTypes.ON_FIELD_VALUE_CHANGE)
+          if (isValid(value)) {
+            if (this.selfModified && !this.caches.inputting) {
+              validateSelf(this)
+            }
+            if (!isEmpty(value) && this.display === 'none') {
+              this.caches.value = toJS(value)
+              this.form.deleteValuesIn(this.path)
+            }
+          }
+        }
+      ),
+      createReaction(
+        () => this.initialValue,
+        () => {
+          this.notify(LifeCycleTypes.ON_FIELD_INITIAL_VALUE_CHANGE)
+        }
+      ),
+      createReaction(
+        () => this.display,
+        display => {
+          const value = this.value
+          if (display !== 'none') {
+            if (value === undefined && this.caches.value !== undefined) {
+              this.setValue(this.caches.value)
+              this.caches.value = undefined
+            }
+          } else {
+            this.caches.value = toJS(value) ?? toJS(this.initialValue)
+            this.form.deleteValuesIn(this.path)
+          }
+          if (display === 'none' || display === 'hidden') {
+            this.setFeedback({
+              type: 'error',
+              messages: [],
+            })
+          }
+        }
+      ),
+      createReaction(
+        () => this.pattern,
+        pattern => {
+          if (pattern !== 'editable') {
+            this.setFeedback({
+              type: 'error',
+              messages: [],
+            })
+          }
+        }
+      )
+    )
+    createReactions(this)
   }
 
   accessor props: IFieldProps<Decorator, Component, TextType, ValueType>
@@ -97,7 +177,7 @@ export class Field<
     })
   }
 
-  feedbacks: IFieldFeedback[]
+  feedbacks: IFieldFeedback[] = []
 
   setFeedback = (feedback?: IFieldFeedback) => {
     updateFeedback(this, feedback)

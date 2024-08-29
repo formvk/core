@@ -42,6 +42,7 @@ export class Schema<Decorator = any, Component = any, DecoratorProps = any, Comp
   required?: string[] | boolean | string
   format?: string
   /** nested json schema spec **/
+  slot?: string
   definitions?: Record<string, Schema<Decorator, Component, DecoratorProps, ComponentProps>>
   items?:
     | Schema<Decorator, Component, DecoratorProps, ComponentProps>
@@ -197,7 +198,7 @@ export class Schema<Decorator = any, Component = any, DecoratorProps = any, Comp
     return results
   }
 
-  reducePatternProperties = <P, R>(
+  reducePatternProperties<P, R>(
     callback: (
       buffer: P,
       schema: Schema<Decorator, Component, DecoratorProps, ComponentProps>,
@@ -205,7 +206,7 @@ export class Schema<Decorator = any, Component = any, DecoratorProps = any, Comp
       index: number
     ) => R,
     predicate?: P
-  ): R => {
+  ): R {
     let results: any = predicate
     Schema.getOrderProperties(this, 'patternProperties').forEach(({ schema, key }, index) => {
       results = callback(results, schema, key, index)
@@ -213,7 +214,7 @@ export class Schema<Decorator = any, Component = any, DecoratorProps = any, Comp
     return results
   }
 
-  compile = (scope?: any) => {
+  compile(scope?: any) {
     const schema = new Schema({}, this.parent)
     each(this, (value, key) => {
       if (isFn(value) && !key.includes('x-')) return

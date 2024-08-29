@@ -179,3 +179,9 @@ export interface IVoidFieldFactoryProps<Decorator extends JSXComponent, Componen
   name: FormPathPattern
   basePath?: FormPathPattern
 }
+
+export interface IFieldCaches {
+  value?: any
+  initialValue?: any
+  inputting?: boolean
+}

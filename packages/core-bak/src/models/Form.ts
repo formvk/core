@@ -448,7 +448,7 @@ export class Form<ValueType extends object = any> {
     this.pattern = pattern
   }
 
-  addEffects = (id: any, effects: IFormProps['effects']) => {
+  addEffects(id: any, effects: IFormProps['effects']) {
     if (!this.heart.hasLifeCycles(id)) {
       this.heart.addLifeCycles(id, runEffects(this, effects))
     }

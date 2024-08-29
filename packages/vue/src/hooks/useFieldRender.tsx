@@ -1,6 +1,6 @@
 import { isVoidField, type GeneralField, type IFieldProps, type IVoidFieldProps } from '@formvk/core'
 import { each, FormPath } from '@formvk/shared'
-import type { ComputedRef, Ref } from 'vue'
+import type { Ref } from 'vue'
 import { computed, shallowRef, unref, watch } from 'vue'
 import { getPropsTransformer, getReadPrettyInfo, getValueProp, isVueOptions, mergeRender } from '../shared'
 import { useAttach } from './useAttach'
@@ -14,6 +14,7 @@ const mergeSlots = (
   content: any
 ): Record<string, (...args: any) => any> => {
   const slotNames = Object.keys(slots)
+  console.log('slotNames', slotNames, slots)
   if (!slotNames.length) {
     if (!content) {
       return {}
@@ -56,19 +57,16 @@ export type FieldType = 'Field' | 'ArrayField' | 'ObjectField' | 'VoidField'
 /**
  * @param options 响应式字段选项
  */
-export function useFieldRender(
-  fieldType: FieldType | Ref<FieldType>,
-  fieldProps: ComputedRef<IFieldProps | IVoidFieldProps>,
-  slots: Record<string, any>
-) {
+export function useFieldRender(fieldType: FieldType | Ref<FieldType>, fieldProps: Ref<IFieldProps | IVoidFieldProps>) {
   const formRef = useForm()
   const parentRef = useField<GeneralField | null>()
   const createField = (): GeneralField => {
+    const props = fieldProps.value
+    if (!props.name) return null!
     const form = formRef.value
     const parent = parentRef.value
     const type = unref(fieldType)
     const fn = `create${type}` as const
-    const props = fieldProps.value
     const field = form[fn]({
       ...props,
       basePath: props.basePath ?? parent?.address,
@@ -112,7 +110,7 @@ export function useFieldRender(
     },
   })
 
-  return () => {
+  return (slots: any) => {
     const field = fieldRef.value
     if (!field?.visible) {
       return null
@@ -120,9 +118,12 @@ export function useFieldRender(
 
     const mergedSlots = mergeSlots(field, slots, field.content)
 
-    const renderDecorator = (childNodes: any[]) => {
+    const renderDecorator = (childNodes: any) => {
       if (!field.decoratorType) {
-        return <>{childNodes}</>
+        if (fieldProps.value.name === 'name') {
+          console.log('childNodes', childNodes)
+        }
+        return childNodes
       }
       const Decorator = getComponents(field.decoratorType)
       const decoratorProps = field.decorator[1]
@@ -141,7 +142,7 @@ export function useFieldRender(
 
     const renderComponent = () => {
       if (!field.componentType) {
-        return <>{mergedSlots?.default?.()}</>
+        return <>{mergedSlots.default?.()}</>
       }
 
       let Component = getComponents(field.componentType)
@@ -185,6 +186,7 @@ export function useFieldRender(
         }, {})
       }
 
+      console.log('nodes', Component)
       return (
         <Component
           {...componentProps}
@@ -202,6 +204,9 @@ export function useFieldRender(
       )
     }
 
-    return <>{renderDecorator([renderComponent()])}</>
+    const nodes = renderComponent()
+    console.log('nodes', nodes)
+
+    return <>{renderDecorator(nodes)}</>
   }
 }

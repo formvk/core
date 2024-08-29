@@ -105,6 +105,7 @@ export interface ISchemaBase<Decorator = any, Component = any, DecoratorProps = 
    * 数组元素是否唯一
    */
   uniqueItems?: boolean
+  slot?: string
   items?:
     | ISchema<Decorator, Component, DecoratorProps, ComponentProps>
     | ISchema<Decorator, Component, DecoratorProps, ComponentProps>[]

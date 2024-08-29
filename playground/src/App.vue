@@ -1,6 +1,6 @@
 <script setup lang="tsx">
 import { Form } from '@formvk/core'
-import { provideForm, Field } from '@formvk/vue'
+import { provideForm, Field, RecursionField } from '@formvk/vue'
 import { Schema } from '@formvk/schema'
 
 const form = new Form()
@@ -14,6 +14,7 @@ const schema = new Schema({
       type: 'string',
       title: 'Name',
       required: true,
+      component: 'input',
     },
     age: {
       type: 'number',
@@ -35,7 +36,10 @@ console.log(schema)
 </script>
 
 <template>
-  <div></div>
+  <div>
+    <RecursionField :schema />
+    <Field name="sss" :component="['input']" />
+  </div>
 </template>
 
 <style scoped></style>

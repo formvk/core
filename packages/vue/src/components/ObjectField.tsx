@@ -13,10 +13,10 @@ export const ObjectField = defineComponent(
       }
     })
 
-    const fieldRender = useFieldRender('ObjectField', fieldProps, slots)
+    const fieldRender = useFieldRender('ObjectField', fieldProps)
 
     return () => {
-      return <>{fieldRender()}</>
+      return <>{fieldRender(slots)}</>
     }
   },
   {

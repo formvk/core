@@ -96,6 +96,7 @@ export const patchSchemaCompile = (
       }
     })
     if (compiled === undefined) return
+    console.log('sourceSchema', sourceSchema, path, compiled)
     if (demand) {
       if (collected || !targetState.initialized) {
         patchStateFormSchema(targetState, path, compiled)

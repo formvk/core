@@ -13,10 +13,10 @@ export const VoidField = defineComponent(
       }
     })
 
-    const fieldRender = useFieldRender('VoidField', fieldProps, slots)
+    const fieldRender = useFieldRender('VoidField', fieldProps)
 
     return () => {
-      return <>{fieldRender()}</>
+      return <>{fieldRender(slots)}</>
     }
   },
   {

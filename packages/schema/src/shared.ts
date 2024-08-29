@@ -1,6 +1,6 @@
 import { isObservable, untracked } from '@formvk/reactive'
 import { each, FormPath, isArr, isFn, isPlainObj, toArr } from '@formvk/shared'
-import { Schema } from './schema'
+// import { Schema } from './schema'
 import type { ISchema } from './types'
 
 const REVA_ACTIONS_KEY = Symbol.for('__REVA_ACTIONS')
@@ -28,8 +28,7 @@ export const SchemaStateMap = {
   value: 'value',
   editable: 'editable',
   disabled: 'disabled',
-  'read-pretty': 'readPretty',
-  'read-only': 'readOnly',
+  readPretty: 'readPretty',
   visible: 'visible',
   hidden: 'hidden',
   display: 'display',
@@ -145,9 +144,9 @@ export const isNoNeedCompileObject = (source: any) => {
   if (source['_isAMomentObject']) {
     return true
   }
-  if (Schema.isSchemaInstance(source)) {
-    return true
-  }
+  // if (Schema.isSchemaInstance(source)) {
+  //   return true
+  // }
   if (source[REVA_ACTIONS_KEY]) {
     return true
   }
@@ -183,11 +182,20 @@ export const patchStateFormSchema = (targetState: any, pattern: any[], compiled:
     const key = segments[0]
     const isEnum = key === 'enum' && isArr(compiled)
     const schemaMapKey = SchemaStateMap[key]
+    console.log('schemaMapKey', schemaMapKey, key, segments, compiled)
     if (schemaMapKey) {
       FormPath.setIn(
         targetState,
         [schemaMapKey].concat(segments.slice(1)),
         isEnum ? createDataSource(compiled) : compiled
+      )
+      console.log(
+        'targetState',
+        FormPath.getIn(targetState, [schemaMapKey].concat(segments.slice(1))),
+        compiled,
+        [schemaMapKey].concat(segments.slice(1)),
+        targetState.componentType,
+        targetState
       )
     } else {
       const isValidatorKey = SchemaValidatorMap[key]

@@ -88,6 +88,10 @@ export class Form<ValueType extends object = any> {
     return FormPath.setIn(this.initialValues, pattern, value)
   }
 
+  deleteValuesIn = (pattern: FormPathPattern) => {
+    FormPath.deleteIn(this.values, pattern)
+  }
+
   @Observable.Ref
   accessor initialized = false
 
@@ -253,6 +257,12 @@ export class Form<ValueType extends object = any> {
   }
 
   requests: IRequests = {}
+
+  addEffects(id: any, effects: IFormProps['effects']) {
+    if (!this.heart.hasLifeCycles(id)) {
+      this.heart.addLifeCycles(id, runEffects(this, effects!))
+    }
+  }
 
   setState: IModelSetter<IFormState<ValueType>> = createStateSetter(this)
 
