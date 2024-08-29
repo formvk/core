@@ -9,7 +9,7 @@ export class LifeCycle<Payload = any> {
   constructor(...params: LifeCycleParams<Payload>) {
     this.listener = this.buildListener(params)
   }
-  buildListener = (params: any[]) => {
+  buildListener = (params: LifeCycleParams<Payload>) => {
     return function (this: any, payload: { type: string; payload: Payload }, ctx: any) {
       for (let index = 0; index < params.length; index++) {
         const item = params[index]
@@ -17,7 +17,7 @@ export class LifeCycle<Payload = any> {
           item.call(this, payload, ctx)
         } else if (isStr(item) && isFn(params[index + 1])) {
           if (item === payload.type) {
-            params[index + 1].call(this, payload.payload, ctx)
+            ;(params[index + 1] as Function).call(this, payload.payload, ctx)
           }
           index++
         } else {

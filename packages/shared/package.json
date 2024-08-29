@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "camel-case": "^4.1.2",
+    "change-case": "^5.4.4",
     "lower-case": "^2.0.2",
     "no-case": "^3.0.4",
     "param-case": "^3.0.4",

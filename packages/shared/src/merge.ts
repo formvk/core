@@ -33,7 +33,6 @@ function isSpecial(value: any) {
 function emptyTarget(val: any) {
   return Array.isArray(val) ? [] : {}
 }
-// @ts-ignore
 function cloneUnlessOtherwiseSpecified(value: any, options: Options) {
   if (options.clone !== false && options.isMergeableObject?.(value)) {
     return deepmerge(emptyTarget(value), value, options)
@@ -58,6 +57,7 @@ function getMergeFunction(key: string, options: Options) {
 function getEnumerableOwnPropertySymbols(target: any): any {
   return Object.getOwnPropertySymbols
     ? Object.getOwnPropertySymbols(target).filter(function (symbol) {
+        // eslint-disable-next-line no-prototype-builtins
         return target.propertyIsEnumerable(symbol)
       })
     : []
@@ -90,7 +90,7 @@ function propertyIsUnsafe(target: any, key: PropertyKey) {
 
 function mergeObject(target: any, source: any, options: Options) {
   const destination = options.assign ? target || {} : {}
-  if (!options.isMergeableObject(target)) return target
+  if (!options.isMergeableObject?.(target)) return target
   if (!options.assign) {
     getKeys(target).forEach(function (key) {
       destination[key] = cloneUnlessOtherwiseSpecified(target[key], options)
@@ -105,14 +105,11 @@ function mergeObject(target: any, source: any, options: Options) {
       destination[key] = source[key]
     } else if (
       propertyIsOnObject(target, key) &&
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       options.isMergeableObject(source[key])
     ) {
-      destination[key] = getMergeFunction(key, options)(
-        target[key],
-        source[key],
-        options
-      )
+      destination[key] = getMergeFunction(key, options)(target[key], source[key], options)
     } else {
       destination[key] = cloneUnlessOtherwiseSpecified(source[key], options)
     }
@@ -124,20 +121,15 @@ interface Options {
   arrayMerge?(target: any[], source: any[], options?: Options): any[]
   clone?: boolean
   assign?: boolean
-  customMerge?: (
-    key: string,
-    options?: Options
-  ) => ((x: any, y: any) => any) | undefined
+  customMerge?: (key: string, options?: Options) => ((x: any, y: any) => any) | undefined
   isMergeableObject?(value: object): boolean
   cloneUnlessOtherwiseSpecified?: (value: any, options: Options) => any
 }
 
-// @ts-ignore
 function deepmerge(target: any, source: any, options?: Options) {
   options = options || {}
   options.arrayMerge = options.arrayMerge || defaultArrayMerge
-  options.isMergeableObject =
-    options.isMergeableObject || defaultIsMergeableObject
+  options.isMergeableObject = options.isMergeableObject || defaultIsMergeableObject
   // cloneUnlessOtherwiseSpecified is added to `options` so that custom arrayMerge()
   // implementations can use it. The caller may not replace it.
   options.cloneUnlessOtherwiseSpecified = cloneUnlessOtherwiseSpecified
@@ -155,14 +147,8 @@ function deepmerge(target: any, source: any, options?: Options) {
   }
 }
 
-export const lazyMerge = <T extends object | Function>(
-  target: T,
-  ...args: T[]
-): any => {
-  const _lazyMerge = <T extends object | Function>(
-    target: T,
-    source: T
-  ): {} => {
+export const lazyMerge = <T extends object | Function>(target: T, ...args: any[]): any => {
+  const _lazyMerge = <T extends object | Function>(target: T, source: T): {} => {
     if (!isValid(source)) return target
     if (!isValid(target)) return source
     const isTargetObject = typeof target === 'object'
@@ -171,15 +157,21 @@ export const lazyMerge = <T extends object | Function>(
     const isSourceFn = typeof source === 'function'
     if (!isTargetObject && !isTargetFn) return source
     if (!isSourceObject && !isSourceFn) return target
-    const getTarget = () => (isTargetFn ? target() : target)
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    const getTarget = () => (typeof target === 'function' ? target() : target)
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     const getSource = () => (isSourceFn ? source() : source)
     const set = (_: object, key: PropertyKey, value: any) => {
       const source = getSource()
       const target = getTarget()
       if (key in source) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         source[key] = value
       } else if (key in target) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         target[key] = value
       } else {
@@ -189,10 +181,12 @@ export const lazyMerge = <T extends object | Function>(
     }
     const get = (_: object, key: PropertyKey) => {
       const source = getSource()
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       if (key in source) {
         return source[key]
       }
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       return getTarget()[key]
     }

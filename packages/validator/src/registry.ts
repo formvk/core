@@ -1,4 +1,4 @@
-import { FormPath, merge as deepmerge, each, globalThisPolyfill, isFn, isStr, lowerCase } from '@formvk/shared'
+import { FormPath, merge as deepmerge, each, globalThisPolyfill, isFn, isStr } from '@formvk/shared'
 import type {
   IRegistryFormats,
   IRegistryLocaleMessages,
@@ -36,9 +36,9 @@ const getISOCode = (language: string) => {
   if (registry.locales.messages[language]) {
     return language
   }
-  const lang = lowerCase(language)
+  const lang = language.toLocaleLowerCase()
   each(registry.locales.messages, (messages: IRegistryLocaleMessages, key: string) => {
-    const target = lowerCase(key)
+    const target = key.toLocaleLowerCase()
     if (target.indexOf(lang) > -1 || lang.indexOf(target) > -1) {
       isoCode = key
       return false

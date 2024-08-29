@@ -1,5 +1,5 @@
 {
-  "name": "@formvk/vue",
+  "name": "@formvk/react",
   "version": "1.0.0",
   "description": "Formvk Shared",
   "keywords": [
@@ -17,10 +17,5 @@
   "scripts": {
     "build": "vite build"
   },
-  "devDependencies": {
-    "vue": "^3.4.38"
-  },
-  "peerDependencies": {
-    "vue": "^3.4.0"
-  }
+  "dependencies": {}
 }

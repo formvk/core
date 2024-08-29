@@ -1,6 +1,7 @@
-import type { ArrayField, Field, Form, ObjectField, VoidField } from '../models/types'
+import type { FormPathPattern } from '@formvk/shared'
+import type { ArrayField, Field, Form, ObjectField, Query, VoidField } from '../models/types'
 import type { DisplayTypes, PatternTypes } from './enums'
-import type { IFormState, IGeneralFieldState } from './field'
+import type { IFieldState, IFormState, IGeneralFieldState } from './field'
 
 export interface IFormProps<T extends object = any> {
   /**
@@ -76,4 +77,16 @@ export interface IModelSetter<P = any> {
 export interface IModelGetter<P = any> {
   <Getter extends (state: P) => any>(getter: Getter): ReturnType<Getter>
   (): P
+}
+
+export type FieldMatchPattern = FormPathPattern | Query | GeneralField
+
+export interface IFieldStateSetter {
+  (pattern: FieldMatchPattern, setter: (state: IFieldState) => void): void
+  (pattern: FieldMatchPattern, setter: Partial<IFieldState>): void
+}
+
+export interface IFieldStateGetter {
+  <Getter extends (state: IGeneralFieldState) => any>(pattern: FieldMatchPattern, getter: Getter): ReturnType<Getter>
+  (pattern: FieldMatchPattern): IGeneralFieldState
 }

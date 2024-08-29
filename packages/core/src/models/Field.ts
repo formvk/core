@@ -1,14 +1,25 @@
 import { Observable } from '@formvk/reactive'
 import { isArr, toArr, type FormPathPattern } from '@formvk/shared'
 import { parseValidatorDescriptions } from '@formvk/validator'
-import { createStateGetter, createStateSetter, setValidatorRule } from '../shared/internals'
+import {
+  createStateGetter,
+  createStateSetter,
+  isHTMLInputEvent,
+  queryFeedbackMessages,
+  setValidatorRule,
+  updateFeedback,
+  validateSelf,
+} from '../shared/internals'
 import type {
+  FeedbackMessage,
   FieldDataSource,
   FieldValidator,
+  IFieldFeedback,
   IFieldProps,
   IFieldState,
   IModelGetter,
   IModelSetter,
+  IRequests,
   JSXComponent,
 } from '../types'
 import { BaseField } from './BaseField'
@@ -80,6 +91,22 @@ export class Field<
   @Observable.Shallow
   accessor validator: FieldValidator
 
+  get selfErrors(): FeedbackMessage {
+    return queryFeedbackMessages(this, {
+      type: 'error',
+    })
+  }
+
+  feedbacks: IFieldFeedback[]
+
+  setFeedback = (feedback?: IFieldFeedback) => {
+    updateFeedback(this, feedback)
+  }
+
+  get selfValid() {
+    return !this.selfErrors.length
+  }
+
   get required() {
     const validators = isArr(this.validator) ? this.validator : parseValidatorDescriptions(this.validator)
     return validators.some(desc => !!desc?.['required'])
@@ -114,17 +141,27 @@ export class Field<
   @Observable.Shallow
   accessor modifiers: string[] = []
 
-  onInput = (...args: any[]) => {
-    this.value = args[0] as any
+  requests: IRequests = {}
+
+  onInput = (event?: any) => {
+    this.value = event
   }
 
-  onFocus = (...args: any[]) => {
+  onFocus = async (event?: FocusEvent | Record<string, any>) => {
+    if (event?.target) {
+      if (!isHTMLInputEvent(event, false)) return
+    }
     this.active = true
+    this.visited = true
+    await validateSelf(this, 'onFocus')
   }
 
-  onBlur = (...args: any[]) => {
+  onBlur = async (event: FocusEvent | Record<string, any>) => {
+    if (event?.target) {
+      if (!isHTMLInputEvent(event, false)) return
+    }
     this.active = false
-    this.visited = true
+    await validateSelf(this, 'onBlur')
   }
 
   setState: IModelSetter<IFieldState> = createStateSetter(this)

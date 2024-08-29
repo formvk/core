@@ -3,12 +3,17 @@ import type { FormPathPattern } from '@formvk/shared'
 import { each, FormPath, isBool, isFn, isValid, toArr } from '@formvk/shared'
 import { getArrayParent, getObjectParent, locateNode } from '../shared/internals'
 import type { FieldComponent, FieldDecorator, GeneralField, IFieldActions, JSXComponent } from '../types'
-import { DisplayTypes, PatternTypes } from '../types'
+import { DisplayTypes, LifeCycleTypes, PatternTypes } from '../types'
 import type { Form } from './Form'
 import { Query } from './Query'
 
 export class BaseField<Decorator = any, Component = any, TextType = any> {
   form: Form
+
+  address: FormPath
+
+  path: FormPath
+
   get parent(): GeneralField | undefined {
     let parent = this.address.parent()
     let identifier = parent.toString()
@@ -19,9 +24,6 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
     }
     return this.form.fields[identifier]
   }
-
-  address: FormPath
-  path: FormPath
 
   get indexes(): number[] {
     return this.path.transform(/^\d+$/, (...args) => args.map(index => Number(index))) as number[]
@@ -42,7 +44,7 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
       return obj.value
     }
     const index = this.index
-    const array = getArrayParent(this, index)
+    const array = getArrayParent(this)
     if (array) {
       return array.value?.[index]
     }
@@ -254,7 +256,12 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
    */
   set editable(editable: boolean) {
     if (!isBool(editable)) return
-    this.pattern = editable ? PatternTypes.EDITABLE : PatternTypes.DISABLED
+    const pattern = this.parent?.pattern || this.form.pattern
+    this.pattern = editable
+      ? PatternTypes.EDITABLE
+      : pattern === PatternTypes.EDITABLE
+        ? PatternTypes.DISABLED
+        : undefined
   }
 
   @Observable.Computed
@@ -269,7 +276,12 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
    */
   set readPretty(readPretty: boolean) {
     if (!isBool(readPretty)) return
-    this.pattern = readPretty ? PatternTypes.READ_PRETTY : PatternTypes.EDITABLE
+    const pattern = this.parent?.pattern || this.form.pattern
+    this.pattern = readPretty
+      ? PatternTypes.READ_PRETTY
+      : pattern === PatternTypes.READ_PRETTY
+        ? PatternTypes.EDITABLE
+        : undefined
   }
 
   /**
@@ -279,52 +291,64 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
    */
   set readOnly(readOnly: boolean) {
     if (!isBool(readOnly)) return
-    this.pattern = readOnly ? PatternTypes.READ_ONLY : PatternTypes.EDITABLE
+    const pattern = this.parent?.pattern || this.form.pattern
+    this.pattern = readOnly
+      ? PatternTypes.READ_ONLY
+      : pattern === PatternTypes.READ_ONLY
+        ? PatternTypes.EDITABLE
+        : undefined
   }
 
   /**
-   * 设置表单字段是否禁用
-   * - 当字段 `pattern` 为 `disabled` 时返回 `true`，或 `pattern` 为 `readPretty` 时返回 `true`
-   * - 否则返回 `false`
+   * 表单字段是否禁用
    */
   @Observable.Computed
   get disabled() {
-    if (this.readPretty) return true
     return this.pattern === PatternTypes.DISABLED
   }
 
   /**
    * 设置表单字段是否禁用
    * - `true` 等同于 `pattern: 'disabled'`
-   * - `false` 等同于 `pattern: 'editable'`
+   * - `false` 将根据父级字段或者表单的模式来设置
+   * - 如果父级字段或者表单的模式是`disabled`
+   * - 否则设置为`editable`，否则设置为`undefined`，即不设置模式
+   * - 不设置模式的字段将根据父级字段或者表单的模式来设置
    */
   set disabled(disabled: boolean) {
     if (!isBool(disabled)) return
-    this.pattern = disabled ? PatternTypes.DISABLED : PatternTypes.EDITABLE
+    const pattern = this.parent?.pattern || this.form.pattern
+    this.pattern = disabled
+      ? PatternTypes.DISABLED
+      : pattern === PatternTypes.DISABLED
+        ? PatternTypes.EDITABLE
+        : undefined
   }
   /** 字段模式 ends */
 
   onInit = () => {
     this.initialized = true
     // initFieldUpdate(this as any)
-    // this.notify(LifeCycleTypes.ON_FIELD_INIT)
+    this.notify(LifeCycleTypes.ON_FIELD_INIT)
+  }
+
+  disposers: (() => void)[] = []
+
+  locate(address: FormPathPattern) {
+    this.form.fields[address.toString()] = this as any
+    locateNode(this as any, address)
   }
 
   onMount = () => {
     this.mounted = true
     this.unmounted = false
-    // this.notify(LifeCycleTypes.ON_FIELD_MOUNT)
+    this.notify(LifeCycleTypes.ON_FIELD_MOUNT)
   }
 
   onUnmount = () => {
     this.mounted = false
     this.unmounted = true
-    // this.notify(LifeCycleTypes.ON_FIELD_UNMOUNT)
-  }
-
-  locate(address: FormPathPattern) {
-    this.form.fields[address.toString()] = this as any
-    locateNode(this as any, address)
+    this.notify(LifeCycleTypes.ON_FIELD_UNMOUNT)
   }
 
   query = (pattern: FormPathPattern | RegExp) => {
@@ -333,6 +357,10 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
       base: this.address,
       form: this.form,
     })
+  }
+
+  notify = (type: LifeCycleTypes, payload?: any) => {
+    return this.form.notify(type, payload ?? this)
   }
 
   match = (pattern: FormPathPattern) => {

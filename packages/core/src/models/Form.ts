@@ -1,15 +1,19 @@
 import { batch, Observable } from '@formvk/reactive'
 import type { FormPathPattern } from '@formvk/shared'
 import { FormPath, isArr, isBool, isObj, uid } from '@formvk/shared'
+import { createBatchStateGetter, createBatchStateSetter } from '../internals/state'
 import { runEffects } from '../shared/effective'
 import { createStateGetter, createStateSetter } from '../shared/internals'
 import type {
   IFieldFactoryProps,
+  IFieldStateGetter,
+  IFieldStateSetter,
   IFormFields,
   IFormProps,
   IFormState,
   IModelGetter,
   IModelSetter,
+  IRequests,
   IVoidFieldFactoryProps,
   JSXComponent,
 } from '../types'
@@ -90,6 +94,8 @@ export class Form<ValueType extends object = any> {
   @Observable.Ref
   accessor submitting = false
 
+  accessor validating = false
+
   @Observable.Ref
   accessor loading = false
 
@@ -107,6 +113,10 @@ export class Form<ValueType extends object = any> {
 
   get lifecycles() {
     return runEffects(this, this.props.effects!)
+  }
+
+  notify = (type: string, payload?: any) => {
+    this.heart.publish(type, payload ?? this)
   }
 
   /** 表单字段默认显示状态 starts */
@@ -242,10 +252,20 @@ export class Form<ValueType extends object = any> {
     })
   }
 
+  requests: IRequests = {}
+
   setState: IModelSetter<IFormState<ValueType>> = createStateSetter(this)
 
   getState: IModelGetter<IFormState<ValueType>> = createStateGetter(this)
 
+  setFieldState: IFieldStateSetter = createBatchStateSetter(this)
+
+  getFieldState: IFieldStateGetter = createBatchStateGetter(this)
+
+  /** 创建字段模型 starts */
+  /**
+   * 创建表单字段模型
+   */
   createField = <Decorator extends JSXComponent, Component extends JSXComponent>(
     props: IFieldFactoryProps<Decorator, Component>
   ): Field<Decorator, Component> => {
@@ -262,7 +282,9 @@ export class Form<ValueType extends object = any> {
     }
     return this.fields[identifier] as any
   }
-
+  /**
+   * 创建数组字段模型
+   */
   createArrayField = <Decorator extends JSXComponent, Component extends JSXComponent>(
     props: IFieldFactoryProps<Decorator, Component>
   ): ArrayField<Decorator, Component> => {
@@ -287,6 +309,9 @@ export class Form<ValueType extends object = any> {
     return this.fields[identifier] as any
   }
 
+  /**
+   * 创建对象字段模型
+   */
   createObjectField = <Decorator extends JSXComponent, Component extends JSXComponent>(
     props: IFieldFactoryProps<Decorator, Component>
   ): ObjectField<Decorator, Component> => {
@@ -311,6 +336,9 @@ export class Form<ValueType extends object = any> {
     return this.fields[identifier] as any
   }
 
+  /**
+   * 创建UI字段模型
+   */
   createVoidField = <Decorator extends JSXComponent, Component extends JSXComponent>(
     props: IVoidFieldFactoryProps<Decorator, Component>
   ): VoidField<Decorator, Component> => {
@@ -327,4 +355,5 @@ export class Form<ValueType extends object = any> {
     }
     return this.fields[identifier] as any
   }
+  /** 创建字段模型 ends */
 }

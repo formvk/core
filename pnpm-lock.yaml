@@ -14,9 +14,6 @@ importers:
       '@types/fs-extra':
         specifier: ^11.0.4
         version: 11.0.4
-      '@types/node':
-        specifier: ^20.16.1
-        version: 20.16.1
       '@vitejs/plugin-vue-jsx':
         specifier: ^4.0.1
         version: 4.0.1(vite@5.4.2(@types/node@20.16.1))(vue@3.4.38(typescript@5.5.4))
@@ -54,6 +51,16 @@ importers:
         specifier: ^2.0.5
         version: 2.0.5(@types/node@20.16.1)
 
+  packages/antd:
+    dependencies:
+      vue:
+        specifier: ^3.4.38
+        version: 3.4.38(typescript@5.5.4)
+    devDependencies:
+      ant-design-vue:
+        specifier: ^4.2.3
+        version: 4.2.3(vue@3.4.38(typescript@5.5.4))
+
   packages/antdv:
     dependencies:
       vue:
@@ -65,6 +72,8 @@ importers:
         version: 4.2.3(vue@3.4.38(typescript@5.5.4))
 
   packages/core: {}
+
+  packages/core-bak: {}
 
   packages/path: {}
 
@@ -81,6 +90,9 @@ importers:
       camel-case:
         specifier: ^4.1.2
         version: 4.1.2
+      change-case:
+        specifier: ^5.4.4
+        version: 5.4.4
       lower-case:
         specifier: ^2.0.2
         version: 2.0.2
@@ -102,8 +114,6 @@ importers:
       '@formvk/shared':
         specifier: workspace:^
         version: link:../shared
-
-  packages/vk-core: {}
 
   packages/vue:
     dependencies:
@@ -935,6 +945,9 @@ packages:
   chalk@4.1.2:
     resolution: {integrity: sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==}
     engines: {node: '>=10'}
+
+  change-case@5.4.4:
+    resolution: {integrity: sha512-HRQyTk2/YPEkt9TnUPbOpr64Uw3KOicFWPVBb+xiHvd6eBx/qPr9xqfBFDT8P2vWsvvz4jbEkfDe71W3VyNu2w==}
 
   check-error@2.1.1:
     resolution: {integrity: sha512-OAlb+T7V4Op9OwdkjmguYRqncdlx5JiofwOAUkmTF+jNdHwzTaTs4sRAGpzLF3oOz5xAyDGrPgeIDFQmDOTiJw==}
@@ -2827,6 +2840,8 @@ snapshots:
     dependencies:
       ansi-styles: 4.3.0
       supports-color: 7.2.0
+
+  change-case@5.4.4: {}
 
   check-error@2.1.1: {}
 
