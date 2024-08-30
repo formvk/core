@@ -1,4 +1,4 @@
-import { pauseTracking, resetTracking } from '@vue/reactivity'
+import { enableTracking, pauseTracking } from '@vue/reactivity'
 import { createBoundaryFunction } from './internals'
 
 export const untracked = createBoundaryFunction(
@@ -6,6 +6,6 @@ export const untracked = createBoundaryFunction(
     pauseTracking()
   },
   () => {
-    resetTracking()
+    enableTracking()
   }
 )

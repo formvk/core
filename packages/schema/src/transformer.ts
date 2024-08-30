@@ -60,7 +60,6 @@ const setSchemaFieldState = (options: IFieldStateSetterOptions, demand = false) 
       field.setState(state => patchCompile(state, request.state, scope))
     }
     if (request.schema) {
-      console.log('request.schema', request.schema)
       field.setState(state => patchSchemaCompile(state, request.schema, scope, demand))
     }
     if (isStr(runner) && runner) {

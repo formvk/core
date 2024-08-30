@@ -1,30 +1,25 @@
-import { pauseScheduling, pauseTracking, resetScheduling, resetTracking } from '@vue/reactivity'
+import { enableTracking, pauseTracking } from '@vue/reactivity'
 import { isFn } from './checkers'
 import { BatchCount, BatchEndpoints } from './environment'
 import { createBoundaryAnnotation } from './internals'
-import { batchEnd, batchStart } from './reaction'
 import type { IBatch } from './types'
 
 export const batch: IBatch = Object.assign(
   createBoundaryAnnotation(
     () => {
-      batchStart()
-      pauseScheduling()
+      pauseTracking
     },
     () => {
-      resetScheduling()
-      batchEnd()
+      enableTracking()
     }
   ),
   {
     scope: createBoundaryAnnotation(
       () => {
-        resetScheduling()
-        resetTracking()
+        enableTracking()
       },
       () => {
         pauseTracking()
-        pauseScheduling()
       }
     ),
 
@@ -35,6 +30,6 @@ export const batch: IBatch = Object.assign(
       } else {
         BatchEndpoints.add(callback)
       }
-    }
+    },
   }
 )

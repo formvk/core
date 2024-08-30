@@ -1,6 +1,6 @@
 import { batch, Observable } from '@formvk/reactive'
 import type { FormPathPattern } from '@formvk/shared'
-import { FormPath, isArr, isBool, isObj, uid } from '@formvk/shared'
+import { FormPath, isArr, isBool, isObj, isPlainObj, merge, uid } from '@formvk/shared'
 import { createBatchStateGetter, createBatchStateSetter } from '../internals/state'
 import { runEffects } from '../shared/effective'
 import { createStateGetter, createStateSetter } from '../shared/internals'
@@ -9,6 +9,7 @@ import type {
   IFieldStateGetter,
   IFieldStateSetter,
   IFormFields,
+  IFormMergeStrategy,
   IFormProps,
   IFormState,
   IModelGetter,
@@ -47,6 +48,7 @@ export class Form<ValueType extends object = any> {
     this.id = uid()
     this.props = { ...props }
     this.setDisplay(this.props.display)
+    this.setValues(props.values!)
     this.setPattern(this.props.pattern)
     this.editable = this.props.editable!
     this.disabled = this.props.disabled!
@@ -67,7 +69,22 @@ export class Form<ValueType extends object = any> {
   /** 响应式变量区域 STARTS */
 
   @Observable
-  accessor values: ValueType
+  accessor values: ValueType = {} as ValueType
+
+  setValues(values: ValueType, strategy: IFormMergeStrategy = 'merge') {
+    if (!isPlainObj(values)) return
+    if (strategy === 'merge' || strategy === 'deepMerge') {
+      merge(this.values, values, {
+        // never reach
+        arrayMerge: (target, source) => source,
+        assign: true,
+      })
+    } else if (strategy === 'shallowMerge') {
+      Object.assign(this.values, values)
+    } else {
+      this.values = values as any
+    }
+  }
 
   getValuesIn(pattern: FormPathPattern) {
     return FormPath.getIn(this.values, pattern)

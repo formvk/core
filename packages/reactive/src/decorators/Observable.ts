@@ -1,5 +1,8 @@
-import type { ShallowRef } from '@vue/reactivity'
 import { ref } from '@vue/reactivity'
+import { createDecoratorSymbol } from './shared'
+
+const { setDecoratorSymbolByName, setDecoratorSymbolValue, getDecoratorSymbolValue } =
+  createDecoratorSymbol('Observable')
 
 export function Observable<This, Value>(
   target: ClassAccessorDecoratorTarget<This, Value>,
@@ -10,19 +13,18 @@ export function Observable<This, Value>(
   }
 
   const { addInitializer } = context
-  let valueRef: ShallowRef<Value>
 
   addInitializer(function (this: This) {
     const initialValue = target!.get.call(this)
-    valueRef = ref(initialValue)
+    setDecoratorSymbolByName(this, context.name, ref(initialValue))
   })
 
   return {
     set(this, value) {
-      valueRef.value = value
+      setDecoratorSymbolValue(this, context.name, value)
     },
     get(this) {
-      return valueRef.value
+      return getDecoratorSymbolValue(this, context.name)
     },
   }
 }

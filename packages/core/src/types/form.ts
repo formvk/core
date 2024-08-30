@@ -7,11 +7,11 @@ export interface IFormProps<T extends object = any> {
   /**
    * 表单的值
    */
-  values?: Partial<T>
+  values?: T
   /**
    * 表单的初始值
    */
-  initialValues?: Partial<T>
+  initialValues?: T
   /**
    * 表单的字段默认展示模式
    */
@@ -90,3 +90,5 @@ export interface IFieldStateGetter {
   <Getter extends (state: IGeneralFieldState) => any>(pattern: FieldMatchPattern, getter: Getter): ReturnType<Getter>
   (pattern: FieldMatchPattern): IGeneralFieldState
 }
+
+export type IFormMergeStrategy = 'overwrite' | 'merge' | 'deepMerge' | 'shallowMerge'

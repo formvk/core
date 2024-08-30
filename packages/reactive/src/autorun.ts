@@ -1,8 +1,8 @@
-import { EffectScope, ReactiveEffect, effect, stop } from '@vue/reactivity'
+import { effect, stop, watch } from '@vue/reactivity'
 import { isFn } from './checkers'
-import { NOOP, createReactionScope, getReactionScope, toArray } from './internals'
+import { createReactionScope, getReactionScope, toArray } from './internals'
 import { batchEnd, batchStart, disposeEffects, hasDepsChange } from './reaction'
-import type { Dispose, IReactionOptions } from './types'
+import type { Dispose } from './types'
 
 const _autorun = (tracker: () => any) => {
   const scope = createReactionScope()
@@ -20,11 +20,11 @@ const _autorun = (tracker: () => any) => {
   const cleanRefs = () => {
     scope._memos = {
       queue: [],
-      cursor: 0
+      cursor: 0,
     }
     scope._effects = {
       queue: [],
-      cursor: 0
+      cursor: 0,
     }
   }
 
@@ -50,14 +50,14 @@ const memo = <T>(callback: () => T, dependencies?: any[]): T => {
   if (!scope || !scope._memos) {
     throw new Error('autorun.memo must used in autorun function body.')
   }
-  const deps = toArray(dependencies || [])
+  const deps = toArray(dependencies)
   const id = scope._memos.cursor++
   const old = scope._memos.queue[id]
   if (!old || hasDepsChange(deps, old.deps)) {
     const value = callback()
     scope._memos.queue[id] = {
       value,
-      deps
+      deps,
     }
     return value
   }
@@ -85,68 +85,14 @@ const _effect = (callback: () => Dispose | void, dependencies?: any[]) => {
       }
     })
     effects.queue[id] = {
-      deps
+      deps,
     }
   }
 }
+
 export const autorun = Object.assign(_autorun, {
   memo,
-  effect: _effect
+  effect: _effect,
 })
 
-interface IValue {
-  currentValue?: any
-  oldValue?: any
-}
-
-export const reaction = <T>(
-  tracker: () => T,
-  subscriber?: (value: T, oldValue: T) => void,
-  options?: IReactionOptions<T>
-) => {
-  const value: IValue = {}
-  const scope = new EffectScope()
-
-  const dirtyCheck = () => {
-    if (isFn(options?.equals)) return !options.equals(value.oldValue, value.currentValue)
-    return value.oldValue !== value.currentValue
-  }
-
-  const fireAction = () => {
-    try {
-      if (isFn(subscriber)) {
-        subscriber(value.currentValue, value.oldValue)
-      }
-    } finally {
-    }
-  }
-
-  const reaction = () => {
-    return scope.run(() => {
-      const val = tracker()
-      value.currentValue = val
-      return val
-    })
-  }
-
-  const effect = new ReactiveEffect(reaction, NOOP, () => {
-    if (effect.dirty) {
-      effect.run()
-      const result = dirtyCheck()
-      if (result) {
-        fireAction()
-      }
-      value.oldValue = value.currentValue
-    }
-  })
-
-  effect.run()
-  value.oldValue = value.currentValue
-
-  if (options?.fireImmediately) {
-    fireAction()
-  }
-  return () => {
-    effect.stop()
-  }
-}
+export const reaction = watch

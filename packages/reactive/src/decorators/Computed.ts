@@ -1,20 +1,27 @@
 import { computed } from '@vue/reactivity'
+import { createDecoratorSymbol } from './shared'
 
-export function Computed<This, Value>(getter: () => Value, { kind }: ClassGetterDecoratorContext<This, Value>) {
+const { setDecoratorSymbolByName, getDecoratorSymbolValue } = createDecoratorSymbol('Shallow')
+
+export function Computed<This, Value>(
+  getter: () => Value,
+  { kind, addInitializer, name }: ClassGetterDecoratorContext<This, Value>
+) {
   if (kind !== 'getter') {
     throw new Error(`Invalid context, expected getter`)
   }
-  let instance: This
 
-  const computedRef = computed(() => {
-    return getter.call(instance)
+  addInitializer(function (this: This) {
+    setDecoratorSymbolByName(
+      this,
+      name,
+      computed(() => {
+        return getter.call(this)
+      })
+    )
   })
-  return function (this: This) {
-    if (!instance) {
-      // eslint-disable-next-line @typescript-eslint/no-this-alias
-      instance = this
-    }
 
-    return computedRef.value
+  return function (this: This) {
+    return getDecoratorSymbolValue(this, name)
   }
 }

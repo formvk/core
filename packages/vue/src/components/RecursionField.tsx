@@ -13,12 +13,11 @@ const typeMap = {
 }
 
 const resolveEmptySlot = (slots: Record<any, (...args: any[]) => any[]>) => {
-  console.log('resolveEmptySlot', slots)
-  return <>{slots.default?.()}</>
+  return slots.default?.()
 }
 
 export const RecursionField = defineComponent(
-  (props: IRecursionFieldProps, { slots }) => {
+  (props: IRecursionFieldProps) => {
     const parentRef = useField()
     const schemaOptionsRef = useSchemaOptions()
     const scopeRef = useExpressionScope()
@@ -46,7 +45,6 @@ export const RecursionField = defineComponent(
       }
     }
     const fieldPropsRef = shallowRef(getPropsFromSchema(fieldSchemaRef.value))
-    console.log(fieldPropsRef.value)
 
     watch([fieldSchemaRef, schemaOptionsRef], () => {
       fieldPropsRef.value = getPropsFromSchema(fieldSchemaRef.value)
@@ -75,59 +73,46 @@ export const RecursionField = defineComponent(
           }
           renderMap[key].push(value)
         }
-        properties.forEach(({ schema: item, key: name }, index) => {
-          let schema = item
+        properties.forEach(({ schema, key }, index) => {
           if (isFn(props.mapProperties)) {
-            const mapped = props.mapProperties(item, name)
+            const mapped = props.mapProperties(schema, key)
             if (mapped) {
               schema = mapped
             }
           }
           if (isFn(props.filterProperties)) {
-            if (props.filterProperties(schema, name) === false) {
-              return null
+            if (props.filterProperties(schema, key) === false) {
+              return
             }
           }
           setRender(schema.slot ?? 'default', (field?: GeneralField) => {
-            console.log(schema, 'schema')
             return (
               <RecursionField
-                key={`${index}-${name}`}
+                key={`${index}-${key}`}
                 schema={schema}
-                name={name}
+                name={key}
                 basePath={field?.address ?? basePath}
               ></RecursionField>
             )
           })
         })
-        const slots = {}
-        Object.keys(renderMap).forEach(key => {
-          const renderFns = renderMap[key]
+        return Object.entries(renderMap).reduce<Record<string, any>>((slots, [key, renderFns]) => {
           slots[key] = scoped ? ({ field }) => renderFns.map(fn => fn(field)) : () => renderFns.map(fn => fn())
-        })
-        console.log(slots, slots.default(), 'slots.default')
-        return slots
+          return slots
+        }, {})
       }
       const render = () => {
         if (!isValid(props.name)) return resolveEmptySlot(generateSlotsByProperties())
         if (props.onlyRenderProperties) return resolveEmptySlot(generateSlotsByProperties())
         const slots = generateSlotsByProperties(true)
-        console.log('fieldRender', { ...slots })
         return fieldRender(slots)
       }
 
       if (!fieldSchemaRef.value) {
-        console.log('no schema')
         return
       }
-      console.log('render', props.name, render())
-      return (
-        <div>
-          test
-          {render()}
-          {slots.default?.()}
-        </div>
-      )
+      const nodes = render()
+      return <>{nodes}</>
     }
   },
   {
@@ -140,5 +125,6 @@ export const RecursionField = defineComponent(
       'mapProperties',
       'filterProperties',
     ],
+    name: 'VkRecursionField',
   }
 )

@@ -182,20 +182,11 @@ export const patchStateFormSchema = (targetState: any, pattern: any[], compiled:
     const key = segments[0]
     const isEnum = key === 'enum' && isArr(compiled)
     const schemaMapKey = SchemaStateMap[key]
-    console.log('schemaMapKey', schemaMapKey, key, segments, compiled)
     if (schemaMapKey) {
       FormPath.setIn(
         targetState,
         [schemaMapKey].concat(segments.slice(1)),
         isEnum ? createDataSource(compiled) : compiled
-      )
-      console.log(
-        'targetState',
-        FormPath.getIn(targetState, [schemaMapKey].concat(segments.slice(1))),
-        compiled,
-        [schemaMapKey].concat(segments.slice(1)),
-        targetState.componentType,
-        targetState
       )
     } else {
       const isValidatorKey = SchemaValidatorMap[key]

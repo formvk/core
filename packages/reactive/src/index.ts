@@ -8,3 +8,5 @@ export * from './observable'
 export * from './observe'
 export * from './types'
 export * from './untracked'
+
+export { watch } from '@vue/reactivity'

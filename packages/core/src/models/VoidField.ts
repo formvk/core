@@ -17,6 +17,8 @@ export class VoidField<
     super()
     this.form = form
     this.props = props
+    this.locate(address)
+
     this.onInit()
   }
 

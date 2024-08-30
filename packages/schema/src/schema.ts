@@ -146,6 +146,7 @@ export class Schema<Decorator = any, Component = any, DecoratorProps = any, Comp
 
   fromJSON(json: ISchema<Decorator, Component, DecoratorProps, ComponentProps>) {
     if (!json) return this
+    if (Schema.isSchemaInstance(json)) return json
     each(reducePatches(json), (value, key) => {
       if (key === 'properties') {
         this.setProperties(value)

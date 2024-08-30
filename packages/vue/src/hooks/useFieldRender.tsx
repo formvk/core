@@ -14,7 +14,6 @@ const mergeSlots = (
   content: any
 ): Record<string, (...args: any) => any> => {
   const slotNames = Object.keys(slots)
-  console.log('slotNames', slotNames, slots)
   if (!slotNames.length) {
     if (!content) {
       return {}
@@ -26,7 +25,7 @@ const mergeSlots = (
     }
   }
   const patchSlot = (slotName: string) => (params: any) =>
-    slots[slotName]?.({ field, form: field.form, ...params[0] }) ?? []
+    slots[slotName]?.({ field, form: field.form, ...params }) ?? []
 
   const patchedSlots: Record<string, (...args: any) => any> = {}
   slotNames.forEach(name => {
@@ -120,9 +119,6 @@ export function useFieldRender(fieldType: FieldType | Ref<FieldType>, fieldProps
 
     const renderDecorator = (childNodes: any) => {
       if (!field.decoratorType) {
-        if (fieldProps.value.name === 'name') {
-          console.log('childNodes', childNodes)
-        }
         return childNodes
       }
       const Decorator = getComponents(field.decoratorType)
@@ -142,7 +138,7 @@ export function useFieldRender(fieldType: FieldType | Ref<FieldType>, fieldProps
 
     const renderComponent = () => {
       if (!field.componentType) {
-        return <>{mergedSlots.default?.()}</>
+        return mergedSlots.default?.()
       }
 
       let Component = getComponents(field.componentType)
@@ -186,7 +182,6 @@ export function useFieldRender(fieldType: FieldType | Ref<FieldType>, fieldProps
         }, {})
       }
 
-      console.log('nodes', Component)
       return (
         <Component
           {...componentProps}
@@ -205,8 +200,7 @@ export function useFieldRender(fieldType: FieldType | Ref<FieldType>, fieldProps
     }
 
     const nodes = renderComponent()
-    console.log('nodes', nodes)
 
-    return <>{renderDecorator(nodes)}</>
+    return renderDecorator(nodes)
   }
 }
