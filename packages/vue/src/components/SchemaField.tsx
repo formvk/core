@@ -62,18 +62,17 @@ export function createSchemaField<Components extends SchemaVueComponents = Schem
       provideFieldSchema(schemaRef)
       provideExpressionScope(scopeRef)
 
-      return () => {
-        return (
-          <>
-            {slots.default?.()}
-            <RecursionField schema={schemaRef.value} name={props.name} />
-          </>
-        )
-      }
+      return () => (
+        <>
+          {slots.default?.()}
+          <RecursionField schema={schemaRef.value} name={props.name} />
+        </>
+      )
     },
     {
       name: 'VkSchemaField',
       props: ['schema', 'components', 'scope', 'name'],
+      inheritAttrs: false,
     }
   )
 
@@ -84,6 +83,7 @@ export function createSchemaField<Components extends SchemaVueComponents = Schem
     >(_: ISchemaTypeFieldProps<Components, Decorator, Component>, { attrs, slots }) {
       const props = attrs as ISchemaTypeFieldProps<Components, Decorator, Component>
       const parentSchemaRef = useFieldSchema()
+
       const name = props.name || getRandomName()
 
       const appendArraySchema = (schema: ISchema) => {
@@ -106,21 +106,16 @@ export function createSchemaField<Components extends SchemaVueComponents = Schem
 
       const schemaRef = shallowRef(createSchema(parentSchemaRef.value)!)
 
-      watch(
-        parentSchemaRef,
-        parenSchema => {
-          schemaRef.value = createSchema(parenSchema)!
-        },
-        { immediate: true }
-      )
+      watch(parentSchemaRef, parenSchema => {
+        schemaRef.value = createSchema(parenSchema)!
+      })
       provideFieldSchema(schemaRef)
 
-      return () => {
-        return <>{slots?.default()}</>
-      }
+      return () => <>{slots?.default()}</>
     },
     {
       name: 'VkMarkupField',
+      inheritAttrs: false,
     }
   )
 

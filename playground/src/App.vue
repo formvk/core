@@ -14,7 +14,7 @@ const form = new Form({
 console.log(form)
 provideForm(form)
 const schema = new Schema({
-  type: 'string',
+  type: 'object',
   definitions: {
     name: {
       type: 'string',
@@ -59,7 +59,7 @@ const schema = new Schema({
 
 console.log(schema)
 
-const { SchemaField } = createSchemaField({
+const { SchemaField, SchemaStringField } = createSchemaField({
   components: { Input },
 })
 
@@ -76,7 +76,15 @@ const name = ref('123')
   <div>
     <!-- <RecursionField :schema /> -->
     <!-- <Field name="name1" :component="['button']" content="测试" /> -->
-    <SchemaField :schema="schema" />
+    <SchemaField :schema="schema">
+      <SchemaStringField
+        name="name2"
+        component="Input"
+        :componentProps="{
+          placeholder: 'Please enter your name',
+        }"
+      />
+    </SchemaField>
     <button @click="onSubmit">提交</button>
   </div>
 </template>

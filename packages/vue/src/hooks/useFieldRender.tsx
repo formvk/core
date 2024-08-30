@@ -54,9 +54,6 @@ const transformEventName = (eventKey: string) => {
 
 export type FieldType = 'Field' | 'ArrayField' | 'ObjectField' | 'VoidField'
 
-/**
- * @param options 响应式字段选项
- */
 export function useFieldRender(fieldType: FieldType | Ref<FieldType>, fieldProps: Ref<IFieldProps | IVoidFieldProps>) {
   const formRef = useForm()
   const parentRef = useField<GeneralField | null>()
