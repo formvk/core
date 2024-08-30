@@ -1,13 +1,16 @@
 import { batch, Observable } from '@formvk/reactive'
 import type { FormPathPattern } from '@formvk/shared'
 import { FormPath, isArr, isBool, isObj, isPlainObj, merge, uid } from '@formvk/shared'
+import { batchSubmit, batchValidate, setSubmitting, setValidating } from '../internals'
 import { createBatchStateGetter, createBatchStateSetter } from '../internals/state'
+import { isVoidField } from '../shared/checkers'
 import { runEffects } from '../shared/effective'
 import { createStateGetter, createStateSetter } from '../shared/internals'
 import type {
   IFieldFactoryProps,
   IFieldStateGetter,
   IFieldStateSetter,
+  IFormFeedback,
   IFormFields,
   IFormMergeStrategy,
   IFormProps,
@@ -15,6 +18,7 @@ import type {
   IModelGetter,
   IModelSetter,
   IRequests,
+  ISearchFeedback,
   IVoidFieldFactoryProps,
   JSXComponent,
 } from '../types'
@@ -74,6 +78,7 @@ export class Form<ValueType extends object = any> {
   setValues(values: ValueType, strategy: IFormMergeStrategy = 'merge') {
     if (!isPlainObj(values)) return
     if (strategy === 'merge' || strategy === 'deepMerge') {
+      console.log('merge', values)
       merge(this.values, values, {
         // never reach
         arrayMerge: (target, source) => source,
@@ -261,6 +266,48 @@ export class Form<ValueType extends object = any> {
     this.pattern = disabled ? PatternTypes.DISABLED : PatternTypes.EDITABLE
   }
   /** 表单字段默认模式 ends */
+
+  queryFeedbacks(search: ISearchFeedback): IFormFeedback[] {
+    return this.query(search.address || search.path || '*').reduce<any[]>((messages, field) => {
+      if (isVoidField(field)) return messages
+      return messages.concat(
+        field
+          .queryFeedbacks(search)
+          .map(feedback => ({
+            ...feedback,
+            address: field.address.toString(),
+            path: field.path.toString(),
+          }))
+          .filter(feedback => feedback.messages!.length > 0)
+      )
+    }, [])
+  }
+
+  get errors() {
+    return this.queryFeedbacks({
+      type: 'error',
+    })
+  }
+
+  get invalid() {
+    return this.errors.length > 0
+  }
+
+  submit = <T>(onSubmit?: (values: ValueType) => Promise<T> | void): Promise<T> => {
+    return batchSubmit(this, onSubmit)
+  }
+
+  setSubmitting = (submitting: boolean) => {
+    setSubmitting(this, submitting)
+  }
+
+  validate = (pattern: FormPathPattern = '*') => {
+    return batchValidate(this, pattern)
+  }
+
+  setValidating = (validating: boolean) => {
+    setValidating(this, validating)
+  }
 
   @Observable.Shallow
   accessor fields: IFormFields = {}

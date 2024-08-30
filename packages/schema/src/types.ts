@@ -155,7 +155,7 @@ export interface SchemaTypeMap {
   week: Date
 }
 
-export type SchemaTypes = keyof SchemaTypeMap
+export type SchemaTypes = keyof SchemaTypeMap | (string & {}) | undefined
 
 export type SchemaProperties<Decorator, Component, DecoratorProps, ComponentProps> = Record<
   string,

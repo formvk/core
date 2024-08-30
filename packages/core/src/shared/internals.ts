@@ -1,28 +1,13 @@
 import { batch, toJS } from '@formvk/reactive'
 import type { FormPathPattern } from '@formvk/shared'
-import {
-  each,
-  FormPath,
-  globalThisPolyfill,
-  isEmpty,
-  isFn,
-  isNumberLike,
-  isPlainObj,
-  isValid,
-  pascalCase,
-} from '@formvk/shared'
+import { each, FormPath, isEmpty, isFn, isNumberLike, isPlainObj, isValid, pascalCase } from '@formvk/shared'
 import type { ValidatorTriggerType } from '@formvk/validator'
 import { parseValidatorDescriptions, validate } from '@formvk/validator'
-import type { BaseField, Field, Form } from '../models/types'
+import type { BaseField, Field } from '../models/types'
 import type { FeedbackMessage, FieldFeedbackTypes, IFieldFeedback, IFormFeedback, ISearchFeedback } from '../types'
-import { LifeCycleTypes, type GeneralField } from '../types'
-import { isArrayField, isForm, isObjectField, isVoidField } from './checkers'
-import {
-  MutuallyExclusiveProperties,
-  ReadOnlyProperties,
-  ReservedProperties,
-  RESPONSE_REQUEST_DURATION,
-} from './constants'
+import { type GeneralField } from '../types'
+import { isArrayField, isObjectField, isVoidField } from './checkers'
+import { MutuallyExclusiveProperties, ReadOnlyProperties, ReservedProperties } from './constants'
 const hasOwnProperty = Object.prototype.hasOwnProperty
 
 export const buildDataPath = (fields: Record<string, GeneralField>, pattern: FormPath) => {
@@ -173,32 +158,6 @@ export const isHTMLInputEvent = (event: any, stopPropagation = true) => {
   return false
 }
 
-const notify = (target: Form | Field, formType: LifeCycleTypes, fieldType: LifeCycleTypes) => {
-  if (isForm(target)) {
-    target.notify(formType)
-  } else {
-    target.notify(fieldType)
-  }
-}
-
-export const setValidating = (target: Form | Field, validating: boolean) => {
-  clearTimeout(target.requests.validate)
-  if (validating) {
-    target.requests.validate = globalThisPolyfill.setTimeout(() => {
-      batch(() => {
-        target.validating = validating
-        notify(target, LifeCycleTypes.ON_FORM_VALIDATING, LifeCycleTypes.ON_FIELD_VALIDATING)
-      })
-    }, RESPONSE_REQUEST_DURATION)
-    notify(target, LifeCycleTypes.ON_FORM_VALIDATE_START, LifeCycleTypes.ON_FIELD_VALIDATE_START)
-  } else {
-    if (target.validating !== validating) {
-      target.validating = validating
-    }
-    notify(target, LifeCycleTypes.ON_FORM_VALIDATE_END, LifeCycleTypes.ON_FIELD_VALIDATE_END)
-  }
-}
-
 export const validateToFeedbacks = async (field: Field, triggerType: ValidatorTriggerType = 'onInput') => {
   const results = await validate(field.value, field.validator, {
     triggerType,
@@ -218,43 +177,6 @@ export const validateToFeedbacks = async (field: Field, triggerType: ValidatorTr
   })
   return results
 }
-
-export const validateSelf = batch.bound(async (target: Field, triggerType?: ValidatorTriggerType, noEmit = false) => {
-  const start = () => {
-    setValidating(target, true)
-  }
-  const end = () => {
-    setValidating(target, false)
-    if (noEmit) return
-    if (target.selfValid) {
-      target.notify(LifeCycleTypes.ON_FIELD_VALIDATE_SUCCESS)
-    } else {
-      target.notify(LifeCycleTypes.ON_FIELD_VALIDATE_FAILED)
-    }
-  }
-
-  if (target.pattern !== 'editable' || target.display !== 'visible') return {}
-  start()
-  if (!triggerType) {
-    const allTriggerTypes = parseValidatorDescriptions(target.validator).reduce(
-      (types, desc) => (types.indexOf(desc.triggerType) > -1 ? types : types.concat(desc.triggerType)),
-      []
-    )
-    const results = {}
-    for (let i = 0; i < allTriggerTypes.length; i++) {
-      const payload = await validateToFeedbacks(target, allTriggerTypes[i])
-      each(payload, (result, key) => {
-        results[key] = results[key] || []
-        results[key] = results[key].concat(result)
-      })
-    }
-    end()
-    return results
-  }
-  const results = await validateToFeedbacks(target, triggerType)
-  end()
-  return results
-})
 
 export const matchFeedback = (search?: ISearchFeedback, feedback?: IFormFeedback) => {
   if (!search || !feedback) return false

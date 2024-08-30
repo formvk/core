@@ -12,7 +12,7 @@ import type {
 import type { FormPathPattern } from '@formvk/shared'
 import type { Component } from 'vue'
 
-export type VueComponent = Component
+export type VueComponent = Component | Function
 
 export type ComponentProps<T> = T extends new (...args: any[]) => any
   ? T extends { new (...args: any[]): infer R }

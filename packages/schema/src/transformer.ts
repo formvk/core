@@ -2,7 +2,7 @@ import type { Field, IFieldFactoryProps } from '@formvk/core'
 import { autorun, observable, untracked } from '@formvk/reactive'
 import { each, isArr, isFn, isPlainObj, isStr, lazyMerge, reduce, toArr } from '@formvk/shared'
 import { patchCompile, patchSchemaCompile, shallowCompile } from './compiler'
-import type { Schema } from './schema'
+// import type { Schema } from './schema'
 import type { IFieldStateSetterOptions, ISchema, ISchemaTransformerOptions, SchemaReaction } from './types'
 
 const FieldEffects = {
@@ -213,7 +213,7 @@ const getUserReactions = (schema: ISchema, options: ISchemaTransformerOptions) =
     }
   })
 }
-export function transformFieldProps(schema: Schema, options: ISchemaTransformerOptions): IFieldFactoryProps<any, any> {
+export function transformFieldProps(schema: any, options: ISchemaTransformerOptions): IFieldFactoryProps<any, any> {
   return {
     name: schema.name,
     reactions: [getBaseReactions(schema, options), ...getUserReactions(schema, options)],

@@ -1,9 +1,16 @@
 <script setup lang="tsx">
 import { Form } from '@formvk/core'
-import { provideForm, RecursionField, Field } from '@formvk/vue'
+import { provideForm, RecursionField, Field, createSchemaField } from '@formvk/vue'
 import { Schema } from '@formvk/schema'
-
-const form = new Form()
+import { ref } from 'vue'
+import { Input } from './components/Input'
+console.log(Input)
+const form = new Form({
+  values: {
+    name: '123',
+    age: 12,
+  },
+})
 console.log(form)
 provideForm(form)
 const schema = new Schema({
@@ -24,7 +31,7 @@ const schema = new Schema({
       type: 'string',
       title: 'Name',
       required: true,
-      component: 'input',
+      component: 'Input',
       componentProps: {
         placeholder: '1',
       },
@@ -33,23 +40,17 @@ const schema = new Schema({
       type: 'string',
       title: 'Name',
       required: true,
-      component: 'input',
+      component: 'Input',
       componentProps: {
         placeholder: '2',
         type: 'number',
       },
     },
     address: {
-      type: 'void',
+      type: 'object',
       properties: {
         city: {
-          component: 'div',
-          reactions(field, scope) {
-            console.log(field, { ...scope })
-            setTimeout(() => {
-              field.setComponent('span')
-            }, 2000)
-          },
+          component: 'Input',
         },
       },
     },
@@ -57,12 +58,26 @@ const schema = new Schema({
 })
 
 console.log(schema)
+
+const { SchemaField } = createSchemaField({
+  components: { Input },
+})
+
+const onSubmit = async () => {
+  console.log(form.values)
+  console.log(name.value)
+  const result = await form.submit()
+  console.log(result)
+}
+const name = ref('123')
 </script>
 
 <template>
   <div>
-    <RecursionField :schema />
-    <Field name="name1" :component="['input']" />
+    <!-- <RecursionField :schema /> -->
+    <!-- <Field name="name1" :component="['button']" content="测试" /> -->
+    <SchemaField :schema="schema" />
+    <button @click="onSubmit">提交</button>
   </div>
 </template>
 

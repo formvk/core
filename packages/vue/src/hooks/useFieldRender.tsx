@@ -1,5 +1,6 @@
 import { isVoidField, type GeneralField, type IFieldProps, type IVoidFieldProps } from '@formvk/core'
-import { each, FormPath } from '@formvk/shared'
+import type { SchemaTypes } from '@formvk/schema'
+import { each, FormPath, isFn } from '@formvk/shared'
 import type { Ref } from 'vue'
 import { computed, shallowRef, unref, watch } from 'vue'
 import { getPropsTransformer, getReadPrettyInfo, getValueProp, isVueOptions, mergeRender } from '../shared'
@@ -97,6 +98,7 @@ export function useFieldRender(fieldType: FieldType | Ref<FieldType>, fieldProps
       if (isVoidField(fieldRef.value)) {
         return
       }
+      console.log('get value', fieldRef.value.value)
 
       return fieldRef.value.value
     },
@@ -104,6 +106,8 @@ export function useFieldRender(fieldType: FieldType | Ref<FieldType>, fieldProps
       if (isVoidField(fieldRef.value)) {
         return
       }
+
+      console.log('set value', value)
 
       fieldRef.value.onInput(value)
     },
@@ -203,4 +207,21 @@ export function useFieldRender(fieldType: FieldType | Ref<FieldType>, fieldProps
 
     return renderDecorator(nodes)
   }
+}
+
+const typeMap = {
+  object: 'ObjectField',
+  array: 'ArrayField',
+  void: 'VoidField',
+  string: 'Field',
+}
+
+export function useFieldType(type: SchemaTypes | Ref<SchemaTypes> | (() => SchemaTypes)) {
+  return computed(() => {
+    let t = unref(type)
+    if (isFn(t)) {
+      t = t()
+    }
+    return typeMap[t || 'string'] || 'Field'
+  })
 }

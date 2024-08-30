@@ -1,15 +1,26 @@
 import { Observable, toJS } from '@formvk/reactive'
 import { isArr, isEmpty, isValid, toArr, type FormPathPattern } from '@formvk/shared'
+import type { ValidatorTriggerType } from '@formvk/validator'
 import { parseValidatorDescriptions } from '@formvk/validator'
-import { allowAssignDefaultValue, createReaction, createReactions, getValidFieldDefaultValue } from '../internals'
+import {
+  allowAssignDefaultValue,
+  batchValidate,
+  createChildrenFeedbackFilter,
+  createReaction,
+  createReactions,
+  getValidFieldDefaultValue,
+  setSubmitting,
+  setValidating,
+  validateSelf,
+} from '../internals'
 import {
   createStateGetter,
   createStateSetter,
   isHTMLInputEvent,
   queryFeedbackMessages,
+  queryFeedbacks,
   setValidatorRule,
   updateFeedback,
-  validateSelf,
 } from '../shared/internals'
 import type {
   FeedbackMessage,
@@ -19,9 +30,11 @@ import type {
   IFieldFeedback,
   IFieldProps,
   IFieldState,
+  IFormFeedback,
   IModelGetter,
   IModelSetter,
   IRequests,
+  ISearchFeedback,
   JSXComponent,
 } from '../types'
 import { LifeCycleTypes } from '../types'
@@ -223,6 +236,30 @@ export class Field<
 
   requests: IRequests = {}
 
+  queryFeedbacks = (search?: ISearchFeedback): IFieldFeedback[] => {
+    return queryFeedbacks(this, search)
+  }
+
+  setValidating(validating?: boolean) {
+    setValidating(this, validating)
+  }
+
+  setSubmitting(submitting?: boolean) {
+    setSubmitting(this, submitting)
+  }
+
+  get errors(): IFormFeedback[] {
+    return this.form.errors.filter(createChildrenFeedbackFilter(this))
+  }
+
+  get valid() {
+    return !this.errors.length
+  }
+
+  get invalid() {
+    return !this.valid
+  }
+
   onInput = (event?: any) => {
     this.value = event
   }
@@ -247,4 +284,8 @@ export class Field<
   setState: IModelSetter<IFieldState> = createStateSetter(this)
 
   getState: IModelGetter<IFieldState> = createStateGetter(this)
+
+  validate = (triggerType?: ValidatorTriggerType) => {
+    return batchValidate(this, `${this.address}.**`, triggerType)
+  }
 }

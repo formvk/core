@@ -1,5 +1,6 @@
 import type { Field, GeneralField } from '@formvk/core'
 import { each, FormPath, isFn, isStr, isValid } from '@formvk/shared'
+import type { VueComponent } from '../types'
 import { isVueOptions } from './render'
 
 export interface IComponentMapper<T = any> {
@@ -12,14 +13,14 @@ export type IStateMapper<Props> =
     }
   | ((props: Props, field: GeneralField) => Props)
 
-export function connect<T = any>(target: T, ...args: IComponentMapper[]) {
-  return args.reduce((acc, mapper) => {
+export function connect<T extends VueComponent>(target: T, ...args: IComponentMapper[]): T {
+  return args.reduce<T>((acc, mapper) => {
     const result = mapper(target)
-    if (isFn(result)) return result
-    if (isVueOptions(result)) return result
-    if (typeof result === 'object') Object.assign(acc, result)
+    if (isFn(result)) return result as T
+    if (isVueOptions(result)) return result as T
+    if (typeof result === 'object') Object.assign(acc as any, result)
     return acc
-  }, {})
+  }, target)
 }
 
 const ReadPrettySymbol = Symbol('ReadPretty')
@@ -28,7 +29,7 @@ const ReadPrettyPropsSymbol = Symbol('ReadPrettyProps')
 
 const ValuePropSymbol = Symbol('ValueProp')
 
-export function markValueEvent(valueProp: string) {
+export function markValueProp(valueProp: string) {
   return () => {
     return {
       [ValuePropSymbol]: valueProp,
