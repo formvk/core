@@ -15,7 +15,7 @@ export type IStateMapper<Props> =
 
 export function connect<T extends VueComponent>(target: T, ...args: IComponentMapper[]): T {
   return args.reduce<T>((acc, mapper) => {
-    const result = mapper(target)
+    const result = mapper(acc)
     if (isFn(result)) return result as T
     if (isVueOptions(result)) return result as T
     if (typeof result === 'object') Object.assign(acc as any, result)
@@ -29,7 +29,7 @@ const ReadPrettyPropsSymbol = Symbol('ReadPrettyProps')
 
 const ValuePropSymbol = Symbol('ValueProp')
 
-export function markValueProp(valueProp: string) {
+export function setValueProp(valueProp: string) {
   return () => {
     return {
       [ValuePropSymbol]: valueProp,
@@ -41,7 +41,7 @@ export function getValueProp(component: any) {
   return component[ValuePropSymbol] || 'modelValue'
 }
 
-export function mapReadPretty(component: any, readPrettyProps?: Record<string, any>) {
+export function setReadPretty(component: any, readPrettyProps?: Record<string, any>) {
   return () => {
     return {
       [ReadPrettySymbol]: component,
@@ -50,7 +50,7 @@ export function mapReadPretty(component: any, readPrettyProps?: Record<string, a
   }
 }
 
-export function getReadPrettyInfo(component: any) {
+export function getReadPretty(component: any) {
   return {
     component: component[ReadPrettySymbol],
     props: component[ReadPrettyPropsSymbol],

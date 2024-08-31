@@ -3,7 +3,7 @@ import type { SchemaTypes } from '@formvk/schema'
 import { each, FormPath, isFn } from '@formvk/shared'
 import type { Ref } from 'vue'
 import { computed, shallowRef, unref, watch } from 'vue'
-import { getPropsTransformer, getReadPrettyInfo, getValueProp, isVueOptions, mergeRender } from '../shared'
+import { getPropsTransformer, getReadPretty, getValueProp, isVueOptions, mergeRender } from '../shared'
 import { useAttach } from './useAttach'
 import { provideField, useField } from './useField'
 import { useForm } from './useForm'
@@ -81,7 +81,7 @@ export function useFieldRender(fieldType: FieldType | Ref<FieldType>, fieldProps
   useAttach(fieldRef)
   const optionsRef = useSchemaOptions()
 
-  const getComponents = (componentType: any) => {
+  const getComponent = (componentType: any) => {
     const options = optionsRef.value
     const components = options?.components || {}
     if (typeof componentType !== 'string') {
@@ -95,7 +95,6 @@ export function useFieldRender(fieldType: FieldType | Ref<FieldType>, fieldProps
       if (isVoidField(fieldRef.value)) {
         return
       }
-      console.log('get value', fieldRef.value.value)
 
       return fieldRef.value.value
     },
@@ -122,7 +121,7 @@ export function useFieldRender(fieldType: FieldType | Ref<FieldType>, fieldProps
       if (!field.decoratorType) {
         return childNodes
       }
-      const Decorator = getComponents(field.decoratorType)
+      const Decorator = getComponent(field.decoratorType)
       const decoratorProps = field.decorator[1]
 
       each(decoratorProps, (value, eventKey) => {
@@ -142,12 +141,12 @@ export function useFieldRender(fieldType: FieldType | Ref<FieldType>, fieldProps
         return mergedSlots.default?.()
       }
 
-      let Component = getComponents(field.componentType)
+      let Component = getComponent(field.componentType)
       const valueProp = getValueProp(Component)
 
       let componentProps = { ...field.component[1] }
 
-      const readPrettyInfo = getReadPrettyInfo(Component)
+      const readPrettyInfo = getReadPretty(Component)
       if (field.readPretty && readPrettyInfo.component) {
         Component = readPrettyInfo.component
         componentProps = {
@@ -157,7 +156,7 @@ export function useFieldRender(fieldType: FieldType | Ref<FieldType>, fieldProps
       }
       const propsTransformer = getPropsTransformer(Component)
 
-      if (propsTransformer) {
+      if (isFn(propsTransformer)) {
         componentProps = propsTransformer(componentProps, field)
       }
 

@@ -153,11 +153,11 @@ export const validateSelf = batch.bound(async (target: Field, triggerType?: Vali
   return results
 })
 
-export const batchValidate = async (
+export async function batchValidate(
   target: Form | Field,
   pattern: FormPathPattern,
   triggerType?: ValidatorTriggerType
-) => {
+) {
   if (isForm(target)) target.setValidating(true)
   else {
     if (target.pattern !== 'editable' || target.display !== 'visible') return

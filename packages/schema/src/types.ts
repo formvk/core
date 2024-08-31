@@ -110,7 +110,7 @@ export interface ISchemaBase<Decorator = any, Component = any, DecoratorProps = 
     | ISchema<Decorator, Component, DecoratorProps, ComponentProps>
     | ISchema<Decorator, Component, DecoratorProps, ComponentProps>[]
   additionalItems?: ISchema<Decorator, Component, DecoratorProps, ComponentProps>
-  properties?: Record<SchemaKey, ISchema<Decorator, Component, DecoratorProps, ComponentProps>>
+  properties?: SchemaProperties<Decorator, Component, DecoratorProps, ComponentProps>
   additionalProperties?: ISchema<Decorator, Component, DecoratorProps, ComponentProps>
   patternProperties?: Record<SchemaKey, ISchema<Decorator, Component, DecoratorProps, ComponentProps>>
   definitions?: SchemaProperties<Decorator, Component, DecoratorProps, ComponentProps>
@@ -157,7 +157,7 @@ export interface SchemaTypeMap {
 
 export type SchemaTypes = keyof SchemaTypeMap | (string & {}) | undefined
 
-export type SchemaProperties<Decorator, Component, DecoratorProps, ComponentProps> = Record<
+export type SchemaProperties<Decorator = any, Component = any, DecoratorProps = any, ComponentProps = any> = Record<
   string,
   ISchema<Decorator, Component, DecoratorProps, ComponentProps>
 >

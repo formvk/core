@@ -34,6 +34,7 @@ export default defineConfig({
     },
   },
   esbuild: {
+    pure: ['connect'],
     target: 'es2022',
   },
   build: {

@@ -1,5 +1,10 @@
 import { isFn } from '@formvk/shared'
-import { ArrayField, Field, Form, ObjectField, Query, VoidField } from '../models'
+import { ArrayField } from '../models/ArrayField'
+import { Field } from '../models/Field'
+import { Form } from '../models/Form'
+import { ObjectField } from '../models/ObjectField'
+import { Query } from '../models/Query'
+import { VoidField } from '../models/VoidField'
 import type { GeneralField, IFieldState, IFormState, IGeneralFieldState, IVoidFieldState, JSXComponent } from '../types'
 
 export const isForm = (node: any): node is Form => {

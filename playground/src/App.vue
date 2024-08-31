@@ -1,9 +1,9 @@
 <script setup lang="tsx">
 import { Form } from '@formvk/core'
-import { provideForm, RecursionField, Field, createSchemaField } from '@formvk/vue'
-import { Schema } from '@formvk/schema'
-import { ref } from 'vue'
-import { Input } from './components/Input'
+import { provideForm, createSchemaField } from '@formvk/vue'
+import { Schema, SchemaProperties } from '@formvk/schema'
+import { ref, shallowRef } from 'vue'
+import { AntdvInput as Input } from './components'
 console.log(Input)
 const form = new Form({
   values: {
@@ -13,51 +13,29 @@ const form = new Form({
 })
 console.log(form)
 provideForm(form)
-const schema = new Schema({
-  type: 'object',
-  definitions: {
-    name: {
+
+const length = 2500
+
+const getSchema = () => {
+  const properties = Array.from({ length }).reduce<SchemaProperties>((prev, _, index) => {
+    prev[`name${index}`] = {
       type: 'string',
       title: 'Name',
       required: true,
-      component: 'input',
+      component: 'Input',
       componentProps: {
         placeholder: 'Please enter your name',
       },
-    },
-  },
-  properties: {
-    name: {
-      type: 'string',
-      title: 'Name',
-      required: true,
-      component: 'Input',
-      componentProps: {
-        placeholder: '1',
-      },
-    },
-    age: {
-      type: 'string',
-      title: 'Name',
-      required: true,
-      component: 'Input',
-      componentProps: {
-        placeholder: '2',
-        type: 'number',
-      },
-    },
-    address: {
-      type: 'object',
-      properties: {
-        city: {
-          component: 'Input',
-        },
-      },
-    },
-  },
-})
+    }
+    return prev
+  }, {})
+  return new Schema({
+    type: 'object',
+    properties,
+  })
+}
 
-console.log(schema)
+const schemaRef = shallowRef()
 
 const { SchemaField, SchemaStringField } = createSchemaField({
   components: { Input },
@@ -70,13 +48,31 @@ const onSubmit = async () => {
   console.log(result)
 }
 const name = ref('123')
+
+const load = () => {
+  const now = performance.now()
+  schemaRef.value = getSchema()
+  requestAnimationFrame(() => {
+    console.log('update', performance.now() - now)
+  })
+}
+
+const lengthRef = ref(0)
+
+const load1 = () => {
+  const now = performance.now()
+  lengthRef.value = length
+  requestAnimationFrame(() => {
+    console.log('update', performance.now() - now)
+  })
+}
 </script>
 
 <template>
   <div>
     <!-- <RecursionField :schema /> -->
     <!-- <Field name="name1" :component="['button']" content="测试" /> -->
-    <SchemaField :schema="schema">
+    <SchemaField :schema="schemaRef" v-if="schemaRef">
       <SchemaStringField
         name="name2"
         component="Input"
@@ -85,7 +81,12 @@ const name = ref('123')
         }"
       />
     </SchemaField>
+    <template v-for="i in lengthRef" :key="i">
+      <Input placeholder="Please enter your name" :value="i" />
+    </template>
     <button @click="onSubmit">提交</button>
+    <button @click="load">加载</button>
+    <button @click="load1">加载1</button>
   </div>
 </template>
 
