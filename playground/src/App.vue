@@ -1,18 +1,18 @@
 <script setup lang="tsx">
 import { Form } from '@formvk/core'
-import { provideForm, createSchemaField } from '@formvk/vue'
-import { Schema, SchemaProperties } from '@formvk/schema'
+// import { provideForm, createSchemaField } from '@formvk/vue'
+// import { Schema, SchemaProperties } from '@formvk/schema'
 import { ref, shallowRef } from 'vue'
-import { AntdvInput as Input } from './components'
-console.log(Input)
-const form = new Form({
-  values: {
-    name: '123',
-    age: 12,
-  },
-})
-console.log(form)
-provideForm(form)
+// import { AntdvInput as Input } from './components'
+// console.log(Input)
+// const form = new Form({
+//   values: {
+//     name: '123',
+//     age: 12,
+//   },
+// })
+// console.log(form)
+// provideForm(form)
 
 const length = 2500
 
@@ -26,6 +26,7 @@ const getSchema = () => {
       componentProps: {
         placeholder: 'Please enter your name',
       },
+      value: `name${index}`,
     }
     return prev
   }, {})
@@ -37,9 +38,9 @@ const getSchema = () => {
 
 const schemaRef = shallowRef()
 
-const { SchemaField, SchemaStringField } = createSchemaField({
-  components: { Input },
-})
+// const { SchemaField, SchemaStringField } = createSchemaField({
+//   components: { Input },
+// })
 
 const onSubmit = async () => {
   console.log(form.values)

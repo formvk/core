@@ -3,6 +3,7 @@ import type { Validator, ValidatorFormats, ValidatorFunction, ValidatorTriggerTy
 import type { Field, Form, VoidField } from '../models/types'
 import type { FieldComponent, FieldDecorator, JSXComponent } from './component'
 import type { DisplayTypes, PatternTypes } from './enums'
+import type { DataField } from './form'
 
 export interface IValidatorRules<Context = any> {
   triggerType?: ValidatorTriggerType
@@ -43,7 +44,7 @@ export type FieldDataSource = {
 }[]
 
 export type FieldValidatorContext = IValidatorRules & {
-  field?: Field
+  field?: DataField
   form?: Form
   value?: any
 }

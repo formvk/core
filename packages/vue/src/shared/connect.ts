@@ -13,6 +13,8 @@ export type IStateMapper<Props> =
     }
   | ((props: Props, field: GeneralField) => Props)
 
+/*! #__NO_SIDE_EFFECTS__ */
+// @__NO_SIDE_EFFECTS__
 export function connect<T extends VueComponent>(target: T, ...args: IComponentMapper[]): T {
   return args.reduce<T>((acc, mapper) => {
     const result = mapper(acc)

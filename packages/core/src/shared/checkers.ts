@@ -5,7 +5,15 @@ import { Form } from '../models/Form'
 import { ObjectField } from '../models/ObjectField'
 import { Query } from '../models/Query'
 import { VoidField } from '../models/VoidField'
-import type { GeneralField, IFieldState, IFormState, IGeneralFieldState, IVoidFieldState, JSXComponent } from '../types'
+import type {
+  DataField,
+  GeneralField,
+  IFieldState,
+  IFormState,
+  IGeneralFieldState,
+  IVoidFieldState,
+  JSXComponent,
+} from '../types'
 
 export const isForm = (node: any): node is Form => {
   return node instanceof Form
@@ -64,9 +72,9 @@ export const isArrayFieldState = (state: any): state is IFieldState => {
   return state?.displayName === 'ArrayField'
 }
 
-// export const isDataField = (node: any): node is DataField => {
-//   return isField(node) || isArrayField(node) || isObjectField(node)
-// }
+export const isDataField = (node: any): node is DataField => {
+  return isField(node) || isArrayField(node) || isObjectField(node)
+}
 
 export const isDataFieldState = (node: any) => {
   return isFieldState(node) || isObjectFieldState(node) || isArrayFieldState(node)

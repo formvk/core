@@ -10,7 +10,7 @@ export class ArrayField<Decorator extends JSXComponent = any, Component extends 
   any,
   any[]
 > {
-  readonly displayName = 'ArrayField' as const
+  displayName = 'ArrayField' as const
 
   constructor(address: FormPathPattern, props: IFieldProps<Decorator, Component>, form: Form) {
     super(address, props, form)

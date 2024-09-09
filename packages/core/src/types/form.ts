@@ -65,6 +65,7 @@ export interface IFormProps<T extends object = any> {
 export type IFormFields = Record<string, GeneralField>
 
 export type GeneralField = Field | VoidField | ArrayField | ObjectField
+export type DataField = Field | ArrayField | ObjectField
 
 export type IFormGraph = Record<string, IGeneralFieldState | IFormState>
 

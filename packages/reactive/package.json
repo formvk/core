@@ -18,6 +18,6 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@vue/reactivity": "^3.5.0-rc.1"
+    "@vue/reactivity": "^3.5.3"
   }
 }

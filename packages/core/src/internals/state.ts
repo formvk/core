@@ -1,8 +1,11 @@
-import { autorun, batch, reaction, untracked } from '@formvk/reactive'
+import { autorun, batch, reaction, toJS, untracked } from '@formvk/reactive'
 import { clone, FormPath, isEmpty, isFn, isUndef, isValid, toArr } from '@formvk/shared'
 import type { Form } from '../models/types'
 import { isGeneralField, isQuery } from '../shared/checkers'
+import { MutuallyExclusiveProperties, ReadOnlyProperties, ReservedProperties } from '../shared/constants'
 import type { FieldMatchPattern, GeneralField } from '../types'
+
+const hasOwnProperty = Object.prototype.hasOwnProperty
 
 const subscribeUpdate = (form: Form, pattern: FormPath, callback: (...args: any[]) => void) => {
   const updates = FormPath.ensureIn(form, 'requests.updates', [])
@@ -62,7 +65,7 @@ export const createBatchStateGetter = (form: Form) => {
   }
 }
 
-export const createReaction = <T>(tracker: () => T, scheduler: (value: T) => void) => {
+export function createReaction<T>(tracker: () => T, scheduler: (value: T) => void): () => void {
   return reaction(tracker, untracked.bound(scheduler))
 }
 
@@ -107,4 +110,55 @@ export const allowAssignDefaultValue = (target: any, source: any) => {
 export const getValidFieldDefaultValue = (value: any, initialValue: any) => {
   if (allowAssignDefaultValue(value, initialValue)) return clone(initialValue)
   return value
+}
+
+export const deserialize = (model: any, setter: any) => {
+  if (!model) return
+  if (isFn(setter)) {
+    setter(model)
+  } else {
+    for (const key in setter) {
+      if (!hasOwnProperty.call(setter, key)) continue
+      if (ReadOnlyProperties[key] || ReservedProperties[key]) continue
+      const MutuallyExclusiveKey = MutuallyExclusiveProperties[key]
+      if (
+        MutuallyExclusiveKey &&
+        hasOwnProperty.call(setter, MutuallyExclusiveKey) &&
+        !isValid(setter[MutuallyExclusiveKey])
+      )
+        continue
+      const value = setter[key]
+      if (isFn(value)) continue
+      model[key] = value
+    }
+  }
+  return model
+}
+
+export const serialize = (model: any, getter?: any) => {
+  if (isFn(getter)) {
+    return getter(model)
+  } else {
+    const results = {}
+    for (const key in model) {
+      if (!hasOwnProperty.call(model, key)) continue
+      if (ReservedProperties[key]) continue
+      if (key === 'address' || key === 'path') {
+        results[key] = model[key].toString()
+        continue
+      }
+      const value = model[key]
+      if (isFn(value)) continue
+      results[key] = toJS(value)
+    }
+    return results
+  }
+}
+
+export const createStateSetter = (model: any) => {
+  return batch.bound((setter?: any) => deserialize(model, setter))
+}
+
+export const createStateGetter = (model: any) => {
+  return (getter?: any) => serialize(model, getter)
 }

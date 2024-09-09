@@ -4,8 +4,8 @@ import fs from 'fs-extra'
 import { globSync } from 'glob'
 import { resolve } from 'node:path'
 import { defineConfig } from 'vite'
+import vueDevTools from 'vite-plugin-vue-devtools'
 import { workspaces } from '../package.json'
-
 const getWorkspaceAlias = () => {
   const basePath = resolve(__dirname, '../')
   const alias: Record<string, string> = {}
@@ -27,7 +27,7 @@ const getWorkspaceAlias = () => {
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [vue(), vueJsx()],
+  plugins: [vue(), vueJsx(), vueDevTools()],
   resolve: {
     alias: {
       ...getWorkspaceAlias(),

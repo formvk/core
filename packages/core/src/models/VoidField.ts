@@ -1,5 +1,5 @@
 import type { FormPathPattern } from '@formvk/shared'
-import { createStateGetter, createStateSetter } from '../shared/internals'
+import { createStateGetter, createStateSetter } from '../internals'
 import type { IModelGetter, IModelSetter, IVoidFieldProps, IVoidFieldState, JSXComponent } from '../types'
 import { BaseField } from './BaseField'
 import type { Form } from './types'

@@ -8,14 +8,14 @@ import {
   createChildrenFeedbackFilter,
   createReaction,
   createReactions,
+  createStateGetter,
+  createStateSetter,
   getValidFieldDefaultValue,
   setSubmitting,
   setValidating,
   validateSelf,
 } from '../internals'
 import {
-  createStateGetter,
-  createStateSetter,
   isHTMLInputEvent,
   queryFeedbackMessages,
   queryFeedbacks,
@@ -47,6 +47,7 @@ export class Field<
   TextType = any,
   ValueType = any,
 > extends BaseField<Decorator, Component, TextType> {
+  displayName = 'Field'
   constructor(address: FormPathPattern, props: IFieldProps<Decorator, Component, TextType, ValueType>, form: Form) {
     super()
     this.form = form

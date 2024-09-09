@@ -32,6 +32,7 @@ export interface ISchemaBase<Decorator = any, Component = any, DecoratorProps = 
    * 字段的默认值
    */
   default?: any
+  value?: any
   /**
    * 字段的组件
    */

@@ -1,11 +1,11 @@
 import { batch, Observable } from '@formvk/reactive'
 import type { FormPathPattern } from '@formvk/shared'
 import { FormPath, isArr, isBool, isObj, isPlainObj, merge, uid } from '@formvk/shared'
-import { batchSubmit, batchValidate, setSubmitting, setValidating } from '../internals'
+import { batchValidate, createStateGetter, createStateSetter, setSubmitting, setValidating } from '../internals'
 import { createBatchStateGetter, createBatchStateSetter } from '../internals/state'
+import { batchSubmit } from '../internals/validate'
 import { isVoidField } from '../shared/checkers'
 import { runEffects } from '../shared/effective'
-import { createStateGetter, createStateSetter } from '../shared/internals'
 import type {
   IFieldFactoryProps,
   IFieldStateGetter,
@@ -36,20 +36,20 @@ export class Form<ValueType extends object = any> {
   /**
    * 表单的唯一标识, 用于__FORMVK_DEVTOOLS__调试
    */
-  id: string
+  id = uid()
 
-  designable?: boolean
+  designable = false
 
   heart: Heart
 
   graph: Graph
 
   constructor(props: IFormProps<ValueType> = {}) {
+    this.id = uid()
     this.initialize(props)
   }
 
   protected initialize(props: IFormProps<ValueType>) {
-    this.id = uid()
     this.props = { ...props }
     this.setDisplay(this.props.display)
     this.setValues(props.values!)
@@ -60,7 +60,7 @@ export class Form<ValueType extends object = any> {
     this.readPretty = this.props.readPretty!
     this.visible = this.props.visible!
     this.hidden = this.props.hidden!
-    this.designable = props.designable
+    this.designable = !!props.designable
     this.graph = new Graph(this)
     this.heart = new Heart({
       lifecycles: this.lifecycles,
@@ -78,7 +78,6 @@ export class Form<ValueType extends object = any> {
   setValues(values: ValueType, strategy: IFormMergeStrategy = 'merge') {
     if (!isPlainObj(values)) return
     if (strategy === 'merge' || strategy === 'deepMerge') {
-      console.log('merge', values)
       merge(this.values, values, {
         // never reach
         arrayMerge: (target, source) => source,
@@ -99,6 +98,10 @@ export class Form<ValueType extends object = any> {
     return FormPath.setIn(this.values, pattern, value)
   }
 
+  deleteValuesIn(pattern: FormPathPattern) {
+    FormPath.deleteIn(this.values, pattern)
+  }
+
   @Observable
   accessor initialValues: ValueType
 
@@ -108,10 +111,6 @@ export class Form<ValueType extends object = any> {
 
   setInitialValuesIn(pattern: FormPathPattern, value: any) {
     return FormPath.setIn(this.initialValues, pattern, value)
-  }
-
-  deleteValuesIn = (pattern: FormPathPattern) => {
-    FormPath.deleteIn(this.values, pattern)
   }
 
   @Observable.Ref
@@ -141,7 +140,7 @@ export class Form<ValueType extends object = any> {
     return runEffects(this, this.props.effects!)
   }
 
-  notify = (type: string, payload?: any) => {
+  notify(type: string, payload?: any) {
     this.heart.publish(type, payload ?? this)
   }
 
@@ -297,15 +296,15 @@ export class Form<ValueType extends object = any> {
     return batchSubmit(this, onSubmit)
   }
 
-  setSubmitting = (submitting: boolean) => {
+  setSubmitting(submitting: boolean) {
     setSubmitting(this, submitting)
   }
 
-  validate = (pattern: FormPathPattern = '*') => {
+  validate(pattern: FormPathPattern = '*') {
     return batchValidate(this, pattern)
   }
 
-  setValidating = (validating: boolean) => {
+  setValidating(validating: boolean) {
     setValidating(this, validating)
   }
 
@@ -340,9 +339,9 @@ export class Form<ValueType extends object = any> {
   /**
    * 创建表单字段模型
    */
-  createField = <Decorator extends JSXComponent, Component extends JSXComponent>(
+  createField<Decorator extends JSXComponent, Component extends JSXComponent>(
     props: IFieldFactoryProps<Decorator, Component>
-  ): Field<Decorator, Component> => {
+  ): Field<Decorator, Component> {
     const address = FormPath.parse(props.basePath).concat(props.name)
     const identifier = address.toString()
     if (!identifier) {
@@ -359,9 +358,9 @@ export class Form<ValueType extends object = any> {
   /**
    * 创建数组字段模型
    */
-  createArrayField = <Decorator extends JSXComponent, Component extends JSXComponent>(
+  createArrayField<Decorator extends JSXComponent, Component extends JSXComponent>(
     props: IFieldFactoryProps<Decorator, Component>
-  ): ArrayField<Decorator, Component> => {
+  ): ArrayField<Decorator, Component> {
     const address = FormPath.parse(props.basePath).concat(props.name)
     const identifier = address.toString()
     if (!identifier) {
@@ -386,9 +385,9 @@ export class Form<ValueType extends object = any> {
   /**
    * 创建对象字段模型
    */
-  createObjectField = <Decorator extends JSXComponent, Component extends JSXComponent>(
+  createObjectField<Decorator extends JSXComponent, Component extends JSXComponent>(
     props: IFieldFactoryProps<Decorator, Component>
-  ): ObjectField<Decorator, Component> => {
+  ): ObjectField<Decorator, Component> {
     const address = FormPath.parse(props.basePath).concat(props.name)
     const identifier = address.toString()
     if (!identifier) {
@@ -413,9 +412,9 @@ export class Form<ValueType extends object = any> {
   /**
    * 创建UI字段模型
    */
-  createVoidField = <Decorator extends JSXComponent, Component extends JSXComponent>(
+  createVoidField<Decorator extends JSXComponent, Component extends JSXComponent>(
     props: IVoidFieldFactoryProps<Decorator, Component>
-  ): VoidField<Decorator, Component> => {
+  ): VoidField<Decorator, Component> {
     const address = FormPath.parse(props.basePath).concat(props.name)
     const identifier = address.toString()
     if (!identifier) {

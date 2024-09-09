@@ -6,12 +6,12 @@ import { parseValidatorDescriptions, validate } from '@formvk/validator'
 import type { Field, Form } from '../models/types'
 import { isForm, isVoidField } from '../shared/checkers'
 import { RESPONSE_REQUEST_DURATION } from '../shared/constants'
-import type { FieldFeedbackTypes, IFormFeedback } from '../types'
+import type { DataField, FieldFeedbackTypes, IFormFeedback } from '../types'
 import { LifeCycleTypes } from '../types'
 
 export {}
 
-const notify = (target: Form | Field, formType: LifeCycleTypes, fieldType: LifeCycleTypes) => {
+const notify = (target: Form | DataField, formType: LifeCycleTypes, fieldType: LifeCycleTypes) => {
   if (isForm(target)) {
     target.notify(formType)
   } else {
@@ -45,7 +45,7 @@ export const batchSubmit = async <T>(
     if (isForm(target)) {
       return toJS(target.values)
     }
-    return toJS(target.value)
+    if (target.displayName) return toJS(target.value)
   }
   target.setSubmitting(true)
   try {
@@ -78,7 +78,7 @@ export const batchSubmit = async <T>(
   return results
 }
 
-export const validateToFeedbacks = async (field: Field, triggerType: ValidatorTriggerType = 'onInput') => {
+export const validateToFeedbacks = async (field: DataField, triggerType: ValidatorTriggerType = 'onInput') => {
   const results = await validate(field.value, field.validator, {
     triggerType,
     validateFirst: field.props.validateFirst ?? field.form.props.validateFirst,
@@ -98,7 +98,7 @@ export const validateToFeedbacks = async (field: Field, triggerType: ValidatorTr
   return results
 }
 
-export const setValidating = (target: Form | Field, validating?: boolean) => {
+export const setValidating = (target: Form | DataField, validating?: boolean) => {
   clearTimeout(target.requests.validate)
   if (validating) {
     target.requests.validate = globalThisPolyfill.setTimeout(() => {
@@ -116,42 +116,44 @@ export const setValidating = (target: Form | Field, validating?: boolean) => {
   }
 }
 
-export const validateSelf = batch.bound(async (target: Field, triggerType?: ValidatorTriggerType, noEmit = false) => {
-  const start = () => {
-    setValidating(target, true)
-  }
-  const end = () => {
-    setValidating(target, false)
-    if (noEmit) return
-    if (target.selfValid) {
-      target.notify(LifeCycleTypes.ON_FIELD_VALIDATE_SUCCESS)
-    } else {
-      target.notify(LifeCycleTypes.ON_FIELD_VALIDATE_FAILED)
+export const validateSelf = batch.bound(
+  async (target: DataField, triggerType?: ValidatorTriggerType, noEmit = false) => {
+    const start = () => {
+      setValidating(target, true)
     }
-  }
+    const end = () => {
+      setValidating(target, false)
+      if (noEmit) return
+      if (target.selfValid) {
+        target.notify(LifeCycleTypes.ON_FIELD_VALIDATE_SUCCESS)
+      } else {
+        target.notify(LifeCycleTypes.ON_FIELD_VALIDATE_FAILED)
+      }
+    }
 
-  if (target.pattern !== 'editable' || target.display !== 'visible') return {}
-  start()
-  if (!triggerType) {
-    const allTriggerTypes = parseValidatorDescriptions(target.validator).reduce(
-      (types, desc) => (types.indexOf(desc.triggerType) > -1 ? types : types.concat(desc.triggerType)),
-      []
-    )
-    const results = {}
-    for (let i = 0; i < allTriggerTypes.length; i++) {
-      const payload = await validateToFeedbacks(target, allTriggerTypes[i])
-      each(payload, (result, key) => {
-        results[key] = results[key] || []
-        results[key] = results[key].concat(result)
-      })
+    if (target.pattern !== 'editable' || target.display !== 'visible') return {}
+    start()
+    if (!triggerType) {
+      const allTriggerTypes = parseValidatorDescriptions(target.validator).reduce(
+        (types, desc) => (types.indexOf(desc.triggerType) > -1 ? types : types.concat(desc.triggerType)),
+        []
+      )
+      const results = {}
+      for (let i = 0; i < allTriggerTypes.length; i++) {
+        const payload = await validateToFeedbacks(target, allTriggerTypes[i])
+        each(payload, (result, key) => {
+          results[key] = results[key] || []
+          results[key] = results[key].concat(result)
+        })
+      }
+      end()
+      return results
     }
+    const results = await validateToFeedbacks(target, triggerType)
     end()
     return results
   }
-  const results = await validateToFeedbacks(target, triggerType)
-  end()
-  return results
-})
+)
 
 export async function batchValidate(
   target: Form | Field,
