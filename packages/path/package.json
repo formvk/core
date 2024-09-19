@@ -15,7 +15,7 @@
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "vite build",
+    "build": "vite build --config build/vite.esm.config.js",
     "test": "vitest"
   },
   "devDependencies": {}

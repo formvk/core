@@ -30,8 +30,8 @@ export const shallowClone = (values: any) => {
 
 export const clone = (values: any) => {
   if (Array.isArray(values)) {
-    const res = []
-    values.forEach((item) => {
+    const res: any[] = []
+    values.forEach(item => {
       res.push(clone(item))
     })
     return res

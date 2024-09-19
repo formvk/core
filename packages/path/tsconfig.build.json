@@ -1,8 +1,8 @@
 {
-  "extends": "./tsconfig.build.json",
+  "extends": "./tsconfig.json",
   "compilerOptions": {
     "paths": {
-      "@formvk/*": ["packages/*/src"]
+      "@formvk/*": ["packages/*"]
     },
     "declaration": true
   }

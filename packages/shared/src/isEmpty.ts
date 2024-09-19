@@ -58,7 +58,7 @@ export function isEmpty<T>(val: T, strict = false): boolean {
 
   // Errors...
   if (instOf(val, 'Error')) {
-    return val.message === ''
+    return (val as any).message === ''
   }
 
   // Objects...

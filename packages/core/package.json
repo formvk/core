@@ -11,11 +11,11 @@
   "license": "MIT",
   "author": "yiyunwan",
   "type": "module",
-  "main": "dist/index.js",
-  "module": "dist/index.js",
+  "main": "dist/formvk-core.esm.js",
+  "module": "dist/formvk-core.esm.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "vite build"
+    "build": "vite build --config build/vite.esm.config.js"
   },
   "devDependencies": {}
 }

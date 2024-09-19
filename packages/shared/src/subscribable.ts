@@ -1,9 +1,10 @@
-import { isFn, Subscriber, Subscription } from './checkers'
 import { each } from './array'
+import type { Subscriber, Subscription } from './checkers'
+import { isFn } from './checkers'
 
 export class Subscribable<Payload = any> {
   subscribers: {
-    index?: number
+    index: number
     [key: number]: Subscriber<Payload>
   } = {
     index: 0,
@@ -11,16 +12,16 @@ export class Subscribable<Payload = any> {
 
   subscription: Subscription<Payload>
 
-  subscribe = (callback?: Subscriber<Payload>): number => {
+  subscribe = (callback?: Subscriber<Payload>): number | undefined => {
     if (isFn(callback)) {
-      const index: number = this.subscribers.index + 1
+      const index: number = this.subscribers.index! + 1
       this.subscribers[index] = callback
-      this.subscribers.index++
+      this.subscribers.index!++
       return index
     }
   }
 
-  unsubscribe = (index?: number) => {
+  unsubscribe = (index: number) => {
     if (this.subscribers[index]) {
       delete this.subscribers[index]
     } else if (!index) {
@@ -46,7 +47,7 @@ export class Subscribable<Payload = any> {
       return payload
     }
     each(this.subscribers, (callback: any) => {
-      if (isFn(callback)) callback(filter(payload))
+      if (isFn(callback)) callback(filter(payload as any))
     })
   }
 }
