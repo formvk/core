@@ -1,9 +1,11 @@
+import type { FormPathPattern } from '@formvk/shared'
 import { globalThisPolyfill } from '@formvk/shared'
 import { LifeCycleTypes } from '../enums'
 import type { Field, Form } from '../models'
+import type { FieldParent } from '../types'
 import { RESPONSE_REQUEST_DURATION } from './constants'
 
-const notify = (target: Form | Field, formType: LifeCycleTypes, fieldType: LifeCycleTypes) => {
+function notify(target: Form | Field, formType: LifeCycleTypes, fieldType: LifeCycleTypes) {
   if (target.displayName === 'Form') {
     target.notify(formType)
   } else {
@@ -11,7 +13,7 @@ const notify = (target: Form | Field, formType: LifeCycleTypes, fieldType: LifeC
   }
 }
 
-export const setLoading = (target: Form | Field, loading: boolean) => {
+export function setLoading(target: Form | Field, loading: boolean) {
   clearTimeout(target.requests.loading)
   if (loading) {
     target.requests.loading = globalThisPolyfill.setTimeout(() => {
@@ -23,7 +25,7 @@ export const setLoading = (target: Form | Field, loading: boolean) => {
   }
 }
 
-export const setValidating = (target: Form | Field, validating: boolean) => {
+export function setValidating(target: Form | Field, validating: boolean) {
   clearTimeout(target.requests.validate)
   if (validating) {
     target.requests.validate = globalThisPolyfill.setTimeout(() => {
@@ -39,7 +41,7 @@ export const setValidating = (target: Form | Field, validating: boolean) => {
   }
 }
 
-export const setSubmitting = (target: Form | Field, submitting: boolean) => {
+export function setSubmitting(target: Form | Field, submitting: boolean) {
   clearTimeout(target.requests.submit)
   if (submitting) {
     target.requests.submit = globalThisPolyfill.setTimeout(() => {
@@ -53,4 +55,16 @@ export const setSubmitting = (target: Form | Field, submitting: boolean) => {
     }
     notify(target, LifeCycleTypes.ON_FORM_SUBMIT_END, LifeCycleTypes.ON_FIELD_SUBMIT_END)
   }
+}
+
+export function getIdentifier(name: FormPathPattern, parent: FieldParent, form: Form) {
+  if (form.isForm(parent)) {
+    return name.toString()
+  }
+  let address = name.toString()
+  while (!form.isForm(parent)) {
+    address = `${parent.address.toString()}.${address}`
+    parent = parent.parent
+  }
+  return address
 }

@@ -1,6 +1,5 @@
-import type { FormPathPattern } from '@formvk/shared'
 import { Injectable } from '../decorators'
-import type { IVoidFieldProps } from '../types'
+import type { FieldParent, IVoidFieldProps } from '../types'
 import { BaseField } from './BaseField'
 import type { Form } from './Form'
 
@@ -10,8 +9,9 @@ export class VoidField<Decorator = any, Component = any, TextType = any> extends
   Component,
   TextType
 > {
-  constructor(address: FormPathPattern, props: IVoidFieldProps<Decorator, Component>, form: Form) {
-    super()
+  displayName = 'VoidField'
+  constructor(props: IVoidFieldProps<Decorator, Component>, form: Form, parent: FieldParent) {
+    super(form, parent)
     this.form = form
   }
 }

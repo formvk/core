@@ -3,8 +3,8 @@ import { FormPath, isValid, uid } from '@formvk/shared'
 import type { Creator } from '../decorators'
 import { Injectable, InjectCreator, Module } from '../decorators'
 import { FieldDisplay, FieldMode, LifeCycleTypes } from '../enums'
-import { getValidFormValues, setLoading, setSubmitting, setValidating } from '../internals'
-import type { GeneralField, IFieldFactoryProps, IFormProps, IFormRequests, JSXComponent } from '../types'
+import { getIdentifier, getValidFormValues, setLoading, setSubmitting, setValidating } from '../internals'
+import type { FieldParent, GeneralField, IFieldProps, IFormProps, IFormRequests, JSXComponent } from '../types'
 import { ArrayField } from './ArrayField'
 import { Field } from './Field'
 import type { Graph } from './Graph'
@@ -40,10 +40,18 @@ export class Form<ValueType = any> {
   accessor unmounted = false
 
   @Observable.Ref
-  accessor display: FieldDisplay
+  accessor mode: FieldMode
+
+  setMode(mode: FieldMode) {
+    this.mode = mode
+  }
 
   @Observable.Ref
-  accessor mode: FieldMode
+  accessor display: FieldDisplay
+
+  setDisplay(display: FieldDisplay) {
+    this.display = display
+  }
 
   constructor(props: IFormProps<ValueType>) {
     this.initialize(props)
@@ -71,6 +79,22 @@ export class Form<ValueType = any> {
   protected makeValues() {
     this.values = getValidFormValues(this.props.values)
     this.initialValues = getValidFormValues(this.props.initialValues)
+  }
+
+  getValuesIn = (path: FormPath) => {
+    return FormPath.getIn(this.values, path)
+  }
+
+  setValuesIn(path: FormPath, value: any) {
+    return FormPath.setIn(this.values, path, value)
+  }
+
+  getInitialValuesIn(path: FormPath) {
+    return FormPath.getIn(this.initialValues, path)
+  }
+
+  setInitialValuesIn(path: FormPath, value: any) {
+    return FormPath.setIn(this.initialValues, path, value)
   }
 
   @Observable.Computed
@@ -157,44 +181,63 @@ export class Form<ValueType = any> {
     setSubmitting(this, submitting)
   }
 
-  static isVoidField(field: GeneralField) {
+  addEffects(id: any, effects: IFormProps['effects']) {
+    if (!this.heart.hasLifeCycles(id)) {
+      effects
+      // this.heart.addLifeCycles(id, runEffects(this, effects))
+    }
+  }
+
+  removeEffects(id: any) {
+    this.heart.removeLifeCycles(id)
+  }
+
+  static isVoidField(field: GeneralField): field is VoidField {
     return field instanceof VoidField
   }
 
-  static isObjectField(field: GeneralField) {
+  static isObjectField(field: GeneralField): field is ObjectField {
     return field instanceof ObjectField
   }
 
-  static isArrayField(field: GeneralField) {
+  static isArrayField(field: GeneralField): field is ArrayField {
     return field instanceof ArrayField
   }
 
-  static isField(field: GeneralField) {
+  static isField(field: GeneralField): field is Field {
     return field instanceof Field
   }
 
-  static isGeneralField(field: GeneralField) {
+  static isGeneralField(field: any): field is GeneralField {
     return Form.isVoidField(field) || Form.isObjectField(field) || Form.isArrayField(field) || Form.isField(field)
   }
 
-  isVoidField(field: GeneralField) {
+  static isForm(form: any): form is Form {
+    return form instanceof Form
+  }
+
+  isVoidField(field: GeneralField): field is VoidField {
     return Form.isVoidField(field)
   }
 
-  isObjectField(field: GeneralField) {
+  isObjectField(field: GeneralField): field is ObjectField {
     return Form.isObjectField(field)
   }
 
-  isArrayField(field: GeneralField) {
+  isArrayField(field: GeneralField): field is ArrayField {
     return Form.isArrayField(field)
   }
 
-  isField(field: GeneralField) {
+  isField(field: GeneralField): field is Field {
     return Form.isField(field)
   }
 
-  isGeneralField(field: GeneralField) {
+  isGeneralField(field: GeneralField): field is GeneralField {
     return Form.isGeneralField(field)
+  }
+
+  isForm(form: any) {
+    return form instanceof Form
   }
 
   // setState: IModelSetter<IFormState<ValueType>> = createStateSetter(this)
@@ -214,60 +257,64 @@ export class Form<ValueType = any> {
   voidFieldCreator: Creator<typeof VoidField>
 
   createField<Decorator extends JSXComponent, Component extends JSXComponent>(
-    props: IFieldFactoryProps<Decorator, Component>
+    props: IFieldProps<Decorator, Component>,
+    parent: FieldParent = this
   ): Field<Decorator, Component> {
-    const address = FormPath.parse(props.basePath).concat(props.name)
-    const identifier = address.toString()
-    if (!identifier) {
-      throw new Error(`Can not create Field without name ${props.name} in ${props.basePath || 'ROOT'}`)
+    const { name } = props
+    if (!name) {
+      throw new Error(`Can not create Field without name ${name} in ${parent}`)
     }
+    const identifier = getIdentifier(name, parent, this)
     if (!this.fields[identifier]) {
-      this.fieldCreator(address, props, this)
+      this.fieldCreator(props, this, parent)
       this.notify(LifeCycleTypes.ON_FORM_GRAPH_CHANGE)
     }
     return this.fields[identifier] as Field<Decorator, Component>
   }
 
   createObjectField<Decorator extends JSXComponent, Component extends JSXComponent>(
-    props: IFieldFactoryProps<Decorator, Component>
+    props: IFieldProps<Decorator, Component>,
+    parent: FieldParent = this
   ): ObjectField<Decorator, Component> {
-    const address = FormPath.parse(props.basePath).concat(props.name)
-    const identifier = address.toString()
+    const { name } = props
+    const identifier = getIdentifier(name, parent, this)
     if (!identifier) {
-      throw new Error(`Can not create ObjectField without name ${props.name} in ${props.basePath || 'ROOT'}`)
+      throw new Error(`Can not create ObjectField without name ${name} in ${parent}`)
     }
     if (!this.fields[identifier]) {
-      this.objectFieldCreator(address, props, this)
+      this.objectFieldCreator(props, this, parent)
       this.notify(LifeCycleTypes.ON_FORM_GRAPH_CHANGE)
     }
     return this.fields[identifier] as ObjectField<Decorator, Component>
   }
 
   createArrayField<Decorator extends JSXComponent, Component extends JSXComponent>(
-    props: IFieldFactoryProps<Decorator, Component>
+    props: IFieldProps<Decorator, Component>,
+    parent: FieldParent = this
   ): ArrayField<Decorator, Component> {
-    const address = FormPath.parse(props.basePath).concat(props.name)
-    const identifier = address.toString()
+    const { name } = props
+    const identifier = getIdentifier(name, parent, this)
     if (!identifier) {
-      throw new Error(`Can not create ArrayField without name ${props.name} in ${props.basePath || 'ROOT'}`)
+      throw new Error(`Can not create ArrayField without name ${name} in ${parent}`)
     }
     if (!this.fields[identifier]) {
-      this.arrayFieldCreator(address, props, this)
+      this.arrayFieldCreator(props, this, parent)
       this.notify(LifeCycleTypes.ON_FORM_GRAPH_CHANGE)
     }
     return this.fields[identifier] as ArrayField<Decorator, Component>
   }
 
   createVoidField<Decorator extends JSXComponent, Component extends JSXComponent>(
-    props: IFieldFactoryProps<Decorator, Component>
+    props: IFieldProps<Decorator, Component>,
+    parent: FieldParent = this
   ): VoidField<Decorator, Component> {
-    const address = FormPath.parse(props.basePath).concat(props.name)
-    const identifier = address.toString()
+    const { name } = props
+    const identifier = getIdentifier(name, parent, this)
     if (!identifier) {
-      throw new Error(`Can not create VoidField without name ${props.name}in ${props.basePath || 'ROOT'}`)
+      throw new Error(`Can not create VoidField without name ${props.name}in ${parent}`)
     }
     if (!this.fields[identifier]) {
-      this.voidFieldCreator(address, props, this)
+      this.voidFieldCreator(props, this, parent)
       this.notify(LifeCycleTypes.ON_FORM_GRAPH_CHANGE)
     }
     return this.fields[identifier] as VoidField<Decorator, Component>

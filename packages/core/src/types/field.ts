@@ -47,7 +47,6 @@ export interface IFieldProps<
   ValueType = any,
 > {
   name: FormPathPattern
-  basePath?: FormPathPattern
   title?: TextType
   description?: TextType
   value?: ValueType
@@ -71,23 +70,12 @@ export interface IFieldProps<
   data?: any
 }
 
-export interface IFieldFactoryProps<
-  Decorator extends JSXComponent,
-  Component extends JSXComponent,
-  TextType = any,
-  ValueType = any,
-> extends IFieldProps<Decorator, Component, TextType, ValueType> {
-  name: FormPathPattern
-  basePath?: FormPathPattern
-}
-
 export interface IVoidFieldProps<
   Decorator extends JSXComponent = any,
   Component extends JSXComponent = any,
   TextType = any,
 > {
   name: FormPathPattern
-  basePath?: FormPathPattern
   title?: TextType
   description?: TextType
   mode?: FieldMode
@@ -125,12 +113,6 @@ export type OmitState<P> = Omit<
   | 'displayName'
 >
 
-export interface IVoidFieldFactoryProps<Decorator extends JSXComponent, Component extends JSXComponent, TextType = any>
-  extends IVoidFieldProps<Decorator, Component, TextType> {
-  name: FormPathPattern
-  basePath?: FormPathPattern
-}
-
 export type NonFunctionPropertyNames<T> = {
   [K in keyof T]: T[K] extends (...args: any) => any ? never : K
 }[keyof T]
@@ -152,3 +134,11 @@ export interface IFieldRequests {
   loading?: number
   batch?: () => void
 }
+
+export interface IFieldCaches {
+  value?: any
+  initialValue?: any
+  inputting?: boolean
+}
+
+export type FieldParent = Form | ArrayField | ObjectField | VoidField
