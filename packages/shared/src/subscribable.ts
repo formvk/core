@@ -21,13 +21,13 @@ export class Subscribable<Payload = any> {
     }
   }
 
-  unsubscribe = (index: number) => {
-    if (this.subscribers[index]) {
-      delete this.subscribers[index]
-    } else if (!index) {
+  unsubscribe = (index?: number) => {
+    if (!index) {
       this.subscribers = {
         index: 0,
       }
+    } else if (this.subscribers[index]) {
+      delete this.subscribers[index]
     }
   }
 

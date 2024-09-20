@@ -5,26 +5,23 @@ const { setDecoratorSymbolByName, setDecoratorSymbolValue, getDecoratorSymbolVal
   createDecoratorSymbol('Observable')
 
 export function Observable<This, Value>(
-  target: ClassAccessorDecoratorTarget<This, Value>,
-  context: ClassAccessorDecoratorContext<This, Value>
-): ClassAccessorDecoratorTarget<This, Value> {
-  if (context.kind !== 'accessor') {
+  _: ClassAccessorDecoratorTarget<This, Value>,
+  { kind, name }: ClassAccessorDecoratorContext<This, Value>
+): ClassAccessorDecoratorResult<This, Value> {
+  if (kind !== 'accessor') {
     throw new Error(`Invalid context, expected accessor`)
   }
 
-  const { addInitializer } = context
-
-  addInitializer(function (this: This) {
-    const initialValue = target!.get.call(this)
-    setDecoratorSymbolByName(this, context.name, ref(initialValue))
-  })
-
   return {
+    init(this, value) {
+      setDecoratorSymbolByName(this, name, ref(value))
+      return value
+    },
     set(this, value) {
-      setDecoratorSymbolValue(this, context.name, value)
+      setDecoratorSymbolValue(this, name, value)
     },
     get(this) {
-      return getDecoratorSymbolValue(this, context.name)
+      return getDecoratorSymbolValue(this, name)
     },
   }
 }

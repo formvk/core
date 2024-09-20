@@ -1,4 +1,7 @@
-export enum DisplayTypes {
+/**
+ * 字段显示
+ */
+export enum FieldDisplay {
   /**
    * 不展示, 且数据不会被收集
    */
@@ -13,7 +16,10 @@ export enum DisplayTypes {
   VISIBLE = 'visible',
 }
 
-export enum PatternTypes {
+/**
+ * 字段风格
+ */
+export enum FieldMode {
   /**
    * 可编辑
    */

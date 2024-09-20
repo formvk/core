@@ -11,7 +11,7 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@formvk/shared": "workspace:^"
+    "@formvk/shared": "workspace:*"
   },
   "publishConfig": {
     "access": "public"

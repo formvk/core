@@ -4,26 +4,24 @@ import { createDecoratorSymbol } from './shared'
 const { setDecoratorSymbolByName, setDecoratorSymbolValue, getDecoratorSymbolValue } = createDecoratorSymbol('Ref')
 
 export function Ref<This, Value>(
-  target: ClassAccessorDecoratorTarget<This, Value>,
-  context: ClassAccessorDecoratorContext<This, Value>
-): ClassAccessorDecoratorTarget<This, Value> {
-  if (context.kind !== 'accessor') {
+  _: ClassAccessorDecoratorTarget<This, Value>,
+  { kind, name }: ClassAccessorDecoratorContext<This, Value>
+): ClassAccessorDecoratorResult<This, Value> {
+  if (kind !== 'accessor') {
     throw new Error(`Invalid context, expected accessor`)
   }
 
-  const { addInitializer } = context
-
-  addInitializer(function (this: This) {
-    const initialValue = target.get.call(this)
-    setDecoratorSymbolByName(this, context.name, shallowRef(initialValue))
-  })
-
   return {
+    init(this, value) {
+      setDecoratorSymbolByName(this, name, shallowRef(value))
+
+      return value
+    },
     set(this, value) {
-      setDecoratorSymbolValue(this, context.name, value)
+      setDecoratorSymbolValue(this, name, value)
     },
     get(this) {
-      return getDecoratorSymbolValue(this, context.name)
+      return getDecoratorSymbolValue(this, name)
     },
   }
 }

@@ -14,4 +14,7 @@ export default [
       '@typescript-eslint/ban-types': 'off',
     },
   },
+  {
+    ignores: ['**/dist'],
+  },
 ]

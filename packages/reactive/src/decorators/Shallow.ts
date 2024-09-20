@@ -3,14 +3,12 @@ import { createDecoratorSymbol } from './shared'
 
 const { setDecoratorSymbolByName, setDecoratorSymbolValue, getDecoratorSymbolValue } = createDecoratorSymbol('Shallow')
 export function Shallow<This, Value>(
-  target: ClassAccessorDecoratorTarget<This, Value>,
-  context: ClassAccessorDecoratorContext<This, Value>
-): ClassAccessorDecoratorTarget<This, Value> {
-  if (context.kind !== 'accessor') {
+  _: ClassAccessorDecoratorTarget<This, Value>,
+  { kind, name }: ClassAccessorDecoratorContext<This, Value>
+): ClassAccessorDecoratorResult<This, Value> {
+  if (kind !== 'accessor') {
     throw new Error(`Invalid context, expected accessor`)
   }
-
-  const { addInitializer } = context
 
   const getValue = (value: Value) => {
     if (value && typeof value === 'object') {
@@ -20,18 +18,16 @@ export function Shallow<This, Value>(
     }
   }
 
-  addInitializer(function (this: This) {
-    const initialValue = target.get.call(this)
-
-    setDecoratorSymbolByName(this, context.name, shallowRef(getValue(initialValue)))
-  })
-
   return {
+    init(this, value) {
+      setDecoratorSymbolByName(this, name, shallowRef(getValue(value)))
+      return value
+    },
     set(value) {
-      setDecoratorSymbolValue(this, context.name, getValue(value))
+      setDecoratorSymbolValue(this, name, getValue(value))
     },
     get(this) {
-      return getDecoratorSymbolValue(this, context.name)
+      return getDecoratorSymbolValue(this, name)
     },
   }
 }

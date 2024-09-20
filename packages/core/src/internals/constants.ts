@@ -1,0 +1,1 @@
+export const RESPONSE_REQUEST_DURATION = 100

@@ -18,7 +18,7 @@
     "build": "vite build"
   },
   "devDependencies": {
-    "vue": "^3.5.3"
+    "vue": "^3.5.6"
   },
   "peerDependencies": {
     "vue": "^3.4.0"

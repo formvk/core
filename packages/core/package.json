@@ -17,5 +17,10 @@
   "scripts": {
     "build": "vite build --config build/vite.esm.config.js"
   },
+  "dependencies": {
+    "@formvk/reactive": "workspace:*",
+    "@formvk/shared": "workspace:*",
+    "@formvk/validator": "workspace:*"
+  },
   "devDependencies": {}
 }

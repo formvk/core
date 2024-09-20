@@ -20,6 +20,8 @@ export default defineConfig({
         return !id.startsWith('.') && !id.startsWith('/')
       },
     },
+    minify: false,
+    target: 'es2022',
   },
   esbuild: {
     target: 'es2022',

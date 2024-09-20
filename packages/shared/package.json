@@ -18,7 +18,7 @@
     "build": "vite build --config build/vite.esm.config.js"
   },
   "dependencies": {
-    "@formvk/path": "workspace:^",
+    "@formvk/path": "workspace:*",
     "camel-case": "^4.1.2",
     "change-case": "^5.4.4",
     "lower-case": "^2.0.2",

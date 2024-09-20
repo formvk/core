@@ -1,6 +1,6 @@
-import type { FormPathPattern } from '@formvk/shared'
+import type { FormPath, FormPathPattern } from '@formvk/shared'
 import type { IValidatorRules, Validator } from '@formvk/validator'
-import type { DisplayTypes, PatternTypes } from '../enums'
+import type { FieldDisplay, FieldMode } from '../enums'
 import type { ArrayField, Field, Form, ObjectField, VoidField } from '../models'
 import type { JSXComponent } from './common'
 
@@ -38,7 +38,7 @@ export type FieldDecorator<Decorator extends JSXComponent, ComponentProps = any>
   | boolean
   | any[]
 
-export type FieldReaction = (field: Field) => void
+export type FieldReaction = (field: GeneralField) => void
 
 export interface IFieldProps<
   Decorator extends JSXComponent = any,
@@ -53,13 +53,13 @@ export interface IFieldProps<
   value?: ValueType
   initialValue?: ValueType
   required?: boolean
-  display?: DisplayTypes
-  pattern?: PatternTypes
+  mode?: FieldMode
+  display?: FieldDisplay
   hidden?: boolean
   visible?: boolean
   editable?: boolean
   disabled?: boolean
-  readOnly?: boolean
+  readonly?: boolean
   readPretty?: boolean
   dataSource?: DataSource
   validateFirst?: boolean
@@ -69,4 +69,86 @@ export interface IFieldProps<
   reactions?: FieldReaction[] | FieldReaction
   content?: any
   data?: any
+}
+
+export interface IFieldFactoryProps<
+  Decorator extends JSXComponent,
+  Component extends JSXComponent,
+  TextType = any,
+  ValueType = any,
+> extends IFieldProps<Decorator, Component, TextType, ValueType> {
+  name: FormPathPattern
+  basePath?: FormPathPattern
+}
+
+export interface IVoidFieldProps<
+  Decorator extends JSXComponent = any,
+  Component extends JSXComponent = any,
+  TextType = any,
+> {
+  name: FormPathPattern
+  basePath?: FormPathPattern
+  title?: TextType
+  description?: TextType
+  mode?: FieldMode
+  display?: FieldDisplay
+  hidden?: boolean
+  visible?: boolean
+  editable?: boolean
+  disabled?: boolean
+  readonly?: boolean
+  readPretty?: boolean
+  decorator?: FieldDecorator<Decorator>
+  component?: FieldComponent<Component>
+  reactions?: FieldReaction[] | FieldReaction
+  content?: any
+  data?: any
+}
+
+export type OmitState<P> = Omit<
+  P,
+  | 'selfDisplay'
+  | 'selfPattern'
+  | 'originValues'
+  | 'originInitialValues'
+  | 'id'
+  | 'address'
+  | 'path'
+  | 'lifecycles'
+  | 'disposers'
+  | 'requests'
+  | 'fields'
+  | 'graph'
+  | 'heart'
+  | 'indexes'
+  | 'props'
+  | 'displayName'
+>
+
+export interface IVoidFieldFactoryProps<Decorator extends JSXComponent, Component extends JSXComponent, TextType = any>
+  extends IVoidFieldProps<Decorator, Component, TextType> {
+  name: FormPathPattern
+  basePath?: FormPathPattern
+}
+
+export type NonFunctionPropertyNames<T> = {
+  [K in keyof T]: T[K] extends (...args: any) => any ? never : K
+}[keyof T]
+
+export type IFieldState = Partial<Pick<Field, NonFunctionPropertyNames<OmitState<Field<any, any, string, string>>>>>
+
+export type IVoidFieldState = Partial<Pick<VoidField, NonFunctionPropertyNames<OmitState<VoidField<any, any, string>>>>>
+
+export type IGeneralFieldState = IFieldState & IVoidFieldState
+
+export type IFieldUpdate = {
+  pattern: FormPath
+  callbacks: ((...args: any[]) => any)[]
+}
+
+export interface IFieldRequests {
+  validate?: number
+  submit?: number
+  loading?: number
+  batch?: () => void
 }
