@@ -1,8 +1,6 @@
-import type { FormPathPattern } from '@formvk/shared'
 import { globalThisPolyfill } from '@formvk/shared'
 import { LifeCycleTypes } from '../enums'
 import type { Field, Form } from '../models'
-import type { FieldParent } from '../types'
 import { RESPONSE_REQUEST_DURATION } from './constants'
 
 function notify(target: Form | Field, formType: LifeCycleTypes, fieldType: LifeCycleTypes) {
@@ -55,16 +53,4 @@ export function setSubmitting(target: Form | Field, submitting: boolean) {
     }
     notify(target, LifeCycleTypes.ON_FORM_SUBMIT_END, LifeCycleTypes.ON_FIELD_SUBMIT_END)
   }
-}
-
-export function getIdentifier(name: FormPathPattern, parent: FieldParent, form: Form) {
-  if (form.isForm(parent)) {
-    return name.toString()
-  }
-  let address = name.toString()
-  while (!form.isForm(parent)) {
-    address = `${parent.address.toString()}.${address}`
-    parent = parent.parent
-  }
-  return address
 }

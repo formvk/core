@@ -24,3 +24,15 @@ export function findArrayField(target: GeneralField) {
   }
   return null
 }
+
+export function findObjectField(target: GeneralField) {
+  const form = target.form
+  let parent = target.parent
+  while (!form.isForm(parent)) {
+    if (form.isObjectField(parent)) {
+      return parent
+    }
+    parent = parent.parent
+  }
+  return null
+}

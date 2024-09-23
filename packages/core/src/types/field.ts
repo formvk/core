@@ -1,10 +1,12 @@
 import type { FormPath, FormPathPattern } from '@formvk/shared'
-import type { IValidatorRules, Validator } from '@formvk/validator'
+import type { IValidatorRules, Validator, ValidatorTriggerType } from '@formvk/validator'
 import type { FieldDisplay, FieldMode } from '../enums'
 import type { ArrayField, Field, Form, ObjectField, VoidField } from '../models'
 import type { JSXComponent } from './common'
 
 export type GeneralField = ObjectField | ArrayField | VoidField | Field
+
+export type DataField = ObjectField | ArrayField | Field
 
 export interface DataSourceItem {
   label?: any
@@ -142,3 +144,38 @@ export interface IFieldCaches {
 }
 
 export type FieldParent = Form | ArrayField | ObjectField | VoidField
+
+export type FieldHolder = ArrayField | ObjectField | Form
+
+export type FieldName = string | number
+
+export type FeedbackMessage = any[]
+
+export type FieldFeedbackTypes = 'error' | 'success' | 'warning'
+
+export type FieldFeedbackTriggerTypes = ValidatorTriggerType
+
+export type FieldFeedbackCodeTypes =
+  | 'ValidateError'
+  | 'ValidateSuccess'
+  | 'ValidateWarning'
+  | 'EffectError'
+  | 'EffectSuccess'
+  | 'EffectWarning'
+  | (string & {})
+
+export interface ISearchFeedback {
+  triggerType?: FieldFeedbackTriggerTypes
+  type?: FieldFeedbackTypes
+  code?: FieldFeedbackCodeTypes
+  address?: FormPathPattern
+  path?: FormPathPattern
+  messages?: FeedbackMessage
+}
+
+export interface IFieldFeedback {
+  triggerType?: FieldFeedbackTriggerTypes
+  type?: FieldFeedbackTypes
+  code?: FieldFeedbackCodeTypes
+  messages?: FeedbackMessage
+}

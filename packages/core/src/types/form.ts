@@ -1,6 +1,6 @@
 import type { FieldDisplay, FieldMode } from '../enums'
 import type { Form } from '../models'
-import type { IFieldUpdate, IGeneralFieldState, NonFunctionPropertyNames, OmitState } from './field'
+import type { IFieldFeedback, IFieldUpdate, IGeneralFieldState, NonFunctionPropertyNames, OmitState } from './field'
 
 export interface IFormProps<T = any> {
   values?: Partial<T>
@@ -31,3 +31,10 @@ export interface IFormRequests {
   updates?: IFieldUpdate[]
   updateIndexes?: Record<string, number>
 }
+
+export type IFormFeedback = IFieldFeedback & {
+  path?: string
+  address?: string
+}
+
+export type IFormMergeStrategy = 'overwrite' | 'merge' | 'deepMerge' | 'shallowMerge'

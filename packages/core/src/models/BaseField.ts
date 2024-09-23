@@ -1,15 +1,31 @@
 import { Observable } from '@formvk/reactive'
-import { isValid, toArr, type FormPath } from '@formvk/shared'
+import type { FormPathPattern } from '@formvk/shared'
+import { FormPath, isValid, toArr } from '@formvk/shared'
 import { FieldDisplay, FieldMode, type LifeCycleTypes } from '../enums'
-import { findHolder, getIdentifier } from '../internals'
-import type { FieldComponent, FieldDecorator, FieldParent, IFieldRequests } from '../types'
-import type { ArrayField } from './ArrayField'
+import { findHolder, getAddress, getIndex, getPath } from '../internals'
+import type { FieldComponent, FieldDecorator, FieldHolder, FieldName, FieldParent, IFieldRequests } from '../types'
 import type { Form } from './Form'
-import type { ObjectField } from './ObjectField'
 
 export class BaseField<Decorator = any, Component = any, TextType = any> {
-  address: FormPath
-  path: FormPath
+  @Observable.Ref
+  accessor name: FieldName
+
+  @Observable.Computed
+  get address() {
+    const address = getAddress(this.name, this.parent, this.form)
+    return FormPath.parse(address)
+  }
+
+  @Observable.Computed
+  get path() {
+    const path = getPath(this.name, this.holder, this.form)
+    return FormPath.parse(path)
+  }
+
+  @Observable.Computed
+  get index() {
+    return getIndex(this.name, this.holder, this.form)
+  }
 
   constructor(
     public form: Form,
@@ -17,7 +33,7 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
   ) {}
 
   @Observable.Computed
-  get holder(): ArrayField | ObjectField | Form {
+  get holder(): FieldHolder {
     return findHolder(this)
   }
 
@@ -76,6 +92,36 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
     return parentDisplay || this.form.display || FieldDisplay.VISIBLE
   }
 
+  set display(display: FieldDisplay | undefined) {
+    this.selfDisplay = display
+  }
+
+  get visible() {
+    return this.display === FieldDisplay.VISIBLE
+  }
+
+  set visible(visible: boolean | undefined) {
+    if (!isValid(visible)) return
+    if (visible) {
+      this.display = FieldDisplay.VISIBLE
+    } else {
+      this.display = FieldDisplay.NONE
+    }
+  }
+
+  get hidden() {
+    return this.display === FieldDisplay.HIDDEN
+  }
+
+  set hidden(hidden: boolean | undefined) {
+    if (!isValid(hidden)) return
+    if (hidden) {
+      this.display = FieldDisplay.HIDDEN
+    } else {
+      this.display = FieldDisplay.VISIBLE
+    }
+  }
+
   @Observable.Ref
   accessor selfMode: FieldMode | undefined
 
@@ -101,7 +147,7 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
     return this.mode === FieldMode.EDITABLE
   }
 
-  set editable(editable: boolean) {
+  set editable(editable: boolean | undefined) {
     if (!isValid(editable)) return
     if (editable) {
       this.mode = FieldMode.EDITABLE
@@ -115,7 +161,7 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
     return this.mode === FieldMode.DISABLED
   }
 
-  set disabled(disabled: boolean) {
+  set disabled(disabled: boolean | undefined) {
     if (!isValid(disabled)) return
     if (disabled) {
       this.mode = FieldMode.DISABLED
@@ -129,7 +175,7 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
     return this.mode === FieldMode.READONLY
   }
 
-  set readonly(readonly: boolean) {
+  set readonly(readonly: boolean | undefined) {
     if (!isValid(readonly)) return
     if (readonly) {
       this.mode = FieldMode.READONLY
@@ -143,7 +189,7 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
     return this.mode === FieldMode.READ_PRETTY
   }
 
-  set readPretty(readPretty: boolean) {
+  set readPretty(readPretty: boolean | undefined) {
     if (!isValid(readPretty)) return
     if (readPretty) {
       this.mode = FieldMode.READ_PRETTY
@@ -152,15 +198,21 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
     }
   }
 
-  @Observable.Computed
-  get destroyed() {
-    const identifier = getIdentifier(this.address.toString(), this.parent, this.form)
-    return !this.form.fields[identifier]
+  match(pattern: FormPathPattern) {
+    return FormPath.parse(pattern).matchAliasGroup(this.address, this.path)
   }
 
-  locate() {
-    const identifier = getIdentifier(this.address.toString(), this.parent, this.form)
+  @Observable.Computed
+  get destroyed() {
+    const identifier = getAddress(this.name, this.parent, this.form)
+    return !this.holder.fields[identifier]
+  }
+
+  locate(name: string) {
+    this.name = name
+    const identifier = getAddress(name, this.parent, this.form)
     this.form.fields[identifier] = this as any
+    this.holder.fields[name] = this as any
   }
 
   requests: IFieldRequests = {}

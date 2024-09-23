@@ -1,7 +1,7 @@
 import { Observable } from '@formvk/reactive'
 import { FormPath } from '@formvk/shared'
 import { Injectable } from '../decorators'
-import type { FieldParent, GeneralField, IFieldProps, JSXComponent } from '../types'
+import type { FieldName, FieldParent, GeneralField, IFieldProps, JSXComponent } from '../types'
 import { Field } from './Field'
 import type { Form } from './Form'
 
@@ -18,20 +18,20 @@ export class ObjectField<Decorator extends JSXComponent = any, Component extends
     super(props, form, parent)
   }
 
-  getValuesIn(path: FormPath) {
-    return FormPath.getIn(this.value, path)
+  getValuesIn(name: FieldName) {
+    return FormPath.getIn(this.value, name)
   }
 
-  setValuesIn(path: FormPath, value: any) {
-    return FormPath.setIn(this.value, path, value)
+  setValuesIn(name: FieldName, value: any) {
+    return FormPath.setIn(this.value, name, value)
   }
 
-  getInitialValuesIn(path: FormPath) {
-    return FormPath.getIn(this.initialValue, path)
+  getInitialValuesIn(name: FieldName) {
+    return FormPath.getIn(this.initialValue, name)
   }
 
-  setInitialValuesIn(path: FormPath, value: any) {
-    return FormPath.setIn(this.initialValue, path, value)
+  setInitialValuesIn(name: FieldName, value: any) {
+    return FormPath.setIn(this.initialValue, name, value)
   }
 
   @Observable.Shallow

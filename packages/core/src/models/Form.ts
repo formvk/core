@@ -1,14 +1,24 @@
 import { Observable } from '@formvk/reactive'
-import { FormPath, isValid, uid } from '@formvk/shared'
+import { FormPath, isPlainObj, isValid, merge, uid } from '@formvk/shared'
 import type { Creator } from '../decorators'
 import { Injectable, InjectCreator, Module } from '../decorators'
 import { FieldDisplay, FieldMode, LifeCycleTypes } from '../enums'
-import { getIdentifier, getValidFormValues, setLoading, setSubmitting, setValidating } from '../internals'
-import type { FieldParent, GeneralField, IFieldProps, IFormProps, IFormRequests, JSXComponent } from '../types'
+import { getAddress, getValidFormValues, setLoading, setSubmitting, setValidating } from '../internals'
+import type {
+  DataField,
+  FieldName,
+  FieldParent,
+  GeneralField,
+  IFieldProps,
+  IFormMergeStrategy,
+  IFormProps,
+  IFormRequests,
+  JSXComponent,
+} from '../types'
 import { ArrayField } from './ArrayField'
 import { Field } from './Field'
 import type { Graph } from './Graph'
-import type { Heart } from './Heart'
+import { Heart } from './Heart'
 import { ObjectField } from './ObjectField'
 import { VoidField } from './VoidField'
 
@@ -28,10 +38,10 @@ export class Form<ValueType = any> {
   accessor fields: Record<string, GeneralField> = {}
 
   @Observable
-  accessor values: ValueType
+  accessor values: ValueType = {} as ValueType
 
   @Observable
-  accessor initialValues: ValueType
+  accessor initialValues: ValueType = {} as ValueType
 
   @Observable.Ref
   accessor mounted = false
@@ -53,7 +63,7 @@ export class Form<ValueType = any> {
     this.display = display
   }
 
-  constructor(props: IFormProps<ValueType>) {
+  constructor(props: IFormProps<ValueType> = {}) {
     this.initialize(props)
     this.makeValues()
   }
@@ -70,10 +80,10 @@ export class Form<ValueType = any> {
     this.visible = this.props.visible
     this.hidden = this.props.hidden
     // this.graph = new Graph(this)
-    // this.heart = new Heart({
-    //   lifecycles: this.lifecycles,
-    //   context: this,
-    // })
+    this.heart = new Heart({
+      lifecycles: [],
+      context: this,
+    })
   }
 
   protected makeValues() {
@@ -81,20 +91,50 @@ export class Form<ValueType = any> {
     this.initialValues = getValidFormValues(this.props.initialValues)
   }
 
-  getValuesIn = (path: FormPath) => {
-    return FormPath.getIn(this.values, path)
+  setValues(values: any, strategy: IFormMergeStrategy = 'merge') {
+    if (!isPlainObj(values)) return
+    if (strategy === 'merge' || strategy === 'deepMerge') {
+      merge(this.values, values, {
+        // never reach
+        arrayMerge: (target, source) => source,
+        assign: true,
+      })
+    } else if (strategy === 'shallowMerge') {
+      Object.assign(this.values as any, values)
+    } else {
+      this.values = values as any
+    }
   }
 
-  setValuesIn(path: FormPath, value: any) {
-    return FormPath.setIn(this.values, path, value)
+  setInitialValues(initialValues: any, strategy: IFormMergeStrategy = 'merge') {
+    if (!isPlainObj(initialValues)) return
+    if (strategy === 'merge' || strategy === 'deepMerge') {
+      merge(this.initialValues, initialValues, {
+        // never reach
+        arrayMerge: (target, source) => source,
+        assign: true,
+      })
+    } else if (strategy === 'shallowMerge') {
+      Object.assign(this.initialValues as any, initialValues)
+    } else {
+      this.initialValues = initialValues as any
+    }
   }
 
-  getInitialValuesIn(path: FormPath) {
-    return FormPath.getIn(this.initialValues, path)
+  getValuesIn(name: FieldName) {
+    return FormPath.getIn(this.values, name)
   }
 
-  setInitialValuesIn(path: FormPath, value: any) {
-    return FormPath.setIn(this.initialValues, path, value)
+  setValuesIn(name: FieldName, value: any) {
+    return FormPath.setIn(this.values, name, value)
+  }
+
+  getInitialValuesIn(name: FieldName) {
+    return FormPath.getIn(this.initialValues, name)
+  }
+
+  setInitialValuesIn(name: FieldName, value: any) {
+    return FormPath.setIn(this.initialValues, name, value)
   }
 
   @Observable.Computed
@@ -212,6 +252,10 @@ export class Form<ValueType = any> {
     return Form.isVoidField(field) || Form.isObjectField(field) || Form.isArrayField(field) || Form.isField(field)
   }
 
+  static isDataField(node: any): node is DataField {
+    return Form.isField(node) || Form.isArrayField(node) || Form.isObjectField(node)
+  }
+
   static isForm(form: any): form is Form {
     return form instanceof Form
   }
@@ -260,11 +304,11 @@ export class Form<ValueType = any> {
     props: IFieldProps<Decorator, Component>,
     parent: FieldParent = this
   ): Field<Decorator, Component> {
-    const { name } = props
+    const name = props.name.toString()
     if (!name) {
       throw new Error(`Can not create Field without name ${name} in ${parent}`)
     }
-    const identifier = getIdentifier(name, parent, this)
+    const identifier = getAddress(name, parent, this)
     if (!this.fields[identifier]) {
       this.fieldCreator(props, this, parent)
       this.notify(LifeCycleTypes.ON_FORM_GRAPH_CHANGE)
@@ -276,8 +320,8 @@ export class Form<ValueType = any> {
     props: IFieldProps<Decorator, Component>,
     parent: FieldParent = this
   ): ObjectField<Decorator, Component> {
-    const { name } = props
-    const identifier = getIdentifier(name, parent, this)
+    const name = props.name.toString()
+    const identifier = getAddress(name, parent, this)
     if (!identifier) {
       throw new Error(`Can not create ObjectField without name ${name} in ${parent}`)
     }
@@ -292,8 +336,8 @@ export class Form<ValueType = any> {
     props: IFieldProps<Decorator, Component>,
     parent: FieldParent = this
   ): ArrayField<Decorator, Component> {
-    const { name } = props
-    const identifier = getIdentifier(name, parent, this)
+    const name = props.name.toString()
+    const identifier = getAddress(name, parent, this)
     if (!identifier) {
       throw new Error(`Can not create ArrayField without name ${name} in ${parent}`)
     }
@@ -308,10 +352,10 @@ export class Form<ValueType = any> {
     props: IFieldProps<Decorator, Component>,
     parent: FieldParent = this
   ): VoidField<Decorator, Component> {
-    const { name } = props
-    const identifier = getIdentifier(name, parent, this)
+    const name = props.name.toString()
+    const identifier = getAddress(name, parent, this)
     if (!identifier) {
-      throw new Error(`Can not create VoidField without name ${props.name}in ${parent}`)
+      throw new Error(`Can not create VoidField without name ${props.name} in ${parent}`)
     }
     if (!this.fields[identifier]) {
       this.voidFieldCreator(props, this, parent)
