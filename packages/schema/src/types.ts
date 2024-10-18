@@ -1,5 +1,5 @@
 import type { Form, GeneralField, IGeneralFieldState } from '@formvk/core'
-import type { FormPathPattern } from '@formvk/shared'
+import type { Pattern } from '@formvk/shared'
 
 export interface ISchemaBase<Decorator = any, Component = any, DecoratorProps = any, ComponentProps = any> {
   $ref?: string
@@ -228,7 +228,7 @@ export interface ISchemaFieldUpdateRequest {
 
 export interface IFieldStateSetterOptions {
   field: GeneralField
-  target?: FormPathPattern
+  target?: Pattern
   request: ISchemaFieldUpdateRequest
   runner?: string
   scope: IScopeContext

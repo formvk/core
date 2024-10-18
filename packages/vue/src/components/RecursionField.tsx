@@ -1,16 +1,9 @@
-import type { GeneralField, IFieldFactoryProps } from '@formvk/core'
+import type { GeneralField, IFieldProps } from '@formvk/core'
 import type { ISchema } from '@formvk/schema'
 import { Schema } from '@formvk/schema'
 import { isFn, isValid, lazyMerge } from '@formvk/shared'
 import { computed, defineComponent, markRaw, shallowRef, watch } from 'vue'
-import {
-  provideFieldSchema,
-  useExpressionScope,
-  useField,
-  useFieldRender,
-  useFieldType,
-  useSchemaOptions,
-} from '../hooks'
+import { provideFieldSchema, useExpressionScope, useFieldRender, useFieldType, useSchemaOptions } from '../hooks'
 import type { IRecursionFieldProps } from '../types'
 
 const resolveEmptySlot = (slots: Record<any, (...args: any[]) => any[]>) => {
@@ -19,7 +12,6 @@ const resolveEmptySlot = (slots: Record<any, (...args: any[]) => any[]>) => {
 
 export const RecursionField = defineComponent(
   (props: IRecursionFieldProps) => {
-    const parentRef = useField()
     const schemaOptionsRef = useSchemaOptions()
     const scopeRef = useExpressionScope()
     const createSchema = (schemaProp: ISchema) => markRaw(new Schema(schemaProp))
@@ -28,23 +20,13 @@ export const RecursionField = defineComponent(
 
     provideFieldSchema(fieldSchemaRef)
 
-    const getBasePath = () => {
-      if (props.onlyRenderProperties) {
-        return props.basePath ?? parentRef.value?.address.concat(props.name!)
-      }
-      return props.basePath ?? parentRef.value?.address
-    }
-
-    const getPropsFromSchema = (schema: Schema): IFieldFactoryProps<any, any, any, any> => {
+    const getPropsFromSchema = (schema: Schema): IFieldProps<any, any, any, any> => {
       const fieldProps = schema.toFieldProps({
         get scope() {
           return lazyMerge(schemaOptionsRef.value?.scope, scopeRef.value)
         },
       })
-      return {
-        basePath: getBasePath(),
-        ...fieldProps,
-      }
+      return fieldProps
     }
     const fieldPropsRef = shallowRef(getPropsFromSchema(fieldSchemaRef.value))
 
@@ -79,17 +61,9 @@ export const RecursionField = defineComponent(
             return
           }
         }
-        const basePath = getBasePath()
 
-        setRender(schema.slot ?? 'default', (field?: GeneralField) => {
-          return (
-            <RecursionField
-              key={`${index}-${key}`}
-              schema={schema}
-              name={key}
-              basePath={field?.address ?? basePath}
-            ></RecursionField>
-          )
+        setRender(schema.slot ?? 'default', () => {
+          return <RecursionField key={`${index}-${key}`} schema={schema} name={key}></RecursionField>
         })
       })
       return Object.entries(renderMap).reduce<Record<string, any>>((slots, [key, renderFns]) => {
@@ -100,29 +74,21 @@ export const RecursionField = defineComponent(
 
     return () => {
       const render = () => {
-        if (!isValid(props.name)) return resolveEmptySlot(generateSlotsByProperties())
-        if (props.onlyRenderProperties) return resolveEmptySlot(generateSlotsByProperties())
-        const slots = generateSlotsByProperties(true)
-        return fieldRender(slots)
+        if (!isValid(props.name) || props.onlyRenderProperties) {
+          return resolveEmptySlot(generateSlotsByProperties())
+        }
+        return fieldRender(generateSlotsByProperties(true))
       }
 
       if (!fieldSchemaRef.value) {
         return
       }
-      const nodes = render()
-      return <>{nodes}</>
+      return <>{render()}</>
     }
   },
   {
-    props: [
-      'schema',
-      'name',
-      'basePath',
-      'onlyRenderProperties',
-      'onlyRenderSelf',
-      'mapProperties',
-      'filterProperties',
-    ],
+    props: ['schema', 'name', 'onlyRenderProperties', 'onlyRenderSelf', 'mapProperties', 'filterProperties'],
     name: 'VkRecursionField',
+    inheritAttrs: false,
   }
 )

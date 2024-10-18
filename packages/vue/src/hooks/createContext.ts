@@ -1,8 +1,8 @@
 import { computed, inject, isRef, provide, shallowRef, type ComputedRef, type InjectionKey, type ShallowRef } from 'vue'
 
 export interface HookFn<T> {
-  <R extends T | null = T>(): ShallowRef<R>
-  <R>(cb: (instance: T) => R): ComputedRef<R>
+  <M extends T | null = T>(): ShallowRef<M>
+  <M extends T | null = T, R = any>(cb: (instance: M) => R): ComputedRef<R>
 }
 
 export function createContext<T>(name: string) {

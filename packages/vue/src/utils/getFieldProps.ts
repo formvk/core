@@ -1,10 +1,9 @@
 export const VoidFieldPropsArr = [
   'name',
-  'basePath',
   'title',
   'description',
   'display',
-  'pattern',
+  'mode',
   'hidden',
   'visible',
   'editable',

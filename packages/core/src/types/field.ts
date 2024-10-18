@@ -1,4 +1,4 @@
-import type { FormPath, FormPathPattern } from '@formvk/shared'
+import type { Path, Pattern } from '@formvk/shared'
 import type { IValidatorRules, Validator, ValidatorTriggerType } from '@formvk/validator'
 import type { FieldDisplay, FieldMode } from '../enums'
 import type { ArrayField, Field, Form, ObjectField, VoidField } from '../models'
@@ -48,7 +48,7 @@ export interface IFieldProps<
   TextType = any,
   ValueType = any,
 > {
-  name: FormPathPattern
+  name: Pattern
   title?: TextType
   description?: TextType
   value?: ValueType
@@ -60,7 +60,7 @@ export interface IFieldProps<
   visible?: boolean
   editable?: boolean
   disabled?: boolean
-  readonly?: boolean
+  readOnly?: boolean
   readPretty?: boolean
   dataSource?: DataSource
   validateFirst?: boolean
@@ -77,7 +77,7 @@ export interface IVoidFieldProps<
   Component extends JSXComponent = any,
   TextType = any,
 > {
-  name: FormPathPattern
+  name: Pattern
   title?: TextType
   description?: TextType
   mode?: FieldMode
@@ -86,7 +86,7 @@ export interface IVoidFieldProps<
   visible?: boolean
   editable?: boolean
   disabled?: boolean
-  readonly?: boolean
+  readOnly?: boolean
   readPretty?: boolean
   decorator?: FieldDecorator<Decorator>
   component?: FieldComponent<Component>
@@ -113,6 +113,8 @@ export type OmitState<P> = Omit<
   | 'indexes'
   | 'props'
   | 'displayName'
+  | 'setState'
+  | 'getState'
 >
 
 export type NonFunctionPropertyNames<T> = {
@@ -126,7 +128,7 @@ export type IVoidFieldState = Partial<Pick<VoidField, NonFunctionPropertyNames<O
 export type IGeneralFieldState = IFieldState & IVoidFieldState
 
 export type IFieldUpdate = {
-  pattern: FormPath
+  pattern: Path
   callbacks: ((...args: any[]) => any)[]
 }
 
@@ -168,8 +170,8 @@ export interface ISearchFeedback {
   triggerType?: FieldFeedbackTriggerTypes
   type?: FieldFeedbackTypes
   code?: FieldFeedbackCodeTypes
-  address?: FormPathPattern
-  path?: FormPathPattern
+  address?: Pattern
+  path?: Pattern
   messages?: FeedbackMessage
 }
 

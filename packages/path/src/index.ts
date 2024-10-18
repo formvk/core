@@ -102,7 +102,7 @@ const deleteIn = (segments: Segments, source: any) => {
 
 const hasOwnProperty = Object.prototype.hasOwnProperty
 
-const existIn = (segments: Segments, source: any, start: number | Path) => {
+const existIn = (segments: Segments, source: any, start: number | Path): boolean => {
   if (start instanceof Path) {
     start = start.length
   }
@@ -129,6 +129,7 @@ const existIn = (segments: Segments, source: any, start: number | Path) => {
       })
     }
   }
+  return false
 }
 
 const parse = (pattern: Pattern, base?: Pattern) => {
@@ -233,7 +234,7 @@ const parseString = (source: any) => {
     try {
       const { segments, isMatchPattern } = parse(source)
       return !isMatchPattern ? segments : source
-    } catch (e) {
+    } catch {
       return source
     }
   } else if (source instanceof Path) {
@@ -290,7 +291,7 @@ export class Path {
     return this.segments.length
   }
 
-  concat = (...args: Pattern[]) => {
+  concat(...args: Pattern[]) {
     if (this.isMatchPattern || this.isRegExp) {
       throw new Error(`${this.entire} cannot be concat`)
     }
@@ -300,7 +301,7 @@ export class Path {
     return path
   }
 
-  slice = (start?: number, end?: number) => {
+  slice(start?: number, end?: number) {
     if (this.isMatchPattern || this.isRegExp) {
       throw new Error(`${this.entire} cannot be slice`)
     }
@@ -310,18 +311,18 @@ export class Path {
     return path
   }
 
-  push = (...items: Pattern[]) => {
+  push(...items: Pattern[]) {
     return this.concat(...items)
   }
 
-  pop = () => {
+  pop() {
     if (this.isMatchPattern || this.isRegExp) {
       throw new Error(`${this.entire} cannot be pop`)
     }
     return new Path(this.segments.slice(0, this.segments.length - 1))
   }
 
-  splice = (start: number, deleteCount?: number, ...items: Array<string | number>) => {
+  splice(start: number, deleteCount?: number, ...items: Array<string | number>) {
     if (this.isMatchPattern || this.isRegExp) {
       throw new Error(`${this.entire} cannot be splice`)
     }
@@ -331,32 +332,32 @@ export class Path {
     return new Path(segments_)
   }
 
-  forEach = (callback: (key: string | number) => any) => {
+  forEach(callback: (key: string | number) => any) {
     if (this.isMatchPattern || this.isRegExp) {
       throw new Error(`${this.entire} cannot be each`)
     }
     this.segments.forEach(callback)
   }
 
-  map = (callback: (key: string | number) => any) => {
+  map(callback: (key: string | number) => any) {
     if (this.isMatchPattern || this.isRegExp) {
       throw new Error(`${this.entire} cannot be map`)
     }
     return this.segments.map(callback)
   }
 
-  reduce = <T>(callback: (buf: T, item: string | number, index: number) => T, initial: T): T => {
+  reduce<T>(callback: (buf: T, item: string | number, index: number) => T, initial: T): T {
     if (this.isMatchPattern || this.isRegExp) {
       throw new Error(`${this.entire} cannot be reduce`)
     }
     return this.segments.reduce(callback, initial)
   }
 
-  parent = () => {
+  parent() {
     return this.slice(0, this.length - 1)
   }
 
-  includes = (pattern: Pattern) => {
+  includes(pattern: Pattern) {
     const { entire, segments, isMatchPattern } = Path.parse(pattern)
     const cache = this.includesCache.get(entire)
     if (cache !== undefined) return cache
@@ -383,7 +384,7 @@ export class Path {
     return cacheWith(true)
   }
 
-  transform = <T>(regexp: string | RegExp, callback: (...args: string[]) => T): T | string => {
+  transform<T>(regexp: string | RegExp, callback: (...args: string[]) => T): T | string {
     if (!isFn(callback)) return ''
     if (this.isMatchPattern) {
       throw new Error(`${this.entire} cannot be transformed`)
@@ -393,7 +394,7 @@ export class Path {
     return callback(...args)
   }
 
-  match = (pattern: Pattern): boolean => {
+  match(pattern: Pattern): boolean {
     const path = Path.parse(pattern)
     const cache = this.matchCache.get(path.entire)
     if (cache !== undefined) {
@@ -440,7 +441,7 @@ export class Path {
   }
 
   //别名组匹配
-  matchAliasGroup = (name: Pattern, alias: Pattern) => {
+  matchAliasGroup(name: Pattern, alias: Pattern) {
     const namePath = Path.parse(name)
     const aliasPath = Path.parse(alias)
     const nameMatched = this.match(namePath)
@@ -458,25 +459,25 @@ export class Path {
     }
   }
 
-  existIn = (source?: any, start: number | Path = 0) => {
+  existIn(source?: any, start: number | Path = 0) {
     return existIn(this.segments, source, start)
   }
 
-  getIn = (source?: any) => {
+  getIn<T = any>(source?: any): T {
     return getIn(this.segments, source)
   }
 
-  setIn = (source?: any, value?: any) => {
+  setIn(source?: any, value?: any) {
     setIn(this.segments, source, value)
     return source
   }
 
-  deleteIn = (source?: any) => {
+  deleteIn(source?: any) {
     deleteIn(this.segments, source)
     return source
   }
 
-  ensureIn = (source?: any, defaults?: any) => {
+  ensureIn<T = any>(source?: any, defaults?: any): T {
     const results = this.getIn(source)
     if (results === undefined) {
       this.setIn(source, defaults)
@@ -528,30 +529,30 @@ export class Path {
     }
   }
 
-  static getIn = (source: any, pattern: Pattern) => {
+  static getIn<T = any>(source: any, pattern: Pattern): T {
     const path = Path.parse(pattern)
     return path.getIn(source)
   }
 
-  static setIn = (source: any, pattern: Pattern, value: any) => {
+  static setIn(source: any, pattern: Pattern, value: any) {
     const path = Path.parse(pattern)
     return path.setIn(source, value)
   }
 
-  static deleteIn = (source: any, pattern: Pattern) => {
+  static deleteIn(source: any, pattern: Pattern) {
     const path = Path.parse(pattern)
     return path.deleteIn(source)
   }
 
-  static existIn = (source: any, pattern: Pattern, start?: number | Path) => {
+  static existIn(source: any, pattern: Pattern, start?: number | Path) {
     const path = Path.parse(pattern)
     return path.existIn(source, start)
   }
 
-  static ensureIn = (source: any, pattern: Pattern, defaultValue?: any) => {
+  static ensureIn<T = any>(source: any, pattern: Pattern, defaultValue?: any): T {
     const path = Path.parse(pattern)
     return path.ensureIn(source, defaultValue)
   }
 }
 
-export { Pattern }
+export type { Pattern }

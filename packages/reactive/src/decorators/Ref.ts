@@ -1,4 +1,4 @@
-import { shallowRef } from '@vue/reactivity'
+import { shallowRef } from '../reactivity'
 import { createDecoratorSymbol } from './shared'
 
 const { setDecoratorSymbolByName, setDecoratorSymbolValue, getDecoratorSymbolValue } = createDecoratorSymbol('Ref')

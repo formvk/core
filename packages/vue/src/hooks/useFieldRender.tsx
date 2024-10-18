@@ -1,4 +1,5 @@
-import { isVoidField, type GeneralField, type IFieldProps, type IVoidFieldProps } from '@formvk/core'
+import type { GeneralField, IFieldProps, IVoidFieldProps } from '@formvk/core'
+import { findFieldParent, isDataField, isVoidField } from '@formvk/core'
 import type { SchemaTypes } from '@formvk/schema'
 import { each, FormPath, isFn } from '@formvk/shared'
 import type { Ref } from 'vue'
@@ -59,15 +60,11 @@ export function useFieldRender(fieldType: FieldType | Ref<FieldType>, fieldProps
   const parentRef = useField<GeneralField | null>()
   const createField = (): GeneralField => {
     const props = fieldProps.value
-    if (!props.name) return null!
     const form = formRef.value
     const parent = parentRef.value
     const type = unref(fieldType)
     const fn = `create${type}` as const
-    const field = form[fn]({
-      ...props,
-      basePath: props.basePath ?? parent?.address,
-    })
+    const field = form[fn](props, parent ? findFieldParent(parent) || form : form)
     return field
   }
 
@@ -92,22 +89,32 @@ export function useFieldRender(fieldType: FieldType | Ref<FieldType>, fieldProps
 
   const valueRef = computed({
     get() {
-      if (isVoidField(fieldRef.value)) {
-        return
+      const field = fieldRef.value
+      if (isDataField(field)) {
+        return field.value
       }
-
-      return fieldRef.value.value
     },
     set(value: any) {
-      if (isVoidField(fieldRef.value)) {
-        return
+      const field = fieldRef.value
+      if (isDataField(field)) {
+        field.onInput(value)
       }
-
-      console.log('set value', value)
-
-      fieldRef.value.onInput(value)
     },
   })
+
+  const onFocus = (...args: any[]) => {
+    const field = fieldRef.value
+    if (isDataField(field)) {
+      return field.onFocus(...args)
+    }
+  }
+
+  const onBlur = (...args: any[]) => {
+    const field = fieldRef.value
+    if (isDataField(field)) {
+      return field.onBlur(...args)
+    }
+  }
 
   return (slots: any) => {
     const field = fieldRef.value
@@ -173,26 +180,16 @@ export function useFieldRender(fieldType: FieldType | Ref<FieldType>, fieldProps
         return <Component {...componentProps} v-slots={mergedSlots} />
       }
 
-      const getModifiers = () => {
-        const modifiers = field.modifiers
-        if (!modifiers) return
-        return modifiers.reduce((prev, next) => {
-          prev[next] = true
-          return prev
-        }, {})
-      }
-
       return (
         <Component
           {...componentProps}
-          onFocus={field.onFocus}
-          onBlur={field.onBlur}
+          onFocus={onFocus}
+          onBlur={onBlur}
           {...{
             [valueProp]: valueRef.value,
             [`onUpdate:${valueProp}`]: (value: any) => {
               valueRef.value = value
             },
-            [`${valueProp}Modifiers`]: getModifiers(),
           }}
           v-slots={mergedSlots}
         />

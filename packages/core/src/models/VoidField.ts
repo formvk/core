@@ -1,5 +1,6 @@
 import { Injectable } from '../decorators'
-import type { FieldParent, IVoidFieldProps } from '../types'
+import { createStateGetter, createStateSetter } from '../internals'
+import type { FieldParent, IModelGetter, IModelSetter, IVoidFieldProps, IVoidFieldState } from '../types'
 import { BaseField } from './BaseField'
 import type { Form } from './Form'
 
@@ -18,4 +19,8 @@ export class VoidField<Decorator = any, Component = any, TextType = any> extends
     this.props = props
     this.locate(props.name.toString())
   }
+
+  setState: IModelSetter<IVoidFieldState> = createStateSetter(this)
+
+  getState: IModelGetter<IVoidFieldState> = createStateGetter(this)
 }

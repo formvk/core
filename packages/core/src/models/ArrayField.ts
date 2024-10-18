@@ -34,4 +34,34 @@ export class ArrayField<Decorator extends JSXComponent = any, Component extends 
 
   @Observable.Shallow
   accessor fields: Record<string, GeneralField> = {}
+
+  push(...items: any[]) {
+    this.value.push(...items)
+  }
+
+  pop() {
+    return this.value.pop()
+  }
+
+  shift() {
+    return this.value.shift()
+  }
+
+  unshift(...items: any[]) {
+    this.value.unshift(...items)
+  }
+
+  remove(index: number) {
+    this.value.splice(index, 1)
+  }
+
+  insert(index: number, item: any) {
+    this.value.splice(index, 0, item)
+  }
+
+  move(from: number, to: number) {
+    const item = this.value[from]
+    this.value.splice(from, 1)
+    this.value.splice(to, 0, item)
+  }
 }

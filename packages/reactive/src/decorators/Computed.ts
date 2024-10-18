@@ -1,4 +1,4 @@
-import { computed } from '@vue/reactivity'
+import { computed } from '../reactivity'
 import { createDecoratorSymbol } from './shared'
 
 const { setDecoratorSymbolByName, getDecoratorSymbolValue } = createDecoratorSymbol('Shallow')

@@ -1,10 +1,10 @@
 import { toRaw } from 'vue'
-import type { IFieldProps, VueComponent } from '../types'
+import type { FieldProps, VueComponent } from '../types'
 
-export const getRawComponent = (props: IFieldProps<VueComponent, VueComponent>) => {
+export const getRawComponent = (props: FieldProps<VueComponent, VueComponent>) => {
   const { component, decorator } = props
   let newComponent: typeof props.component
-  let newDecorator: typeof props.component
+  let newDecorator: typeof props.decorator
   if (Array.isArray(component)) {
     newComponent = [toRaw(component[0]), component[1]]
   }

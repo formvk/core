@@ -19,7 +19,7 @@ export const Field = defineComponent(
     }
   },
   {
-    name: 'vk-field',
+    name: 'VkField',
     inheritAttrs: false,
   }
 )

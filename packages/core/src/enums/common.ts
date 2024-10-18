@@ -27,7 +27,7 @@ export enum FieldMode {
   /**
    * 只读
    */
-  READONLY = 'readonly',
+  READ_ONLY = 'readOnly',
   /**
    * 禁用
    */

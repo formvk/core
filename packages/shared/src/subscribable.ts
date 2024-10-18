@@ -12,7 +12,7 @@ export class Subscribable<Payload = any> {
 
   subscription: Subscription<Payload>
 
-  subscribe = (callback?: Subscriber<Payload>): number | undefined => {
+  subscribe(callback?: Subscriber<Payload>): number | undefined {
     if (isFn(callback)) {
       const index: number = this.subscribers.index! + 1
       this.subscribers[index] = callback
@@ -21,7 +21,7 @@ export class Subscribable<Payload = any> {
     }
   }
 
-  unsubscribe = (index?: number) => {
+  unsubscribe(index?: number) {
     if (!index) {
       this.subscribers = {
         index: 0,
@@ -31,7 +31,7 @@ export class Subscribable<Payload = any> {
     }
   }
 
-  notify = (payload?: Payload, silent?: boolean) => {
+  notify(payload?: Payload, silent?: boolean) {
     if (this.subscription) {
       if (this.subscription && isFn(this.subscription.notify)) {
         if (this.subscription.notify.call(this, payload) === false) {

@@ -1,4 +1,4 @@
-import type { Field, IFieldFactoryProps } from '@formvk/core'
+import type { Field, IFieldProps } from '@formvk/core'
 import { autorun, observable, untracked } from '@formvk/reactive'
 import { each, isArr, isFn, isPlainObj, isStr, lazyMerge, reduce, toArr } from '@formvk/shared'
 import { patchCompile, patchSchemaCompile, shallowCompile } from './compiler'
@@ -214,7 +214,7 @@ const getUserReactions = (schema: ISchema, options: ISchemaTransformerOptions) =
     }
   })
 }
-export function transformFieldProps(schema: Schema, options: ISchemaTransformerOptions): IFieldFactoryProps<any, any> {
+export function transformFieldProps(schema: Schema, options: ISchemaTransformerOptions): IFieldProps<any, any> {
   return {
     name: schema.name,
     reactions: [getBaseReactions(schema, options), ...getUserReactions(schema, options)],

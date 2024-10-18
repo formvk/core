@@ -7,11 +7,11 @@ interface IRecycleTarget {
 }
 
 export const useAttach = <T extends IRecycleTarget>(target: Ref<T>): Ref<T> => {
-  watch(target, (v, old, onInvalidate) => {
+  watch(target, (v, old, onCleanup) => {
     if (v && v !== old) {
       old?.onUnmount()
       nextTick(() => v.onMount())
-      onInvalidate(() => v.onUnmount())
+      onCleanup(() => v.onUnmount())
     }
   })
   onMounted(() => {

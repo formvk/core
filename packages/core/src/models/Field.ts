@@ -3,6 +3,8 @@ import { toArr } from '@formvk/shared'
 import { Injectable } from '../decorators'
 import { FieldDisplay, LifeCycleTypes } from '../enums'
 import {
+  createStateGetter,
+  createStateSetter,
   getValuesFromEvent,
   initFieldUpdate,
   isHTMLInputEvent,
@@ -21,6 +23,9 @@ import type {
   IFieldCaches,
   IFieldFeedback,
   IFieldProps,
+  IFieldState,
+  IModelGetter,
+  IModelSetter,
   JSXComponent,
 } from '../types'
 import { BaseField } from './BaseField'
@@ -51,7 +56,7 @@ export class Field<
     this.mode = this.props.mode
     this.editable = this.props.editable
     this.disabled = this.props.disabled
-    this.readonly = this.props.readonly
+    this.readOnly = this.props.readOnly
     this.readPretty = this.props.readPretty
     this.visible = this.props.visible
     this.hidden = this.props.hidden
@@ -74,12 +79,6 @@ export class Field<
 
   @Observable
   accessor dataSource: DataSource
-
-  @Observable.Shallow
-  accessor content: any
-
-  @Observable
-  accessor data: any
 
   @Observable.Ref
   accessor required = false
@@ -187,4 +186,27 @@ export class Field<
   get selfValid() {
     return !this.selfErrors.length
   }
+
+  @Observable.Ref
+  accessor active = false
+
+  async onFocus(...args: any[]) {
+    if (args[0]?.target) {
+      if (!isHTMLInputEvent(args[0], false)) return
+    }
+    this.active = true
+    await validateSelf(this, 'onFocus')
+  }
+
+  async onBlur(...args: any[]) {
+    if (args[0]?.target) {
+      if (!isHTMLInputEvent(args[0], false)) return
+    }
+    this.active = false
+    await validateSelf(this, 'onBlur')
+  }
+
+  setState: IModelSetter<IFieldState> = createStateSetter(this)
+
+  getState: IModelGetter<IFieldState> = createStateGetter(this)
 }

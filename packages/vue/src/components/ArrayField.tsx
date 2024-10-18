@@ -1,15 +1,14 @@
 import { computed, defineComponent } from 'vue'
 import { useFieldRender } from '../hooks'
 import type { FieldProps } from '../types'
-import { VoidFieldPropsArr } from '../utils/getFieldProps'
 import { getRawComponent } from '../utils/getRawComponent'
 
 export const ArrayField = defineComponent(
-  <Decorator, Component>(props: FieldProps<Decorator, Component>, { slots }) => {
+  <Decorator, Component>(_: FieldProps<Decorator, Component>, { slots, attrs }) => {
     const fieldProps = computed(() => {
       return {
-        ...props,
-        ...getRawComponent(props),
+        ...attrs,
+        ...getRawComponent(attrs),
       }
     })
 
@@ -20,7 +19,6 @@ export const ArrayField = defineComponent(
     }
   },
   {
-    name: 'vk-array-field',
-    props: [...VoidFieldPropsArr],
+    name: 'VkArrayField',
   }
 )

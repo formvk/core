@@ -1,5 +1,4 @@
 import type { ISchema, Schema, SchemaKey } from '@formvk/schema'
-import type { FormPathPattern } from '@formvk/shared'
 import type { ComponentProps, VueComponent } from './field'
 
 export interface ISchemaFieldVueFactoryOptions<Components = any> {
@@ -20,7 +19,6 @@ export interface ISchemaFilter {
 export interface IRecursionFieldProps {
   schema: ISchema
   name?: string | number
-  basePath?: FormPathPattern
   onlyRenderProperties?: boolean
   onlyRenderSelf?: boolean
   mapProperties?: ISchemaMapper

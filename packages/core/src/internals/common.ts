@@ -1,7 +1,15 @@
-import { globalThisPolyfill } from '@formvk/shared'
+import { toRaw } from '@formvk/reactive'
+import { globalThisPolyfill, isFn, isValid } from '@formvk/shared'
 import { LifeCycleTypes } from '../enums'
 import type { Field, Form } from '../models'
-import { RESPONSE_REQUEST_DURATION } from './constants'
+import {
+  MutuallyExclusiveProperties,
+  ReadOnlyProperties,
+  ReservedProperties,
+  RESPONSE_REQUEST_DURATION,
+} from './constants'
+
+const hasOwnProperty = Object.prototype.hasOwnProperty
 
 function notify(target: Form | Field, formType: LifeCycleTypes, fieldType: LifeCycleTypes) {
   if (target.displayName === 'Form') {
@@ -53,4 +61,55 @@ export function setSubmitting(target: Form | Field, submitting: boolean) {
     }
     notify(target, LifeCycleTypes.ON_FORM_SUBMIT_END, LifeCycleTypes.ON_FIELD_SUBMIT_END)
   }
+}
+
+export const deserialize = (model: any, setter: any) => {
+  if (!model) return
+  if (isFn(setter)) {
+    setter(model)
+  } else {
+    for (const key in setter) {
+      if (!hasOwnProperty.call(setter, key)) continue
+      if (ReadOnlyProperties[key] || ReservedProperties[key]) continue
+      const MutuallyExclusiveKey = MutuallyExclusiveProperties[key]
+      if (
+        MutuallyExclusiveKey &&
+        hasOwnProperty.call(setter, MutuallyExclusiveKey) &&
+        !isValid(setter[MutuallyExclusiveKey])
+      )
+        continue
+      const value = setter[key]
+      if (isFn(value)) continue
+      model[key] = value
+    }
+  }
+  return model
+}
+
+export const serialize = (model: any, getter?: any) => {
+  if (isFn(getter)) {
+    return getter(model)
+  } else {
+    const results = {}
+    for (const key in model) {
+      if (!hasOwnProperty.call(model, key)) continue
+      if (ReservedProperties[key]) continue
+      if (key === 'address' || key === 'path') {
+        results[key] = model[key].toString()
+        continue
+      }
+      const value = model[key]
+      if (isFn(value)) continue
+      results[key] = toRaw(value)
+    }
+    return results
+  }
+}
+
+export const createStateSetter = (model: any) => {
+  return (setter?: any) => deserialize(model, setter)
+}
+
+export const createStateGetter = (model: any) => {
+  return (getter?: any) => serialize(model, getter)
 }

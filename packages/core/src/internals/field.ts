@@ -10,6 +10,7 @@ import type {
   FieldParent,
   GeneralField,
   IFieldFeedback,
+  IFieldUpdate,
   IFormFeedback,
   ISearchFeedback,
 } from '../types'
@@ -192,14 +193,14 @@ export function getIndex(name: FieldName, holder: FieldHolder, form: Form): numb
 
 export const initFieldUpdate = (field: GeneralField) => {
   const form = field.form
-  const updates = FormPath.ensureIn(form, 'requests.updates', [])
+  const updates = FormPath.ensureIn(form, 'requests.updates', []) as IFieldUpdate[]
   const indexes = FormPath.ensureIn(form, 'requests.updateIndexes', {})
   for (let index = 0; index < updates.length; index++) {
     const { pattern, callbacks } = updates[index]
     let removed = false
     if (field.match(pattern)) {
       callbacks.forEach(callback => {
-        // field.setState(callback)
+        field.setState(callback)
       })
       if (!pattern.isWildMatchPattern && !pattern.isMatchPattern) {
         updates.splice(index--, 1)

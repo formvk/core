@@ -36,4 +36,8 @@ export class ObjectField<Decorator extends JSXComponent = any, Component extends
 
   @Observable.Shallow
   accessor fields: Record<string, GeneralField> = {}
+
+  isObject() {
+    return true
+  }
 }

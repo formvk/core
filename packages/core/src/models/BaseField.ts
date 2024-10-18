@@ -1,9 +1,17 @@
 import { Observable } from '@formvk/reactive'
-import type { FormPathPattern } from '@formvk/shared'
-import { FormPath, isValid, toArr } from '@formvk/shared'
-import { FieldDisplay, FieldMode, type LifeCycleTypes } from '../enums'
+import type { Pattern } from '@formvk/shared'
+import { Path, isValid, toArr } from '@formvk/shared'
+import { FieldDisplay, FieldMode, LifeCycleTypes } from '../enums'
 import { findHolder, getAddress, getIndex, getPath } from '../internals'
-import type { FieldComponent, FieldDecorator, FieldHolder, FieldName, FieldParent, IFieldRequests } from '../types'
+import type {
+  FieldComponent,
+  FieldDecorator,
+  FieldHolder,
+  FieldName,
+  FieldParent,
+  IFieldRequests,
+  JSXComponent,
+} from '../types'
 import type { Form } from './Form'
 
 export class BaseField<Decorator = any, Component = any, TextType = any> {
@@ -13,13 +21,13 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
   @Observable.Computed
   get address() {
     const address = getAddress(this.name, this.parent, this.form)
-    return FormPath.parse(address)
+    return Path.parse(address)
   }
 
   @Observable.Computed
   get path() {
     const path = getPath(this.name, this.holder, this.form)
-    return FormPath.parse(path)
+    return Path.parse(path)
   }
 
   @Observable.Computed
@@ -72,6 +80,46 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
     this.decoratorType = decorator[0]
     this.decoratorProps = decorator[1] || {}
   }
+
+  setComponent<C extends JSXComponent, ComponentProps extends object = {}>(component?: C, props?: ComponentProps) {
+    if (component) {
+      this.componentType = component as any
+    }
+    if (props) {
+      this.componentProps = this.componentProps || {}
+      Object.assign(this.componentProps, props)
+    }
+  }
+
+  setComponentProps<ComponentProps extends object = {}>(props?: ComponentProps) {
+    if (props) {
+      this.componentProps = this.componentProps || {}
+      Object.assign(this.componentProps, props)
+    }
+  }
+
+  setDecorator<D extends JSXComponent, ComponentProps extends object = {}>(component?: D, props?: ComponentProps) {
+    if (component) {
+      this.decoratorType = component as any
+    }
+    if (props) {
+      this.decoratorProps = this.decoratorProps || {}
+      Object.assign(this.decoratorProps, props)
+    }
+  }
+
+  setDecoratorProps<ComponentProps extends object = {}>(props?: ComponentProps) {
+    if (props) {
+      this.decoratorProps = this.decoratorProps || {}
+      Object.assign(this.decoratorProps, props)
+    }
+  }
+
+  @Observable.Shallow
+  accessor content: any
+
+  @Observable
+  accessor data: any
 
   @Observable.Ref
   accessor initialized = false
@@ -171,14 +219,14 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
   }
 
   @Observable.Computed
-  get readonly() {
-    return this.mode === FieldMode.READONLY
+  get readOnly() {
+    return this.mode === FieldMode.READ_ONLY
   }
 
-  set readonly(readonly: boolean | undefined) {
-    if (!isValid(readonly)) return
-    if (readonly) {
-      this.mode = FieldMode.READONLY
+  set readOnly(readOnly: boolean | undefined) {
+    if (!isValid(readOnly)) return
+    if (readOnly) {
+      this.mode = FieldMode.READ_ONLY
     } else {
       this.mode = undefined
     }
@@ -198,8 +246,8 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
     }
   }
 
-  match(pattern: FormPathPattern) {
-    return FormPath.parse(pattern).matchAliasGroup(this.address, this.path)
+  match(pattern: Pattern) {
+    return Path.parse(pattern).matchAliasGroup(this.address, this.path)
   }
 
   @Observable.Computed
@@ -219,5 +267,23 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
 
   notify(type: LifeCycleTypes, payload?: any) {
     return this.form.notify(type, payload ?? this)
+  }
+
+  @Observable.Ref
+  accessor mounted = false
+
+  @Observable.Ref
+  accessor unmounted = false
+
+  onMount() {
+    this.mounted = true
+    this.unmounted = false
+    this.notify(LifeCycleTypes.ON_FIELD_MOUNT)
+  }
+
+  onUnmount() {
+    this.mounted = false
+    this.unmounted = true
+    this.notify(LifeCycleTypes.ON_FIELD_UNMOUNT)
   }
 }

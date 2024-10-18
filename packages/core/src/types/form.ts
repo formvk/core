@@ -11,16 +11,13 @@ export interface IFormProps<T = any> {
   visible?: boolean
   editable?: boolean
   disabled?: boolean
-  readonly?: boolean
+  readOnly?: boolean
   readPretty?: boolean
   effects?: (form: Form<T>) => void
   validateFirst?: boolean
 }
 
-export type IFormState<T extends Record<any, any> = any> = Pick<
-  Form<T>,
-  NonFunctionPropertyNames<OmitState<Form<{ [key: string]: any }>>>
->
+export type IFormState<T = any> = Pick<Form<T>, NonFunctionPropertyNames<OmitState<Form<{ [key: string]: any }>>>>
 
 export type IFormGraph = Record<string, IGeneralFieldState | IFormState>
 

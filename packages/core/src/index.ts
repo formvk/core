@@ -1,4 +1,5 @@
 export * from './decorators'
 export * from './enums'
+export * from './internals/finder'
 export * from './models'
 export * from './types'

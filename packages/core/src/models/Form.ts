@@ -1,9 +1,17 @@
-import { Observable } from '@formvk/reactive'
+import { Observable, watch } from '@formvk/reactive'
 import { FormPath, isPlainObj, isValid, merge, uid } from '@formvk/shared'
 import type { Creator } from '../decorators'
 import { Injectable, InjectCreator, Module } from '../decorators'
 import { FieldDisplay, FieldMode, LifeCycleTypes } from '../enums'
-import { getAddress, getValidFormValues, setLoading, setSubmitting, setValidating } from '../internals'
+import {
+  createStateGetter,
+  createStateSetter,
+  getAddress,
+  getValidFormValues,
+  setLoading,
+  setSubmitting,
+  setValidating,
+} from '../internals'
 import type {
   DataField,
   FieldName,
@@ -13,6 +21,9 @@ import type {
   IFormMergeStrategy,
   IFormProps,
   IFormRequests,
+  IFormState,
+  IModelGetter,
+  IModelSetter,
   JSXComponent,
 } from '../types'
 import { ArrayField } from './ArrayField'
@@ -66,6 +77,16 @@ export class Form<ValueType = any> {
   constructor(props: IFormProps<ValueType> = {}) {
     this.initialize(props)
     this.makeValues()
+    watch(
+      () => this.initialValues,
+      val => {
+        console.log('initialValues', val)
+      },
+      {
+        deep: true,
+        immediate: true,
+      }
+    )
   }
 
   protected initialize(props: IFormProps<ValueType>) {
@@ -75,7 +96,7 @@ export class Form<ValueType = any> {
     this.mode = this.props.mode || FieldMode.EDITABLE
     this.editable = this.props.editable
     this.disabled = this.props.disabled
-    this.readonly = this.props.readonly
+    this.readOnly = this.props.readOnly
     this.readPretty = this.props.readPretty
     this.visible = this.props.visible
     this.hidden = this.props.hidden
@@ -158,13 +179,13 @@ export class Form<ValueType = any> {
   }
 
   @Observable.Computed
-  get readonly() {
-    return this.mode === FieldMode.READONLY
+  get readOnly() {
+    return this.mode === FieldMode.READ_ONLY
   }
 
-  set readonly(readonly: boolean | undefined) {
-    if (!isValid(readonly)) return
-    this.mode = readonly ? FieldMode.READONLY : FieldMode.EDITABLE
+  set readOnly(readOnly: boolean | undefined) {
+    if (!isValid(readOnly)) return
+    this.mode = readOnly ? FieldMode.READ_ONLY : FieldMode.EDITABLE
   }
 
   @Observable.Computed
@@ -232,19 +253,19 @@ export class Form<ValueType = any> {
     this.heart.removeLifeCycles(id)
   }
 
-  static isVoidField(field: GeneralField): field is VoidField {
+  static isVoidField(field: any): field is VoidField {
     return field instanceof VoidField
   }
 
-  static isObjectField(field: GeneralField): field is ObjectField {
+  static isObjectField(field: any): field is ObjectField {
     return field instanceof ObjectField
   }
 
-  static isArrayField(field: GeneralField): field is ArrayField {
+  static isArrayField(field: any): field is ArrayField {
     return field instanceof ArrayField
   }
 
-  static isField(field: GeneralField): field is Field {
+  static isField(field: any): field is Field {
     return field instanceof Field
   }
 
@@ -260,23 +281,23 @@ export class Form<ValueType = any> {
     return form instanceof Form
   }
 
-  isVoidField(field: GeneralField): field is VoidField {
+  isVoidField(field: any): field is VoidField {
     return Form.isVoidField(field)
   }
 
-  isObjectField(field: GeneralField): field is ObjectField {
+  isObjectField(field: any): field is ObjectField {
     return Form.isObjectField(field)
   }
 
-  isArrayField(field: GeneralField): field is ArrayField {
+  isArrayField(field: any): field is ArrayField {
     return Form.isArrayField(field)
   }
 
-  isField(field: GeneralField): field is Field {
+  isField(field: any): field is Field {
     return Form.isField(field)
   }
 
-  isGeneralField(field: GeneralField): field is GeneralField {
+  isGeneralField(field: any): field is GeneralField {
     return Form.isGeneralField(field)
   }
 
@@ -284,9 +305,9 @@ export class Form<ValueType = any> {
     return form instanceof Form
   }
 
-  // setState: IModelSetter<IFormState<ValueType>> = createStateSetter(this)
+  setState: IModelSetter<IFormState<ValueType>> = createStateSetter(this)
 
-  // getState: IModelGetter<IFormState<ValueType>> = createStateGetter(this)
+  getState: IModelGetter<IFormState<ValueType>> = createStateGetter(this)
 
   @InjectCreator(() => Field)
   fieldCreator: Creator<typeof Field>
@@ -364,3 +385,7 @@ export class Form<ValueType = any> {
     return this.fields[identifier] as VoidField<Decorator, Component>
   }
 }
+
+const { isForm, isField, isGeneralField, isObjectField, isArrayField, isDataField, isVoidField } = Form
+
+export { isArrayField, isDataField, isField, isForm, isGeneralField, isObjectField, isVoidField }

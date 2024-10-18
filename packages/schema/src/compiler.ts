@@ -1,6 +1,6 @@
 import type { IGeneralFieldState } from '@formvk/core'
 import { hasCollected, untracked } from '@formvk/reactive'
-import { FormPath, isArr, isFn, isPlainObj, isStr, reduce } from '@formvk/shared'
+import { Path, isArr, isFn, isPlainObj, isStr, reduce } from '@formvk/shared'
 import { hasOwnProperty, isNoNeedCompileObject, patchStateFormSchema, traverse, traverseSchema } from './shared'
 import type { ISchema } from './types'
 
@@ -74,10 +74,10 @@ export const patchCompile = (targetState: IGeneralFieldState, sourceState: any, 
   traverse(sourceState, (value, pattern) => {
     const compiled = compile(value, scope)
     if (compiled === undefined) return
-    const path = FormPath.parse(pattern)
+    const path = Path.parse(pattern)
     const key = path.segments[0]
     if (hasOwnProperty.call(targetState, key)) {
-      untracked(() => FormPath.setIn(targetState, path, compiled))
+      untracked(() => Path.setIn(targetState, path, compiled))
     }
   })
 }

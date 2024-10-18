@@ -1,5 +1,5 @@
-import type { DisplayTypes, FieldValidator, IFieldFactoryProps, PatternTypes } from '@formvk/core'
-import { each, FormPath, instOf, isFn, isStr } from '@formvk/shared'
+import type { FieldDisplay, FieldMode, FieldValidator, IFieldProps } from '@formvk/core'
+import { each, instOf, isFn, isStr, Path } from '@formvk/shared'
 import { compile, shallowCompile } from './compiler'
 import { reducePatches } from './patches'
 import { SchemaNestedMap } from './shared'
@@ -59,7 +59,8 @@ export class Schema<Decorator = any, Component = any, DecoratorProps = any, Comp
   componentProps?: ComponentProps
   validator?: FieldValidator
   reactions?: SchemaReaction
-  display?: DisplayTypes
+  mode?: FieldMode
+  display?: FieldDisplay
   content?: any
   data?: any
   visible?: boolean
@@ -69,8 +70,7 @@ export class Schema<Decorator = any, Component = any, DecoratorProps = any, Comp
   writeOnly?: boolean
   editable?: boolean
   readPretty?: boolean
-  'x-pattern'?: PatternTypes
-  'x-compile-omitted'?: string[]
+  compileOmitted?: string[]
 
   constructor(json: ISchema<Decorator, Component, DecoratorProps, ComponentProps>, parent?: Schema) {
     if (parent) {
@@ -141,7 +141,7 @@ export class Schema<Decorator = any, Component = any, DecoratorProps = any, Comp
   findDefinitions(ref: string) {
     if (!ref || !this.root || !isStr(ref)) return
     if (ref.indexOf('#/') !== 0) return
-    return FormPath.getIn(this.root, ref.substring(2).split('/'))
+    return Path.getIn(this.root, ref.substring(2).split('/'))
   }
 
   fromJSON(json: ISchema<Decorator, Component, DecoratorProps, ComponentProps>) {
@@ -229,7 +229,7 @@ export class Schema<Decorator = any, Component = any, DecoratorProps = any, Comp
     return schema
   }
 
-  toFieldProps(options: ISchemaTransformerOptions): IFieldFactoryProps<any, any> {
+  toFieldProps(options: ISchemaTransformerOptions): IFieldProps<any, any> {
     return transformFieldProps(this, options)
   }
 
@@ -238,20 +238,20 @@ export class Schema<Decorator = any, Component = any, DecoratorProps = any, Comp
       schema: Schema
       key: SchemaKey
     }[] = []
-    const unorderProperties: {
+    const unOrderProperties: {
       schema: Schema
       key: SchemaKey
     }[] = []
     for (const key in schema[propertiesName]) {
       const item = schema[propertiesName][key]
-      const index = item['x-index']
+      const index = item.index
       if (!isNaN(index)) {
         orderProperties[index] = { schema: item, key }
       } else {
-        unorderProperties.push({ schema: item, key })
+        unOrderProperties.push({ schema: item, key })
       }
     }
-    return orderProperties.concat(unorderProperties).filter(item => !!item)
+    return orderProperties.concat(unOrderProperties).filter(item => !!item)
   }
 
   static isSchemaInstance = (value: any): value is Schema => {

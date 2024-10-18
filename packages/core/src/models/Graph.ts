@@ -21,14 +21,15 @@ export class Graph {
       const address = FormPath.parse(identifier)
       const name = address.segments[address.segments.length - 1]
       const basePath = address.parent()
+      const parent = form.fields[basePath.toString()]
       if (isFieldState(state)) {
-        return this.form.createField({ name, basePath })
+        return this.form.createField({ name }, parent)
       } else if (isArrayFieldState(state)) {
-        return this.form.createArrayField({ name, basePath })
+        return this.form.createArrayField({ name }, parent)
       } else if (isObjectFieldState(state)) {
-        return this.form.createObjectField({ name, basePath })
+        return this.form.createObjectField({ name }, parent)
       } else {
-        return this.form.createVoidField({ name, basePath })
+        return this.form.createVoidField({ name }, parent)
       }
     }
     each(graph, (state, address) => {
