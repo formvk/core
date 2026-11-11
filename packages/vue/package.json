@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "description": "Formvk Shared",
   "keywords": [
+    "form",
     "formvk",
-    "shared",
     "formvk-shared",
-    "form"
+    "shared"
   ],
   "license": "MIT",
   "author": "yiyunwan",

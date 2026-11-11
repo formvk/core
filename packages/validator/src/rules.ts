@@ -1,4 +1,5 @@
 import { each, isArr, isBool, isEmpty, isEqual, isFn, isNum, isStr, isValid, stringLength, toArr } from '@formvk/shared'
+
 import { getValidateFormats } from './registry'
 import type { IRegistryRules } from './types'
 

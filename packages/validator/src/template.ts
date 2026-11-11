@@ -1,4 +1,5 @@
 import { FormPath, isFn, isStr } from '@formvk/shared'
+
 import { getValidateMessageTemplateEngine } from './registry'
 import type { IValidateResult, IValidatorRules } from './types'
 

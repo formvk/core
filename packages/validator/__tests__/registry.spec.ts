@@ -1,4 +1,5 @@
 import { expect, test } from 'vitest'
+
 import { getLocaleByPath, getValidateLocale, getValidateLocaleIOSCode, setValidateLanguage } from '../src'
 import locale from '../src/locale'
 

@@ -1,7 +1,9 @@
-import { each, FormPath, FormPathPattern, isFn } from '@formvk/shared'
+import type { FormPathPattern } from '@formvk/shared'
+import { each, FormPath, isFn } from '@formvk/shared'
+
 import { buildDataPath } from '../shared/internals'
-import { GeneralField, IGeneralFieldState, IQueryProps } from '../types'
-import { Form } from './Form'
+import type { GeneralField, IGeneralFieldState, IQueryProps } from '../types'
+import type { Form } from './Form'
 
 const output = (field: GeneralField, taker: (field: GeneralField, address: FormPath) => any) => {
   if (!field) return

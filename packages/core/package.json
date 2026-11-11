@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "description": "Formvk Core",
   "keywords": [
-    "formvk",
     "core",
-    "formvk-core",
-    "form"
+    "form",
+    "formvk",
+    "formvk-core"
   ],
   "license": "MIT",
   "author": "yiyunwan",

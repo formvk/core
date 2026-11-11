@@ -1,5 +1,6 @@
 import type { FormPath } from '@formvk/shared'
 import type { IValidatorRules, Validator, ValidatorTriggerType } from '@formvk/validator'
+
 import type { ArrayField, Field, Form, LifeCycle, ObjectField, Query, VoidField } from './models'
 
 export type NonFunctionPropertyNames<T> = {
@@ -238,8 +239,11 @@ export interface IFieldFactoryProps<
   basePath?: FormPathPattern
 }
 
-export interface IVoidFieldFactoryProps<Decorator extends JSXComponent, Component extends JSXComponent, TextType = any>
-  extends IVoidFieldProps<Decorator, Component, TextType> {
+export interface IVoidFieldFactoryProps<
+  Decorator extends JSXComponent,
+  Component extends JSXComponent,
+  TextType = any,
+> extends IVoidFieldProps<Decorator, Component, TextType> {
   name: FormPathPattern
   basePath?: FormPathPattern
 }

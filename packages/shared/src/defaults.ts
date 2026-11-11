@@ -1,6 +1,6 @@
 import { each } from './array'
-import { isEmpty, isValid } from './isEmpty'
 import { getType, isArr, isPlainObj } from './checkers'
+import { isEmpty, isValid } from './isEmpty'
 
 const isUnNormalObject = (value: any) => {
   if (value?._owner && value?.$$typeof) {
@@ -27,18 +27,10 @@ const isEnumerableObject = (val: any) => {
  * @param targets
  */
 export const defaults = (defaults_: any, targets: any) => {
-  if (
-    getType(defaults_) !== getType(targets) ||
-    !isEnumerableObject(defaults_) ||
-    !isEnumerableObject(targets)
-  ) {
+  if (getType(defaults_) !== getType(targets) || !isEnumerableObject(defaults_) || !isEnumerableObject(targets)) {
     return !isEmpty(targets) ? targets : defaults_
   } else {
-    const results = isArr(defaults_)
-      ? []
-      : isPlainObj(defaults_)
-      ? {}
-      : defaults_
+    const results = isArr(defaults_) ? [] : isPlainObj(defaults_) ? {} : defaults_
     each(targets, (value, key) => {
       results[key] = defaults(defaults_[key], value)
     })

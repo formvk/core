@@ -1,4 +1,5 @@
 import { expect, test } from 'vitest'
+
 import { Path } from '../src'
 import { Matcher } from '../src/matcher'
 

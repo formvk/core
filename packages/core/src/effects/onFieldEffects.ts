@@ -1,8 +1,10 @@
 import { autorun, batch, reaction } from '@formvk/reactive'
 import { FormPath, isFn, toArr } from '@formvk/shared'
-import { Form } from '../models'
+
+import type { Form } from '../models'
 import { createEffectHook, useEffectForm } from '../shared/effective'
-import { DataField, FormPathPattern, GeneralField, IFieldState, LifeCycleTypes } from '../types'
+import type { DataField, FormPathPattern, GeneralField, IFieldState } from '../types'
+import { LifeCycleTypes } from '../types'
 
 function createFieldEffect<Result extends GeneralField = GeneralField>(type: LifeCycleTypes) {
   return createEffectHook(

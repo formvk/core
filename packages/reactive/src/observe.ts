@@ -1,22 +1,20 @@
-export type OperationType = 'add' | 'delete' | 'clear' | 'set' | 'get' | 'iterate' | 'has'
-export interface IOperation {
-  target?: any
-  oldTarget?: any
-  key?: PropertyKey
-  value?: any
-  oldValue?: any
-  type?: OperationType
-  receiver?: any
-}
+import type { Entry } from './internals'
+import { handlerMap, reverseCache } from './internals'
+import type { Observer } from './types'
 
-/**
- * 使用 @vue/reactivity 中的方法，实现对对象的观察
- * @param target 要观察的对象
- * @param observer 当对象发生变化时的回调函数 且知道对对象的变化进行了什么操作
- * @param deep 是否深度观察
- * @returns
- */
-export function observe(target: object, observer: (operation: IOperation) => void, deep = false) {
-  deep
-  return () => {}
+/** 监听对象所有写操作，返回 dispose */
+export function observe<T extends object>(target: T, observer: Observer, deep = true): () => void {
+  const vueProxy = (reverseCache.get(target as any) ?? target) as object
+  let set = handlerMap.get(vueProxy)
+  if (!set) {
+    set = new Set()
+    handlerMap.set(vueProxy, set)
+  }
+
+  const entry: Entry = { fn: observer, deep }
+  set.add(entry)
+
+  return () => {
+    set!.delete(entry)
+  }
 }

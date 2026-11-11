@@ -1,4 +1,5 @@
 import { isFn } from '@formvk/shared'
+
 import type { DataField, JSXComponent } from '..'
 import { ArrayField, Field, Form, ObjectField, Query, VoidField } from '../models'
 import type { GeneralField, IFieldState, IFormState, IGeneralFieldState, IVoidFieldState } from '../types'

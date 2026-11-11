@@ -1,6 +1,8 @@
 import { isFn, isValid } from '@formvk/shared'
-import { Form, LifeCycle } from '../models'
-import { AnyFunction } from '../types'
+
+import type { Form } from '../models'
+import { LifeCycle } from '../models'
+import type { AnyFunction } from '../types'
 import { isForm } from './checkers'
 import { GlobalState } from './constants'
 

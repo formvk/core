@@ -13,10 +13,7 @@ export default defineConfig({
       fileName: 'index',
       formats: ['es'],
     },
-    rollupOptions: {},
     sourcemap: true,
-  },
-  esbuild: {
     target: 'esnext',
   },
 })

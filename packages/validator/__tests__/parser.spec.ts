@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest'
+
 import { parseValidatorDescriptions } from '../src/parser'
 
 describe('parseValidatorDescriptions', () => {

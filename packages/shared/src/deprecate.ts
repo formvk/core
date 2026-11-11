@@ -16,12 +16,6 @@ export function deprecate<P1 = any, P2 = any, P3 = any, P4 = any, P5 = any>(
   }
   if (isStr(method) && !caches[method]) {
     caches[method] = true
-    console.warn(
-      new Error(
-        `${method} has been deprecated. Do not continue to use this api.${
-          message || ''
-        }`
-      )
-    )
+    console.warn(new Error(`${method} has been deprecated. Do not continue to use this api.${message || ''}`))
   }
 }

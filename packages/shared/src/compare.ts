@@ -23,7 +23,7 @@ function equal(a: any, b: any) {
       if (length !== b.length) {
         return false
       }
-      for (i = length; i-- !== 0; ) {
+      for (i = length; i-- !== 0;) {
         if (!equal(a[i], b[i])) {
           return false
         }
@@ -81,7 +81,7 @@ function equal(a: any, b: any) {
       return false
     }
 
-    for (i = length; i-- !== 0; ) {
+    for (i = length; i-- !== 0;) {
       if (!hasProp.call(b, keys[i])) {
         return false
       }
@@ -89,7 +89,7 @@ function equal(a: any, b: any) {
     // end fast-deep-equal
 
     // Custom handling for React
-    for (i = length; i-- !== 0; ) {
+    for (i = length; i-- !== 0;) {
       key = keys[i]
 
       if (key === '_owner' && a.$$typeof) {
@@ -119,20 +119,13 @@ export const isEqual = function exportedEqual(a: any, b: any) {
     return equal(a, b)
   } catch (error) {
     /* istanbul ignore next */
-    if (
-      (error.message && error.message.match(/stack|recursion/i)) ||
-      error.number === -2146828260
-    ) {
+    if ((error.message && error.message.match(/stack|recursion/i)) || error.number === -2146828260) {
       // warn on circular references, don't crash
       // browsers give this different errors name and messages:
       // chrome/safari: "RangeError", "Maximum call stack size exceeded"
       // firefox: "InternalError", too much recursion"
       // edge: "Error", "Out of stack space"
-      console.warn(
-        'Warning: react-fast-compare does not handle circular references.',
-        error.name,
-        error.message
-      )
+      console.warn('Warning: react-fast-compare does not handle circular references.', error.name, error.message)
       return false
     }
     // some other error. we should definitely know about these

@@ -1,6 +1,7 @@
 import { autorun, batch } from '@formvk/reactive'
 import { isFn } from '@formvk/shared'
-import { Form } from '../models'
+
+import type { Form } from '../models'
 import { createEffectHook } from '../shared/effective'
 import { LifeCycleTypes } from '../types'
 

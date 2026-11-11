@@ -1,4 +1,5 @@
 import { expect, test } from 'vitest'
+
 import { isAssignable, isEqual } from '../src/shared'
 
 test('isAssignable', () => {

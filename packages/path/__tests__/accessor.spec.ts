@@ -1,4 +1,5 @@
 import { expect, test } from 'vitest'
+
 import { Path } from '../src'
 
 const { getIn, setIn } = Path

@@ -1,5 +1,6 @@
 import { isArr, isStr, Subscribable } from '@formvk/shared'
-import { IHeartProps } from '../types'
+
+import type { IHeartProps } from '../types'
 import { LifeCycle } from './LifeCycle'
 export class Heart<Payload = any, Context = any> extends Subscribable {
   lifecycles: LifeCycle<Payload>[] = []

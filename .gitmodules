@@ -1,0 +1,4 @@
+[submodule "vendor/formily"]
+	path = vendor/formily
+	url = https://github.com/alibaba/formily.git
+	shallow = true

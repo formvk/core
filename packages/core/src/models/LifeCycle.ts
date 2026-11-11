@@ -1,4 +1,5 @@
 import { each, isFn, isStr } from '@formvk/shared'
+
 import type { LifeCycleHandler, LifeCyclePayload } from '../types'
 
 type LifeCycleParams<Payload> = Array<string | LifeCycleHandler<Payload> | { [key: string]: LifeCycleHandler<Payload> }>

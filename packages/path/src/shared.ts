@@ -18,8 +18,7 @@ const isArray = isArr
 const keyList = Object.keys
 const hasProp = Object.prototype.hasOwnProperty
 
-export const toArr = <T>(val: T | T[]): T[] =>
-  Array.isArray(val) ? val : val !== undefined ? [val] : []
+export const toArr = <T>(val: T | T[]): T[] => (Array.isArray(val) ? val : val !== undefined ? [val] : [])
 export const isAssignable = (val: any) => {
   return typeof val === 'object' || typeof val === 'function'
 }
@@ -39,7 +38,7 @@ export const isEqual = (a: any, b: any) => {
       if (length !== b.length) {
         return false
       }
-      for (i = length; i-- !== 0; ) {
+      for (i = length; i-- !== 0;) {
         if (!isEqual(a[i], b[i])) {
           return false
         }
@@ -58,12 +57,12 @@ export const isEqual = (a: any, b: any) => {
       return false
     }
 
-    for (i = length; i-- !== 0; ) {
+    for (i = length; i-- !== 0;) {
       if (!hasProp.call(b, keys[i])) {
         return false
       }
     }
-    for (i = length; i-- !== 0; ) {
+    for (i = length; i-- !== 0;) {
       key = keys[i]
       if (!isEqual(a[key], b[key])) {
         return false

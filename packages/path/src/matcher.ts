@@ -1,14 +1,7 @@
-import {
+import { isEqual, toArr, isSegmentEqual } from './shared'
+import type {
   Segments,
   Node,
-  isIdentifier,
-  isExpandOperator,
-  isWildcardOperator,
-  isGroupExpression,
-  isRangeExpression,
-  isIgnoreExpression,
-  isDotOperator,
-  isDestructorExpression,
   IdentifierNode,
   IgnoreExpressionNode,
   DestructorExpressionNode,
@@ -17,7 +10,16 @@ import {
   GroupExpressionNode,
   RangeExpressionNode,
 } from './types'
-import { isEqual, toArr, isSegmentEqual } from './shared'
+import {
+  isIdentifier,
+  isExpandOperator,
+  isWildcardOperator,
+  isGroupExpression,
+  isRangeExpression,
+  isIgnoreExpression,
+  isDotOperator,
+  isDestructorExpression,
+} from './types'
 export interface IRecord {
   score: number
 }
@@ -157,7 +159,7 @@ export class Matcher {
     if (node.isExclude) {
       excluding = !this.excluding
     }
-    return toArr(node.value)[excluding ? 'every' : 'some']((item) => {
+    return toArr(node.value)[excluding ? 'every' : 'some'](item => {
       this.wildcards = this.stack.slice() as WildcardOperatorNode[]
       this.excluding = excluding
       return this.matchNode(item, pos)
@@ -168,10 +170,7 @@ export class Matcher {
     const current = Number(this.take(pos))
     if (node.start) {
       if (node.end) {
-        return (
-          current >= Number(node.start.value) &&
-          current <= Number(node.end.value)
-        )
+        return current >= Number(node.start.value) && current <= Number(node.end.value)
       } else {
         return current >= Number(node.start.value)
       }

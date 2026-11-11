@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "description": "Formvk Shared",
   "keywords": [
+    "form",
     "formvk",
-    "shared",
     "formvk-shared",
-    "form"
+    "shared"
   ],
   "license": "MIT",
   "author": "yiyunwan",
@@ -15,9 +15,10 @@
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "vite build"
+    "build": "vite build",
+    "test": "vitest"
   },
   "dependencies": {
-    "@vue/reactivity": "^3.4.31"
+    "@vue/reactivity": "^3.6.0-rc.14"
   }
 }

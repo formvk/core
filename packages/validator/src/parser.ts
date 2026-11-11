@@ -1,4 +1,5 @@
 import { isArr, isBool, isFn, isStr } from '@formvk/shared'
+
 import { getValidateLocale, getValidateRules } from './registry'
 import { render } from './template'
 import type {

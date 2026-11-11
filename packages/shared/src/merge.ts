@@ -108,11 +108,7 @@ function mergeObject(target: any, source: any, options: Options) {
       // @ts-ignore
       options.isMergeableObject(source[key])
     ) {
-      destination[key] = getMergeFunction(key, options)(
-        target[key],
-        source[key],
-        options
-      )
+      destination[key] = getMergeFunction(key, options)(target[key], source[key], options)
     } else {
       destination[key] = cloneUnlessOtherwiseSpecified(source[key], options)
     }
@@ -124,10 +120,7 @@ interface Options {
   arrayMerge?(target: any[], source: any[], options?: Options): any[]
   clone?: boolean
   assign?: boolean
-  customMerge?: (
-    key: string,
-    options?: Options
-  ) => ((x: any, y: any) => any) | undefined
+  customMerge?: (key: string, options?: Options) => ((x: any, y: any) => any) | undefined
   isMergeableObject?(value: object): boolean
   cloneUnlessOtherwiseSpecified?: (value: any, options: Options) => any
 }
@@ -136,8 +129,7 @@ interface Options {
 function deepmerge(target: any, source: any, options?: Options) {
   options = options || {}
   options.arrayMerge = options.arrayMerge || defaultArrayMerge
-  options.isMergeableObject =
-    options.isMergeableObject || defaultIsMergeableObject
+  options.isMergeableObject = options.isMergeableObject || defaultIsMergeableObject
   // cloneUnlessOtherwiseSpecified is added to `options` so that custom arrayMerge()
   // implementations can use it. The caller may not replace it.
   options.cloneUnlessOtherwiseSpecified = cloneUnlessOtherwiseSpecified
@@ -155,14 +147,8 @@ function deepmerge(target: any, source: any, options?: Options) {
   }
 }
 
-export const lazyMerge = <T extends object | Function>(
-  target: T,
-  ...args: T[]
-): any => {
-  const _lazyMerge = <T extends object | Function>(
-    target: T,
-    source: T
-  ): {} => {
+export const lazyMerge = <T extends object | Function>(target: T, ...args: T[]): any => {
+  const _lazyMerge = <T extends object | Function>(target: T, source: T): {} => {
     if (!isValid(source)) return target
     if (!isValid(target)) return source
     const isTargetObject = typeof target === 'object'

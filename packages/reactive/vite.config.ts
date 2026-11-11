@@ -1,7 +1,27 @@
-import { defineConfig } from 'vite'
+import swc from '@rollup/plugin-swc'
+import { defineConfig, withFilter } from 'vite'
 import dts from 'vite-plugin-dts'
+
 export default defineConfig({
-  plugins: [dts()],
+  plugins: [
+    dts(),
+    withFilter(
+      swc({
+        swc: {
+          jsc: {
+            parser: { syntax: 'typescript', decorators: true },
+            transform: {
+              // 使用 2023-11 版标准装饰器；插件默认值是 legacyDecorator: true，需显式关闭
+              legacyDecorator: false,
+              decoratorVersion: '2023-11',
+            },
+          },
+        },
+      }),
+      // 仅当文件包含装饰器时才运行此转换
+      { transform: { code: /^\s*@[\w$.]+/m } }
+    ),
+  ],
   build: {
     lib: {
       entry: 'src/index.ts',
@@ -9,10 +29,11 @@ export default defineConfig({
       fileName: 'index',
       formats: ['es'],
     },
-    rollupOptions: {},
+    minify: false,
     sourcemap: true,
-  },
-  esbuild: {
     target: 'esnext',
+    rollupOptions: {
+      external: ['@vue/reactivity'],
+    },
   },
 })
