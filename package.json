@@ -17,19 +17,31 @@
     "lint": "oxlint",
     "lint:fix": "oxlint --fix-dangerously",
     "format": "oxfmt",
-    "format:check": "oxfmt --check"
+    "format:check": "oxfmt --check",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.60.1",
     "@rollup/plugin-swc": "^0.4.1",
     "@swc/core": "^1.16.22",
     "@vitest/coverage-v8": "^5.1.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.6.0",
     "oxfmt": "^0.78.0",
     "oxlint": "^1.93.0",
     "typescript": "^6.0.0",
     "vite": "^8.3.8",
     "vite-plugin-dts": "^5.1.2",
     "vitest": "^5.1.0"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,mjs,cjs,mts,cts}": [
+      "oxlint --fix --deny-warnings",
+      "oxfmt"
+    ],
+    "*.{json,jsonc,md,mdx,css,less,scss,html,yml,yaml}": [
+      "oxfmt"
+    ]
   },
   "engines": {
     "node": ">=22.12.0"

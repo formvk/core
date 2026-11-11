@@ -178,6 +178,12 @@ importers:
       '@vitest/coverage-v8':
         specifier: ^5.1.0
         version: 5.1.0(vitest@5.1.0)
+      husky:
+        specifier: ^9.1.7
+        version: 9.1.7
+      lint-staged:
+        specifier: ^17.6.0
+        version: 17.6.0
       oxfmt:
         specifier: ^0.78.0
         version: 0.78.0
@@ -189,13 +195,13 @@ importers:
         version: 6.0.3
       vite:
         specifier: ^8.3.8
-        version: 8.3.8
+        version: 8.3.8(yaml@2.9.1)
       vite-plugin-dts:
         specifier: ^5.1.2
-        version: 5.1.2(@microsoft/api-extractor@7.60.1)(rolldown@1.2.18)(rollup@4.68.1)(supports-color@8.1.1)(typescript@6.0.3)(vite@8.3.8)
+        version: 5.1.2(@microsoft/api-extractor@7.60.1)(rolldown@1.2.18)(rollup@4.68.1)(supports-color@8.1.1)(typescript@6.0.3)(vite@8.3.8(yaml@2.9.1))
       vitest:
         specifier: ^5.1.0
-        version: 5.1.0(@vitest/coverage-v8@5.1.0)(vite@8.3.8)
+        version: 5.1.0(@vitest/coverage-v8@5.1.0)(vite@8.3.8(yaml@2.9.1))
 
   packages/core:
     dependencies:
@@ -1135,6 +1141,11 @@ packages:
     resolution: {integrity: sha512-T2UbfbBEF32wiepXIsMlTW9+dDYC6wMh/t/vYA4tuOMKqWz/n3vr1NFSxQiyP+zk2mXsoMA/i/7qV6LKut1t1A==}
     engines: {node: '>= 0.4'}
 
+  husky@9.1.7:
+    resolution: {integrity: sha512-5gs5ytaNjBrh5Ow3zrvdUUY+0VxIuWVL4i9irt6friV+BqdCfmV11CQTWMiBYWHbXhco+J1kHfTOUkePhCDvMA==}
+    engines: {node: '>=18'}
+    hasBin: true
+
   import-lazy@4.0.0:
     resolution: {integrity: sha512-rKtvo6a868b5Hu3heneU+L4yEQ4jYKLtjpnPeUdK7h0yzXGmyBTypknlkCvHFBqfX9YlorEiMM6Dnq/5atfHkw==}
     engines: {node: '>=8'}
@@ -1231,6 +1242,11 @@ packages:
   lightningcss@1.33.0:
     resolution: {integrity: sha512-WkUDrojuJs0xkgGf2udWxa3yGBRxPtxUkB79i6aCZLRgc7PM8fZe9TosfPDcvEpQZbuFASnHYmRLBLUbmLOIIA==}
     engines: {node: '>= 12.0.0'}
+
+  lint-staged@17.6.0:
+    resolution: {integrity: sha512-nOhBfYkZEwkFtNzD5pK9s9LkcWoxJ+whLzEnhqi9nl7zTB5n7tg8+9iYgMGx2Wm3VlLu8cbNj0RACzY+nWi5iQ==}
+    engines: {node: '>=22.22.1'}
+    hasBin: true
 
   local-pkg@1.2.1:
     resolution: {integrity: sha512-++gUqRDEvcnN6Zhqrr+y/CkVEHhlrR96vZn3nZZPYzMcBUyBtTKzB9NadClFIsIVSsu+3i9tfk/erqy9kAmt7Q==}
@@ -1562,6 +1578,11 @@ packages:
   why-is-node-running@3.2.1:
     resolution: {integrity: sha512-Tb2FUhB4vUsGQlfSquQLYkApkuPAFQXGFzxWKHHumVz2dK+X1RUm/HnID4+TfIGYJ1kTcwOaCk/buYCEJr6YjQ==}
     engines: {node: '>=20.11'}
+    hasBin: true
+
+  yaml@2.9.1:
+    resolution: {integrity: sha512-3NxN8+78OdzbT7C/WjGsyfPAtJaN3FNDsWxv7Y7mcDsT/oOmgW8BpyQQFFBnvZE3j9Y2Sdz1ULFLezL7Eb2yFw==}
+    engines: {node: '>= 14.6'}
     hasBin: true
 
 snapshots:
@@ -2009,7 +2030,7 @@ snapshots:
       obug: 3.0.0
       std-env: 4.3.0
       tinyrainbow: 3.2.0
-      vitest: 5.1.0(@vitest/coverage-v8@5.1.0)(vite@8.3.8)
+      vitest: 5.1.0(@vitest/coverage-v8@5.1.0)(vite@8.3.8(yaml@2.9.1))
 
   '@vitest/istanbul-lib-coverage@2.1.0': {}
 
@@ -2017,14 +2038,14 @@ snapshots:
     dependencies:
       '@vitest/istanbul-lib-coverage': 2.1.0
 
-  '@vitest/mocker@5.1.0(vite@8.3.8)':
+  '@vitest/mocker@5.1.0(vite@8.3.8(yaml@2.9.1))':
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
       '@vitest/spy': 5.1.0
       estree-walker: 3.0.3
       magic-string: 1.4.5
     optionalDependencies:
-      vite: 8.3.8
+      vite: 8.3.8(yaml@2.9.1)
 
   '@vitest/spy@5.1.0': {}
 
@@ -2161,6 +2182,8 @@ snapshots:
     dependencies:
       function-bind: 1.1.2
 
+  husky@9.1.7: {}
+
   import-lazy@4.0.0: {}
 
   is-core-module@2.18.0:
@@ -2229,6 +2252,14 @@ snapshots:
       lightningcss-linux-x64-musl: 1.33.0
       lightningcss-win32-arm64-msvc: 1.33.0
       lightningcss-win32-x64-msvc: 1.33.0
+
+  lint-staged@17.6.0:
+    dependencies:
+      picomatch: 4.0.7
+      string-argv: 0.3.2
+      tinyexec: 1.3.1
+    optionalDependencies:
+      yaml: 2.9.1
 
   local-pkg@1.2.1:
     dependencies:
@@ -2445,7 +2476,7 @@ snapshots:
 
   universalify@2.0.1: {}
 
-  unplugin-dts@1.1.2(@microsoft/api-extractor@7.60.1)(rolldown@1.2.18)(rollup@4.68.1)(supports-color@8.1.1)(typescript@6.0.3)(vite@8.3.8):
+  unplugin-dts@1.1.2(@microsoft/api-extractor@7.60.1)(rolldown@1.2.18)(rollup@4.68.1)(supports-color@8.1.1)(typescript@6.0.3)(vite@8.3.8(yaml@2.9.1)):
     dependencies:
       '@rollup/pluginutils': 5.5.1(rollup@4.68.1)
       '@volar/typescript': 2.4.31(typescript@6.0.3)
@@ -2461,7 +2492,7 @@ snapshots:
       '@microsoft/api-extractor': 7.60.1
       rolldown: 1.2.18
       rollup: 4.68.1
-      vite: 8.3.8
+      vite: 8.3.8(yaml@2.9.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -2472,13 +2503,13 @@ snapshots:
       picomatch: 4.0.7
       webpack-virtual-modules: 0.6.2
 
-  vite-plugin-dts@5.1.2(@microsoft/api-extractor@7.60.1)(rolldown@1.2.18)(rollup@4.68.1)(supports-color@8.1.1)(typescript@6.0.3)(vite@8.3.8):
+  vite-plugin-dts@5.1.2(@microsoft/api-extractor@7.60.1)(rolldown@1.2.18)(rollup@4.68.1)(supports-color@8.1.1)(typescript@6.0.3)(vite@8.3.8(yaml@2.9.1)):
     dependencies:
-      unplugin-dts: 1.1.2(@microsoft/api-extractor@7.60.1)(rolldown@1.2.18)(rollup@4.68.1)(supports-color@8.1.1)(typescript@6.0.3)(vite@8.3.8)
+      unplugin-dts: 1.1.2(@microsoft/api-extractor@7.60.1)(rolldown@1.2.18)(rollup@4.68.1)(supports-color@8.1.1)(typescript@6.0.3)(vite@8.3.8(yaml@2.9.1))
     optionalDependencies:
       '@microsoft/api-extractor': 7.60.1
       rollup: 4.68.1
-      vite: 8.3.8
+      vite: 8.3.8(yaml@2.9.1)
     transitivePeerDependencies:
       - '@rspack/core'
       - '@vue/language-core'
@@ -2488,7 +2519,7 @@ snapshots:
       - typescript
       - webpack
 
-  vite@8.3.8:
+  vite@8.3.8(yaml@2.9.1):
     dependencies:
       lightningcss: 1.33.0
       picomatch: 4.0.7
@@ -2497,11 +2528,12 @@ snapshots:
       tinyglobby: 0.2.17
     optionalDependencies:
       fsevents: 2.3.3
+      yaml: 2.9.1
 
-  vitest@5.1.0(@vitest/coverage-v8@5.1.0)(vite@8.3.8):
+  vitest@5.1.0(@vitest/coverage-v8@5.1.0)(vite@8.3.8(yaml@2.9.1)):
     dependencies:
       '@types/chai': 5.2.3
-      '@vitest/mocker': 5.1.0(vite@8.3.8)
+      '@vitest/mocker': 5.1.0(vite@8.3.8(yaml@2.9.1))
       chai: 6.3.0
       es-module-lexer: 2.3.2
       expect-type: 1.4.0
@@ -2512,7 +2544,7 @@ snapshots:
       tinybench: 6.2.3
       tinyexec: 1.3.1
       tinyglobby: 0.2.17
-      vite: 8.3.8
+      vite: 8.3.8(yaml@2.9.1)
       why-is-node-running: 3.2.1
     optionalDependencies:
       '@vitest/coverage-v8': 5.1.0(vitest@5.1.0)
@@ -2535,3 +2567,6 @@ snapshots:
   webpack-virtual-modules@0.6.2: {}
 
   why-is-node-running@3.2.1: {}
+
+  yaml@2.9.1:
+    optional: true
