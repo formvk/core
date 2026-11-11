@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest'
 
-import { Path } from '../src'
-import { Matcher } from '../src/matcher'
+import { Path } from '../'
+import { Matcher } from '../matcher'
 
 const match = (obj: Record<string, any>) => {
   for (const name in obj) {

@@ -167,7 +167,7 @@ export class Tokenizer {
     return fullCharCodeAtPos(this.input, pos)!
   }
 
-  eat(type) {
+  eat(type?: Token) {
     if (this.match(type)) {
       this.next()
       return true

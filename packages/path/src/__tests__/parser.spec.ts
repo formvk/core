@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest'
 
-import { Path } from '../src'
-import { Parser } from '../src/parser'
+import { Path } from '..'
+import { Parser } from '../parser'
 
 const parse = (string: string, json: any, index: number) => {
   test('test ' + string + ` : ${index}`, () => {

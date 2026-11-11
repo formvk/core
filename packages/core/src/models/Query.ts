@@ -70,9 +70,9 @@ export class Query {
   }
 
   reduce<Result>(reducer: (value: Result, field: GeneralField, address: FormPath) => Result, initial?: Result): Result {
-    return this.addresses.reduce(
+    return this.addresses.reduce<Result>(
       (value, address) => output(this.form.fields[address], (field, address) => reducer(value, field, address)),
-      initial
+      initial as Result
     )
   }
 
@@ -84,7 +84,7 @@ export class Query {
   }
 
   getIn(pattern?: FormPathPattern) {
-    return FormPath.getIn(this.take(), pattern)
+    return FormPath.getIn(this.take(), pattern!)
   }
 
   value() {

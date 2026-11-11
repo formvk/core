@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
 
-import { isAssignable, isEqual } from '../src/shared'
+import { isAssignable, isEqual } from '../shared'
 
 test('isAssignable', () => {
   expect(isAssignable({})).toBeTruthy()
@@ -12,7 +12,7 @@ test('isAssignable', () => {
 
 test('isEqual', () => {
   const sameObj = {}
-  const sameArray = []
+  const sameArray: number[] = []
   expect(isEqual('string', 'string')).toBeTruthy()
   expect(isEqual(123, 123)).toBeTruthy()
   expect(isEqual(undefined, undefined)).toBeTruthy()

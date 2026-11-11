@@ -1,3 +1,4 @@
+import { action, batch, observable } from '@formvk/reactive'
 import type { FormPathPattern } from '@formvk/shared'
 import { each, FormPath, isFn, isValid, toArr } from '@formvk/shared'
 
@@ -16,28 +17,28 @@ import type { Form } from './Form'
 import { Query } from './Query'
 
 export class BaseField<Decorator = any, Component = any, TextType = any> {
-  title?: TextType
-  description?: TextType
+  @observable.ref accessor title: TextType | undefined = undefined
+  @observable.ref accessor description: TextType | undefined = undefined
 
-  accessor selfDisplay: FieldDisplayTypes
-  accessor selfPattern: FieldPatternTypes
-  initialized: boolean
-  mounted: boolean
-  unmounted: boolean
+  @observable.ref accessor selfDisplay: FieldDisplayTypes | undefined = undefined
+  @observable.ref accessor selfPattern: FieldPatternTypes | undefined = undefined
+  @observable.ref accessor initialized = false
+  @observable.ref accessor mounted = false
+  @observable.ref accessor unmounted = false
 
-  content: any
+  @observable.ref accessor content: any = undefined
 
-  data: any
+  @observable.shallow accessor data: any = undefined
 
-  decoratorType: Decorator
-  decoratorProps: Record<string, any>
-  componentType: Component
-  componentProps: Record<string, any>
+  @observable.ref accessor decoratorType: Decorator | undefined = undefined
+  @observable accessor decoratorProps: Record<string, any> = {}
+  @observable.ref accessor componentType: Component | undefined = undefined
+  @observable accessor componentProps: Record<string, any> = {}
 
   designable?: boolean
-  address: FormPath
-  path: FormPath
-  form: Form
+  address!: FormPath
+  @observable.ref accessor path: FormPath = undefined as any
+  form!: Form
 
   disposers: (() => void)[] = []
 
@@ -48,6 +49,7 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
     locateNode(this as any, address)
   }
 
+  @observable.computed
   get indexes(): number[] {
     return this.path.transform(/^\d+$/, (...args) => args.map(index => Number(index))) as number[]
   }
@@ -74,6 +76,7 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
     return this.form.values
   }
 
+  @observable.computed
   get component() {
     return [this.componentType, this.componentProps]
   }
@@ -84,6 +87,7 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
     this.componentProps = component[1] || {}
   }
 
+  @observable.computed
   get decorator() {
     return [this.decoratorType, this.decoratorProps]
   }
@@ -105,6 +109,7 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
     return this.form.fields[identifier]
   }
 
+  @observable.computed
   get display(): FieldDisplayTypes {
     const parentDisplay = (this.parent as any)?.display
     if (parentDisplay && parentDisplay !== 'visible') {
@@ -115,6 +120,7 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
     return parentDisplay || this.form.display || 'visible'
   }
 
+  @observable.computed
   get pattern(): FieldPatternTypes {
     const parentPattern: FieldPatternTypes = (this.parent as any)?.pattern || this.form.pattern || 'editable'
     const selfPattern = this.selfPattern
@@ -127,26 +133,32 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
     return parentPattern
   }
 
+  @observable.computed
   get editable() {
     return this.pattern === 'editable'
   }
 
+  @observable.computed
   get disabled() {
     return this.pattern === 'disabled'
   }
 
+  @observable.computed
   get readOnly() {
     return this.pattern === 'readOnly'
   }
 
+  @observable.computed
   get readPretty() {
     return this.pattern === 'readPretty'
   }
 
+  @observable.computed
   get hidden() {
     return this.display === 'hidden'
   }
 
+  @observable.computed
   get visible() {
     return this.display === 'visible'
   }
@@ -155,7 +167,7 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
     return !this.form.fields[this.address.toString()]
   }
 
-  set hidden(hidden: boolean) {
+  set hidden(hidden: boolean | undefined) {
     if (!isValid(hidden)) return
     if (hidden) {
       this.display = 'hidden'
@@ -164,7 +176,7 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
     }
   }
 
-  set visible(visible: boolean) {
+  set visible(visible: boolean | undefined) {
     if (!isValid(visible)) return
     if (visible) {
       this.display = 'visible'
@@ -173,7 +185,7 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
     }
   }
 
-  set editable(editable: boolean) {
+  set editable(editable: boolean | undefined) {
     if (!isValid(editable)) return
     if (editable) {
       this.pattern = 'editable'
@@ -182,7 +194,7 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
     }
   }
 
-  set readOnly(readOnly: boolean) {
+  set readOnly(readOnly: boolean | undefined) {
     if (!isValid(readOnly)) return
     if (readOnly) {
       this.pattern = 'readOnly'
@@ -191,7 +203,7 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
     }
   }
 
-  set disabled(disabled: boolean) {
+  set disabled(disabled: boolean | undefined) {
     if (!isValid(disabled)) return
     if (disabled) {
       this.pattern = 'disabled'
@@ -200,7 +212,7 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
     }
   }
 
-  set readPretty(readPretty: boolean) {
+  set readPretty(readPretty: boolean | undefined) {
     if (!isValid(readPretty)) return
     if (readPretty) {
       this.pattern = 'readPretty'
@@ -209,30 +221,35 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
     }
   }
 
-  set pattern(pattern: FieldPatternTypes) {
+  set pattern(pattern: FieldPatternTypes | undefined) {
     this.selfPattern = pattern
   }
 
-  set display(display: FieldDisplayTypes) {
+  set display(display: FieldDisplayTypes | undefined) {
     this.selfDisplay = display
   }
 
+  @action
   setTitle = (title?: TextType) => {
     this.title = title
   }
 
+  @action
   setDescription = (description?: TextType) => {
     this.description = description
   }
 
-  setDisplay = (type: FieldDisplayTypes) => {
+  @action
+  setDisplay = (type?: FieldDisplayTypes) => {
     this.display = type
   }
 
-  setPattern = (type: FieldPatternTypes) => {
+  @action
+  setPattern = (type?: FieldPatternTypes) => {
     this.pattern = type
   }
 
+  @action
   setComponent = <C extends JSXComponent, ComponentProps extends object = {}>(
     component?: C,
     props?: ComponentProps
@@ -246,6 +263,7 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
     }
   }
 
+  @action
   setComponentProps = <ComponentProps extends object = {}>(props?: ComponentProps) => {
     if (props) {
       this.componentProps = this.componentProps || {}
@@ -253,6 +271,7 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
     }
   }
 
+  @action
   setDecorator = <D extends JSXComponent, ComponentProps extends object = {}>(
     component?: D,
     props?: ComponentProps
@@ -266,6 +285,7 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
     }
   }
 
+  @action
   setDecoratorProps = <ComponentProps extends object = {}>(props?: ComponentProps) => {
     if (props) {
       this.decoratorProps = this.decoratorProps || {}
@@ -273,26 +293,31 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
     }
   }
 
+  @action
   setData = (data: any) => {
     this.data = data
   }
 
+  @action
   setContent = (content: any) => {
     this.content = content
   }
 
+  @batch
   onInit = () => {
     this.initialized = true
     initFieldUpdate(this as any)
     this.notify(LifeCycleTypes.ON_FIELD_INIT)
   }
 
+  @batch
   onMount = () => {
     this.mounted = true
     this.unmounted = false
     this.notify(LifeCycleTypes.ON_FIELD_MOUNT)
   }
 
+  @batch
   onUnmount = () => {
     this.mounted = false
     this.unmounted = true

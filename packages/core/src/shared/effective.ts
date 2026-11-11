@@ -49,7 +49,10 @@ const FormEffectContext = createEffectContext<Form>()
 
 export const useEffectForm = FormEffectContext.consume
 
-export const runEffects = <Context>(context?: Context, ...args: ((context: Context) => void)[]): LifeCycle[] => {
+export const runEffects = <Context>(
+  context?: Context,
+  ...args: (((context: Context) => void) | undefined)[]
+): LifeCycle[] => {
   GlobalState.lifecycles = []
   GlobalState.context = []
   GlobalState.effectStart = true
@@ -59,7 +62,7 @@ export const runEffects = <Context>(context?: Context, ...args: ((context: Conte
   }
   args.forEach(effects => {
     if (isFn(effects)) {
-      effects(context)
+      effects(context as Context)
     }
   })
   GlobalState.context = []

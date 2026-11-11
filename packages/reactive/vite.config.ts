@@ -4,7 +4,7 @@ import dts from 'vite-plugin-dts'
 
 export default defineConfig({
   plugins: [
-    dts(),
+    dts({ tsconfigPath: './tsconfig.build.json', entryRoot: 'src', bundleTypes: true }),
     withFilter(
       swc({
         swc: {

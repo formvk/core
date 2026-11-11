@@ -83,8 +83,8 @@ export const buildFieldPath = (field: GeneralField) => {
 export const buildDataPath = (fields: Record<string, GeneralField>, pattern: FormPath) => {
   let prevArray = false
   const segments = pattern.segments
-  const path = segments.reduce((path: string[], key: string, index: number) => {
-    const currentPath = path.concat(key)
+  const path = segments.reduce<string[]>((path, key, index) => {
+    const currentPath = path.concat(String(key))
     const currentAddress = segments.slice(0, index + 1)
     const current = fields[currentAddress.join('.')]
     if (prevArray) {
@@ -263,10 +263,10 @@ export const validateToFeedbacks = async (field: Field, triggerType: ValidatorTr
   })
 
   batch(() => {
-    each(results, (messages, type: FieldFeedbackTypes) => {
+    each(results, (messages, type) => {
       field.setFeedback({
         triggerType,
-        type,
+        type: type as FieldFeedbackTypes,
         code: pascalCase(`validate-${type}`),
         messages: messages,
       })
@@ -285,7 +285,7 @@ export const setValidatorRule = (field: Field, name: string, value: any) => {
   if (hasRule) {
     field.validator = validators.map((desc: any) => {
       if (isPlainObj(desc) && hasOwnProperty.call(desc, name)) {
-        desc[name] = value
+        ;(desc as Record<string, any>)[name] = value
         return desc
       }
       return desc
@@ -502,7 +502,7 @@ export const initFieldUpdate = batch.scope.bound((field: GeneralField) => {
     const { pattern, callbacks } = updates[index]
     let removed = false
     if (field.match(pattern)) {
-      callbacks.forEach(callback => {
+      callbacks.forEach((callback: any) => {
         field.setState(callback)
       })
       if (!pattern.isWildMatchPattern && !pattern.isMatchPattern) {
@@ -562,13 +562,29 @@ export const deserialize = (model: any, setter: any) => {
   return model
 }
 
+/** 收集实例自身属性与原型链上的访问器属性（装饰器生成的 accessor 不在实例自身上） */
+const getSerializableKeys = (model: any) => {
+  const keys = Object.keys(model)
+  for (
+    let proto = Object.getPrototypeOf(model);
+    proto && proto !== Object.prototype;
+    proto = Object.getPrototypeOf(proto)
+  ) {
+    for (const key of Object.getOwnPropertyNames(proto)) {
+      if (keys.indexOf(key) > -1) continue
+      const descriptor = Object.getOwnPropertyDescriptor(proto, key)
+      if (descriptor && (descriptor.get || descriptor.set)) keys.push(key)
+    }
+  }
+  return keys
+}
+
 export const serialize = (model: any, getter?: any) => {
   if (isFn(getter)) {
     return getter(model)
   } else {
-    const results = {}
-    for (const key in model) {
-      if (!hasOwnProperty.call(model, key)) continue
+    const results: Record<string, any> = {}
+    for (const key of getSerializableKeys(model)) {
       if (ReservedProperties[key]) continue
       if (key === 'address' || key === 'path') {
         results[key] = model[key].toString()
@@ -636,10 +652,10 @@ export const createBatchStateGetter = (form: Form) => {
 }
 
 export const triggerFormInitialValuesChange = (form: Form, change: DataChange) => {
-  if (Array.isArray(change.object) && change.key === 'length') return
-  if (contains(form.initialValues, change.object) || form.initialValues === change.value) {
+  if (Array.isArray(change.target) && change.key === 'length') return
+  if (contains(form.initialValues, change.target) || form.initialValues === change.value) {
     if (change.type === 'add' || change.type === 'set') {
-      patchFormValues(form, change.path.slice(1), change.value)
+      patchFormValues(form, change.path.slice(1) as (string | number)[], change.value)
     }
     if (form.initialized) {
       form.notify(LifeCycleTypes.ON_FORM_INITIAL_VALUES_CHANGE)
@@ -648,8 +664,8 @@ export const triggerFormInitialValuesChange = (form: Form, change: DataChange) =
 }
 
 export const triggerFormValuesChange = (form: Form, change: DataChange) => {
-  if (Array.isArray(change.object) && change.key === 'length') return
-  if ((contains(form.values, change.object) || form.values === change.value) && form.initialized) {
+  if (Array.isArray(change.target) && change.key === 'length') return
+  if ((contains(form.values, change.target) || form.values === change.value) && form.initialized) {
     form.notify(LifeCycleTypes.ON_FORM_VALUES_CHANGE)
   }
 }
@@ -770,7 +786,7 @@ export const batchValidate = async (
 }
 
 export const batchReset = async (target: Form | Field, pattern: FormPathPattern, options?: IFieldResetOptions) => {
-  const tasks = []
+  const tasks: Promise<any>[] = []
   target.query(pattern).forEach(field => {
     if (!isVoidField(field)) {
       tasks.push(resetSelf(field, options, target === field))
@@ -804,7 +820,7 @@ export const validateSelf = batch.bound(async (target: Field, triggerType?: Vali
       (types, desc) => (types.indexOf(desc.triggerType) > -1 ? types : types.concat(desc.triggerType)),
       []
     )
-    const results = {}
+    const results: Record<string, any> = {}
     for (let i = 0; i < allTriggerTypes.length; i++) {
       const payload = await validateToFeedbacks(target, allTriggerTypes[i])
       each(payload, (result, key) => {

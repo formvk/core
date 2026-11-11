@@ -40,15 +40,15 @@ import type {
 
 const createTreeBySegments = (segments: Segments = [], afterNode?: Node) => {
   const segLen = segments.length
-  const build = (start = 0) => {
-    const after = start < segLen - 1 ? build(start + 1) : afterNode
-    const dot = after && {
+  const build = (start = 0): Node => {
+    const after: Node | undefined = start < segLen - 1 ? build(start + 1) : afterNode
+    const dot: Node | undefined = after && {
       type: 'DotOperator',
       after,
     }
     return {
       type: 'Identifier',
-      value: segments[start],
+      value: segments[start] as string,
       after: dot,
     }
   }
@@ -83,7 +83,7 @@ export class Parser extends Tokenizer {
 
   public relative?: string | number
 
-  public data: {
+  public data!: {
     segments: Segments
     tree?: Node
   }

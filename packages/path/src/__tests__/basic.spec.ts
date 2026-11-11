@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
 
-import { Path } from '../src'
+import { Path } from '../'
 
 const { isPathPattern, match } = Path
 

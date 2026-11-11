@@ -3,7 +3,9 @@ import dts from 'vite-plugin-dts'
 export default defineConfig({
   plugins: [
     dts({
-      rollupTypes: true,
+      tsconfigPath: './tsconfig.build.json',
+      entryRoot: 'src',
+      bundleTypes: true,
     }),
   ],
   build: {

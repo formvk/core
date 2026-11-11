@@ -3,16 +3,15 @@
   "version": "2.3.1",
   "gitHead": "ac79c196ae9324889aca5e0501146f9b37b04283",
   "license": "MIT",
-  "main": "lib",
-  "module": "esm",
-  "unpkg": "dist/formvk.validator.umd.production.js",
-  "jsdelivr": "dist/formvk.validator.umd.production.js",
-  "jsnext:main": "esm",
-  "umd:main": "dist/formvk.validator.umd.production.js",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
+    "build": "tsc --noEmit && vite build",
     "test": "vitest"
   },
   "dependencies": {

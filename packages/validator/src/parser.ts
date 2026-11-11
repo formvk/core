@@ -87,7 +87,7 @@ export const parseValidatorRules = (rules: IValidatorRules = {}): ValidatorParse
           }
           return {
             type: 'error',
-            message: undefined,
+            message: undefined as unknown as string,
           }
         } else if (results) {
           if (isValidateResult(results)) {
@@ -104,12 +104,12 @@ export const parseValidatorRules = (rules: IValidatorRules = {}): ValidatorParse
 
         return {
           type: 'error',
-          message: undefined,
+          message: undefined as unknown as string,
         }
       } catch (e) {
         return {
           type: 'error',
-          message: e?.message || e,
+          message: ((e as Error)?.message || e) as string,
         }
       }
     }

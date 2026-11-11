@@ -36,13 +36,13 @@ export const onFormValidateEnd = createFormEffect(LifeCycleTypes.ON_FORM_VALIDAT
 export const onFormGraphChange = createFormEffect(LifeCycleTypes.ON_FORM_GRAPH_CHANGE)
 export const onFormLoading = createFormEffect(LifeCycleTypes.ON_FORM_LOADING)
 export function onFormReact(callback?: (form: Form) => void) {
-  let dispose = null
+  let dispose: (() => void) | undefined
   onFormInit(form => {
     dispose = autorun(() => {
       if (isFn(callback)) callback(form)
     })
   })
   onFormUnmount(() => {
-    dispose()
+    dispose?.()
   })
 }

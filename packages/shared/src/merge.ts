@@ -90,7 +90,7 @@ function propertyIsUnsafe(target: any, key: PropertyKey) {
 
 function mergeObject(target: any, source: any, options: Options) {
   const destination = options.assign ? target || {} : {}
-  if (!options.isMergeableObject(target)) return target
+  if (!options.isMergeableObject?.(target)) return target
   if (!options.assign) {
     getKeys(target).forEach(function (key) {
       destination[key] = cloneUnlessOtherwiseSpecified(target[key], options)
@@ -157,8 +157,8 @@ export const lazyMerge = <T extends object | Function>(target: T, ...args: T[]):
     const isSourceFn = typeof source === 'function'
     if (!isTargetObject && !isTargetFn) return source
     if (!isSourceObject && !isSourceFn) return target
-    const getTarget = () => (isTargetFn ? target() : target)
-    const getSource = () => (isSourceFn ? source() : source)
+    const getTarget = () => (typeof target === 'function' ? (target as Function)() : target)
+    const getSource = () => (typeof source === 'function' ? (source as Function)() : source)
     const set = (_: object, key: PropertyKey, value: any) => {
       const source = getSource()
       const target = getTarget()

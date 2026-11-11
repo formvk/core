@@ -18,3 +18,13 @@ const astralRegex = (opts?: { exact: boolean }) =>
 const stripAnsi = (input: any) => (typeof input === 'string' ? input.replace(ansiRegex(), '') : input)
 
 export const stringLength = (input: string) => stripAnsi(input).replace(astralRegex(), ' ').length
+
+export const lowerCase = (input: string) => input.toLowerCase()
+
+/** 'validate-error' -> 'ValidateError' */
+export const pascalCase = (input: string) =>
+  input
+    .split(/[-_\s]+/)
+    .filter(Boolean)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join('')

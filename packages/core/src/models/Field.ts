@@ -1,3 +1,4 @@
+import { action, batch, observable } from '@formvk/reactive'
 import type { FormPathPattern } from '@formvk/shared'
 import { isArr, isEmpty, isValid, toArr } from '@formvk/shared'
 import type { ValidatorTriggerType } from '@formvk/validator'
@@ -57,18 +58,18 @@ export class Field<
 
   props: IFieldProps<Decorator, Component, TextType, ValueType>
 
-  loading?: boolean
-  validating?: boolean
-  submitting?: boolean
-  active: boolean
-  visited: boolean
-  selfModified: boolean
-  modified: boolean
-  inputValue: ValueType
-  inputValues: any[]
-  dataSource?: FieldDataSource
-  validator?: FieldValidator
-  feedbacks: IFieldFeedback[]
+  @observable.ref accessor loading: boolean | undefined = false
+  @observable.ref accessor validating: boolean | undefined = false
+  @observable.ref accessor submitting: boolean | undefined = false
+  @observable.ref accessor active = false
+  @observable.ref accessor visited = false
+  @observable.ref accessor selfModified = false
+  @observable.ref accessor modified = false
+  @observable.ref accessor inputValue: ValueType = undefined as any
+  @observable.ref accessor inputValues: any[] = []
+  @observable.ref accessor dataSource: FieldDataSource | undefined = undefined
+  @observable.shallow accessor validator: FieldValidator | undefined = undefined
+  @observable.ref accessor feedbacks: IFieldFeedback[] = []
   caches: IFieldCaches = {}
   requests: IFieldRequests = {}
   constructor(
@@ -183,65 +184,79 @@ export class Field<
     createReactions(this)
   }
 
+  @observable.computed
   get selfErrors(): FeedbackMessage {
     return queryFeedbackMessages(this, {
       type: 'error',
     })
   }
 
+  @observable.computed
   get errors(): IFormFeedback[] {
     return this.form.errors.filter(createChildrenFeedbackFilter(this))
   }
 
+  @observable.computed
   get selfWarnings(): FeedbackMessage {
     return queryFeedbackMessages(this, {
       type: 'warning',
     })
   }
 
+  @observable.computed
   get warnings(): IFormFeedback[] {
     return this.form.warnings.filter(createChildrenFeedbackFilter(this))
   }
 
+  @observable.computed
   get selfSuccesses(): FeedbackMessage {
     return queryFeedbackMessages(this, {
       type: 'success',
     })
   }
 
+  @observable.computed
   get successes(): IFormFeedback[] {
     return this.form.successes.filter(createChildrenFeedbackFilter(this))
   }
 
+  @observable.computed
   get selfValid() {
     return !this.selfErrors.length
   }
 
+  @observable.computed
   get valid() {
     return !this.errors.length
   }
 
+  @observable.computed
   get selfInvalid() {
     return !this.selfValid
   }
 
+  @observable.computed
   get invalid() {
     return !this.valid
   }
 
+  @observable.computed
   get value(): ValueType {
     return this.form.getValuesIn(this.path)
   }
 
+  @observable.computed
   get initialValue(): ValueType {
     return this.form.getInitialValuesIn(this.path)
   }
 
+  @observable.computed
   get required() {
     const validators = isArr(this.validator) ? this.validator : parseValidatorDescriptions(this.validator)
-    return validators.some(desc => !!desc?.['required'])
+    return validators.some(desc => !!(desc as Record<string, any>)?.['required'])
   }
 
+  @observable.computed
   get validateStatus() {
     if (this.validating) return 'validating'
     if (this.selfInvalid) return 'error'
@@ -286,38 +301,47 @@ export class Field<
     })
   }
 
+  @action
   setDataSource = (dataSource?: FieldDataSource) => {
     this.dataSource = dataSource
   }
 
+  @action
   setFeedback = (feedback?: IFieldFeedback) => {
     updateFeedback(this, feedback)
   }
 
+  @action
   setSelfErrors = (messages?: FeedbackMessage) => {
     this.selfErrors = messages
   }
 
+  @action
   setSelfWarnings = (messages?: FeedbackMessage) => {
     this.selfWarnings = messages
   }
 
+  @action
   setSelfSuccesses = (messages?: FeedbackMessage) => {
     this.selfSuccesses = messages
   }
 
+  @action
   setValidator = (validator?: FieldValidator) => {
     this.validator = validator
   }
 
+  @action
   setValidatorRule = (name: string, value: any) => {
     setValidatorRule(this, name, value)
   }
 
+  @action
   setRequired = (required?: boolean) => {
     this.required = required
   }
 
+  @action
   setValue = (value?: ValueType) => {
     if (this.destroyed) return
     if (!this.initialized) {
@@ -333,6 +357,7 @@ export class Field<
     this.form.setValuesIn(this.path, value)
   }
 
+  @action
   setInitialValue = (initialValue?: ValueType) => {
     if (this.destroyed) return
     if (!this.initialized) {
@@ -343,14 +368,17 @@ export class Field<
     this.form.setInitialValuesIn(this.path, initialValue)
   }
 
+  @action
   setLoading = (loading?: boolean) => {
     setLoading(this, loading)
   }
 
+  @action
   setValidating = (validating?: boolean) => {
     setValidating(this, validating)
   }
 
+  @action
   setSubmitting = (submitting?: boolean) => {
     setSubmitting(this, submitting)
   }
@@ -359,6 +387,7 @@ export class Field<
 
   getState: IModelGetter<IFieldState> = createStateGetter(this)
 
+  @batch
   onInput = async (...args: any[]) => {
     const isHTMLInputEventFromSelf = (args: any[]) =>
       isHTMLInputEvent(args[0]) && 'currentTarget' in args[0] ? args[0]?.target === args[0]?.currentTarget : true
@@ -384,6 +413,7 @@ export class Field<
     this.caches.inputting = false
   }
 
+  @batch
   onFocus = async (...args: any[]) => {
     if (args[0]?.target) {
       if (!isHTMLInputEvent(args[0], false)) return
@@ -393,6 +423,7 @@ export class Field<
     await validateSelf(this, 'onFocus')
   }
 
+  @batch
   onBlur = async (...args: any[]) => {
     if (args[0]?.target) {
       if (!isHTMLInputEvent(args[0], false)) return
@@ -401,6 +432,7 @@ export class Field<
     await validateSelf(this, 'onBlur')
   }
 
+  @action
   validate = (triggerType?: ValidatorTriggerType) => {
     return batchValidate(this, `${this.address}.**`, triggerType)
   }
@@ -409,6 +441,7 @@ export class Field<
     return batchSubmit(this, onSubmit)
   }
 
+  @action
   reset = (options?: IFieldResetOptions) => {
     return batchReset(this, `${this.address}.**`, options)
   }
@@ -417,5 +450,6 @@ export class Field<
     return queryFeedbacks(this, search)
   }
 
+  @action
   modify = () => modifySelf(this)
 }

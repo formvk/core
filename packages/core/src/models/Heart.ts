@@ -7,23 +7,23 @@ export class Heart<Payload = any, Context = any> extends Subscribable {
 
   outerLifecycles: Map<any, LifeCycle<Payload>[]> = new Map()
 
-  context: Context
+  context!: Context
 
   constructor({ lifecycles, context }: IHeartProps<Context> = {}) {
     super()
     this.lifecycles = this.buildLifeCycles(lifecycles || [])
-    this.context = context
+    this.context = context as Context
   }
 
-  buildLifeCycles = (lifecycles: LifeCycle[]) => {
-    return lifecycles.reduce((buf, item) => {
+  buildLifeCycles = (lifecycles: any[] = []): LifeCycle<Payload>[] => {
+    return lifecycles.reduce<LifeCycle<Payload>[]>((buf, item) => {
       if (item instanceof LifeCycle) {
         return buf.concat(item)
       } else {
         if (isArr(item)) {
           return this.buildLifeCycles(item)
         } else if (typeof item === 'object') {
-          this.context = item
+          this.context = item as Context
           return buf
         }
         return buf

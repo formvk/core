@@ -8,13 +8,27 @@ import {
 import { Matcher } from './matcher'
 import { Parser } from './parser'
 import { isArr, isEqual, isFn, isNum, isObj, isRegExp, isStr } from './shared'
-import type { Node, Pattern, Segments } from './types'
+import type { MatcherFunction, Node, Pattern, Segments } from './types'
 
 const pathCache = new Map()
 
 const isMatcher = Symbol('PATH_MATCHER')
 
+const isMatcherFunction = (val: any): val is MatcherFunction =>
+  isFn(val) && (val as { [isMatcher]?: boolean })[isMatcher] === true
+
 const isValid = (val: any) => val !== undefined && val !== null
+
+interface ParsedPattern {
+  entire: string | RegExp
+  segments: Segments
+  isRegExp: boolean
+  isMatchPattern: boolean
+  isWildMatchPattern: boolean
+  haveRelativePattern: boolean
+  haveExcludePattern: boolean
+  tree?: Node
+}
 
 const isSimplePath = (val: string) =>
   val.indexOf('*') === -1 &&
@@ -131,7 +145,7 @@ const existIn = (segments: Segments, source: any, start: number | Path) => {
   }
 }
 
-const parse = (pattern: Pattern, base?: Pattern) => {
+const parse = (pattern: Pattern, base?: Pattern): ParsedPattern => {
   if (pattern instanceof Path) {
     return {
       entire: pattern.entire,
@@ -150,6 +164,7 @@ const parse = (pattern: Pattern, base?: Pattern) => {
         segments: [],
         isRegExp: false,
         isWildMatchPattern: false,
+        haveRelativePattern: false,
         haveExcludePattern: false,
         isMatchPattern: false,
       }
@@ -159,6 +174,7 @@ const parse = (pattern: Pattern, base?: Pattern) => {
         entire: pattern,
         segments: pattern.split('.'),
         isRegExp: false,
+        haveRelativePattern: false,
         isWildMatchPattern: false,
         haveExcludePattern: false,
         isMatchPattern: false,
@@ -190,12 +206,12 @@ const parse = (pattern: Pattern, base?: Pattern) => {
         tree,
       }
     }
-  } else if (isFn(pattern) && pattern[isMatcher]) {
-    return parse(pattern['path'])
+  } else if (isMatcherFunction(pattern)) {
+    return parse(pattern.path)
   } else if (isArr(pattern)) {
     return {
       entire: pattern.join('.'),
-      segments: pattern.reduce((buf, key) => {
+      segments: pattern.reduce<Segments>((buf, key) => {
         return buf.concat(parseString(key))
       }, []),
       isRegExp: false,
@@ -227,7 +243,7 @@ const parse = (pattern: Pattern, base?: Pattern) => {
   }
 }
 
-const parseString = (source: any) => {
+const parseString = (source: any): any => {
   if (isStr(source)) {
     source = source.replace(/\s*/g, '')
     try {
@@ -250,7 +266,7 @@ export class Path {
   public isRegExp: boolean
   public haveRelativePattern: boolean
   public haveExcludePattern: boolean
-  public matchScore: number
+  public matchScore = 0
   public tree: Node
   private matchCache: any
   private includesCache: any
@@ -417,7 +433,7 @@ export class Path {
       if (this.isMatchPattern) {
         if (this.isRegExp) {
           try {
-            return this['entire']?.['test']?.(path.entire)
+            return (this.entire as RegExp).test(String(path.entire))
           } finally {
             ;(this.entire as RegExp).lastIndex = 0
           }
@@ -487,16 +503,16 @@ export class Path {
 
   static match(pattern: Pattern) {
     const path = Path.parse(pattern)
-    const matcher = target => {
+    const matcher = ((target: Pattern) => {
       return path.match(target)
-    }
+    }) as MatcherFunction & { [isMatcher]: true }
     matcher[isMatcher] = true
     matcher.path = path
     return matcher
   }
 
   static isPathPattern(target: any): target is Pattern {
-    return !!(isStr(target) || isArr(target) || isRegExp(target) || (isFn(target) && target[isMatcher]))
+    return !!(isStr(target) || isArr(target) || isRegExp(target) || isMatcherFunction(target))
   }
 
   static transform<T>(pattern: Pattern, regexp: string | RegExp, callback: (...args: string[]) => T): any {
@@ -512,8 +528,8 @@ export class Path {
         pathCache.set(path.entire, path)
         return path
       }
-    } else if (path && path[isMatcher]) {
-      return Path.parse(path['path'])
+    } else if (isMatcherFunction(path)) {
+      return Path.parse(path.path)
     } else {
       const key_ = base ? Path.parse(base) : ''
       const key = `${path}:${key_}`

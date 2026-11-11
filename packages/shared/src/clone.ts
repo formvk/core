@@ -4,23 +4,24 @@ export const shallowClone = (values: any) => {
   if (Array.isArray(values)) {
     return values.slice(0)
   } else if (isPlainObj(values)) {
-    if ('$$typeof' in values && '_owner' in values) {
+    const plain = values as Record<string, any>
+    if ('$$typeof' in plain && '_owner' in plain) {
       return values
     }
-    if (values['_isAMomentObject']) {
+    if (plain['_isAMomentObject']) {
       return values
     }
-    if (values['_isJSONSchemaObject']) {
+    if (plain['_isJSONSchemaObject']) {
       return values
     }
-    if (isFn(values['toJS'])) {
+    if (isFn(plain['toJS'])) {
       return values
     }
-    if (isFn(values['toJSON'])) {
+    if (isFn(plain['toJSON'])) {
       return values
     }
     return {
-      ...values,
+      ...plain,
     }
   } else if (typeof values === 'object') {
     return new values.constructor(values)
@@ -28,36 +29,37 @@ export const shallowClone = (values: any) => {
   return values
 }
 
-export const clone = (values: any) => {
+export const clone = <T>(values: T): T => {
   if (Array.isArray(values)) {
-    const res = []
+    const res: any[] = []
     values.forEach(item => {
       res.push(clone(item))
     })
-    return res
+    return res as T
   } else if (isPlainObj(values)) {
-    if ('$$typeof' in values && '_owner' in values) {
+    const plain = values as Record<string, any>
+    if ('$$typeof' in plain && '_owner' in plain) {
       return values
     }
-    if (values['_isAMomentObject']) {
+    if (plain['_isAMomentObject']) {
       return values
     }
-    if (values['_isJSONSchemaObject']) {
+    if (plain['_isJSONSchemaObject']) {
       return values
     }
-    if (isFn(values['toJS'])) {
-      return values['toJS']()
+    if (isFn(plain['toJS'])) {
+      return plain['toJS']()
     }
-    if (isFn(values['toJSON'])) {
-      return values['toJSON']()
+    if (isFn(plain['toJSON'])) {
+      return plain['toJSON']()
     }
-    const res = {}
-    for (const key in values) {
-      if (Object.hasOwnProperty.call(values, key)) {
-        res[key] = clone(values[key])
+    const res: any = {}
+    for (const key in plain) {
+      if (Object.hasOwnProperty.call(plain, key)) {
+        res[key] = clone(plain[key])
       }
     }
-    return res
+    return res as T
   } else {
     return values
   }

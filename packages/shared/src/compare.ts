@@ -118,14 +118,15 @@ export const isEqual = function exportedEqual(a: any, b: any) {
   try {
     return equal(a, b)
   } catch (error) {
+    const err = error as { message?: string; number?: number; name?: string }
     /* istanbul ignore next */
-    if ((error.message && error.message.match(/stack|recursion/i)) || error.number === -2146828260) {
+    if ((err.message && err.message.match(/stack|recursion/i)) || err.number === -2146828260) {
       // warn on circular references, don't crash
       // browsers give this different errors name and messages:
       // chrome/safari: "RangeError", "Maximum call stack size exceeded"
       // firefox: "InternalError", too much recursion"
       // edge: "Error", "Out of stack space"
-      console.warn('Warning: react-fast-compare does not handle circular references.', error.name, error.message)
+      console.warn('Warning: react-fast-compare does not handle circular references.', err.name, err.message)
       return false
     }
     // some other error. we should definitely know about these

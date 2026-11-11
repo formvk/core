@@ -34,10 +34,11 @@ export function each(val: any, iterator: any, revert?: boolean): void {
       }
     }
   } else if (isObj(val)) {
+    const obj = val as Record<string, any>
     let key: string
-    for (key in val) {
-      if (Object.hasOwnProperty.call(val, key)) {
-        if (iterator(val[key], key) === false) {
+    for (key in obj) {
+      if (Object.hasOwnProperty.call(obj, key)) {
+        if (iterator(obj[key], key) === false) {
           return
         }
       }
@@ -65,7 +66,7 @@ export function map(val: any, iterator: any, revert?: any): any {
       if (isArr(res)) {
         ;(res as any).push(value)
       } else {
-        res[key] = value
+        ;(res as Record<string, any>)[key] = value
       }
     },
     revert

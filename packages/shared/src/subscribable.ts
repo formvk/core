@@ -4,15 +4,15 @@ import { isFn } from './checkers'
 
 export class Subscribable<Payload = any> {
   subscribers: {
-    index?: number
+    index: number
     [key: number]: Subscriber<Payload>
   } = {
     index: 0,
   }
 
-  subscription: Subscription<Payload>
+  subscription!: Subscription<Payload>
 
-  subscribe = (callback?: Subscriber<Payload>): number => {
+  subscribe = (callback?: Subscriber<Payload>): number | undefined => {
     if (isFn(callback)) {
       const index: number = this.subscribers.index + 1
       this.subscribers[index] = callback
@@ -22,16 +22,16 @@ export class Subscribable<Payload = any> {
   }
 
   unsubscribe = (index?: number) => {
-    if (this.subscribers[index]) {
-      delete this.subscribers[index]
-    } else if (!index) {
+    if (!index && typeof index !== 'number') {
       this.subscribers = {
         index: 0,
       }
+    } else if (this.subscribers[index]) {
+      delete this.subscribers[index]
     }
   }
 
-  notify = (payload?: Payload, silent?: boolean) => {
+  notify = (payload: Payload, silent?: boolean) => {
     if (this.subscription) {
       if (this.subscription && isFn(this.subscription.notify)) {
         if (this.subscription.notify.call(this, payload) === false) {

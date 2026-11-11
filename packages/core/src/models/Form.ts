@@ -1,3 +1,4 @@
+import { action, batch, observable } from '@formvk/reactive'
 import type { FormPathPattern } from '@formvk/shared'
 import { FormPath, globalThisPolyfill, isPlainObj, isValid, merge, uid } from '@formvk/shared'
 
@@ -50,24 +51,24 @@ const DEV_TOOLS_HOOK = '__FORMILY_DEV_TOOLS_HOOK__'
 
 export class Form<ValueType extends object = any> {
   displayName = 'Form'
-  id: string
-  initialized: boolean
-  validating: boolean
-  submitting: boolean
-  loading: boolean
-  modified: boolean
-  pattern: FormPatternTypes
-  display: FormDisplayTypes
-  values: ValueType
-  initialValues: ValueType
-  mounted: boolean
-  unmounted: boolean
-  props: IFormProps<ValueType>
-  heart: Heart
-  graph: Graph
-  fields: IFormFields = {}
+  id = ''
+  @observable.ref accessor initialized = false
+  @observable.ref accessor validating: boolean | undefined = false
+  @observable.ref accessor submitting: boolean | undefined = false
+  @observable.ref accessor loading: boolean | undefined = false
+  @observable.ref accessor modified = false
+  @observable.ref accessor pattern: FormPatternTypes = 'editable'
+  @observable.ref accessor display: FormDisplayTypes = 'visible'
+  @observable accessor values: ValueType = {} as ValueType
+  @observable accessor initialValues: ValueType = {} as ValueType
+  @observable.ref accessor mounted = false
+  @observable.ref accessor unmounted = false
+  props: IFormProps<ValueType> = {}
+  heart!: Heart
+  graph!: Graph
+  @observable.shallow accessor fields: IFormFields = {}
   requests: IFormRequests = {}
-  indexes: Record<string, string> = {}
+  @observable.shallow accessor indexes: Record<string, string> = {}
   disposers: (() => void)[] = []
 
   constructor(props: IFormProps<ValueType> = {}) {
@@ -121,26 +122,31 @@ export class Form<ValueType extends object = any> {
       ()
   }
 
+  @observable.computed
   get valid() {
     return !this.invalid
   }
 
+  @observable.computed
   get invalid() {
     return this.errors.length > 0
   }
 
+  @observable.computed
   get errors() {
     return this.queryFeedbacks({
       type: 'error',
     })
   }
 
+  @observable.computed
   get warnings() {
     return this.queryFeedbacks({
       type: 'warning',
     })
   }
 
+  @observable.computed
   get successes() {
     return this.queryFeedbacks({
       type: 'success',
@@ -151,10 +157,12 @@ export class Form<ValueType extends object = any> {
     return runEffects(this, this.props.effects)
   }
 
+  @observable.computed
   get hidden() {
     return this.display === 'hidden'
   }
 
+  @observable.computed
   get visible() {
     return this.display === 'visible'
   }
@@ -177,6 +185,7 @@ export class Form<ValueType extends object = any> {
     }
   }
 
+  @observable.computed
   get editable() {
     return this.pattern === 'editable'
   }
@@ -190,6 +199,7 @@ export class Form<ValueType extends object = any> {
     }
   }
 
+  @observable.computed
   get readOnly() {
     return this.pattern === 'readOnly'
   }
@@ -203,6 +213,7 @@ export class Form<ValueType extends object = any> {
     }
   }
 
+  @observable.computed
   get disabled() {
     return this.pattern === 'disabled'
   }
@@ -216,6 +227,7 @@ export class Form<ValueType extends object = any> {
     }
   }
 
+  @observable.computed
   get readPretty() {
     return this.pattern === 'readPretty'
   }
@@ -309,6 +321,7 @@ export class Form<ValueType extends object = any> {
 
   /** 状态操作模型 **/
 
+  @action
   setValues = (values: any, strategy: IFormMergeStrategy = 'merge') => {
     if (!isPlainObj(values)) return
     if (strategy === 'merge' || strategy === 'deepMerge') {
@@ -324,6 +337,7 @@ export class Form<ValueType extends object = any> {
     }
   }
 
+  @action
   setInitialValues = (initialValues: any, strategy: IFormMergeStrategy = 'merge') => {
     if (!isPlainObj(initialValues)) return
     if (strategy === 'merge' || strategy === 'deepMerge') {
@@ -339,10 +353,12 @@ export class Form<ValueType extends object = any> {
     }
   }
 
+  @action
   setValuesIn = (pattern: FormPathPattern, value: any) => {
     FormPath.setIn(this.values, pattern, value)
   }
 
+  @action
   deleteValuesIn = (pattern: FormPathPattern) => {
     FormPath.deleteIn(this.values, pattern)
   }
@@ -355,10 +371,12 @@ export class Form<ValueType extends object = any> {
     return FormPath.getIn(this.values, pattern)
   }
 
+  @action
   setInitialValuesIn = (pattern: FormPathPattern, initialValue: any) => {
     FormPath.setIn(this.initialValues, pattern, initialValue)
   }
 
+  @action
   deleteInitialValuesIn = (pattern: FormPathPattern) => {
     FormPath.deleteIn(this.initialValues, pattern)
   }
@@ -371,22 +389,27 @@ export class Form<ValueType extends object = any> {
     return FormPath.getIn(this.initialValues, pattern)
   }
 
+  @action
   setLoading = (loading: boolean) => {
     setLoading(this, loading)
   }
 
+  @action
   setSubmitting = (submitting: boolean) => {
     setSubmitting(this, submitting)
   }
 
+  @action
   setValidating = (validating: boolean) => {
     setValidating(this, validating)
   }
 
+  @action
   setDisplay = (display: FormDisplayTypes) => {
     this.display = display
   }
 
+  @action
   setPattern = (pattern: FormPatternTypes) => {
     this.pattern = pattern
   }
@@ -447,7 +470,7 @@ export class Form<ValueType extends object = any> {
   }
 
   queryFeedbacks = (search: ISearchFeedback): IFormFeedback[] => {
-    return this.query(search.address || search.path || '*').reduce((messages, field) => {
+    return this.query(search.address || search.path || '*').reduce<IFormFeedback[]>((messages, field) => {
       if (isVoidField(field)) return messages
       return messages.concat(
         field
@@ -457,7 +480,7 @@ export class Form<ValueType extends object = any> {
             address: field.address.toString(),
             path: field.path.toString(),
           }))
-          .filter(feedback => feedback.messages.length > 0)
+          .filter(feedback => feedback.messages && feedback.messages.length > 0)
       )
     }, [])
   }
@@ -476,19 +499,23 @@ export class Form<ValueType extends object = any> {
 
   /**事件钩子**/
 
+  @batch
   onInit = () => {
     this.initialized = true
     this.notify(LifeCycleTypes.ON_FORM_INIT)
   }
 
+  @batch
   onMount = () => {
     this.mounted = true
     this.notify(LifeCycleTypes.ON_FORM_MOUNT)
-    if (globalThisPolyfill[DEV_TOOLS_HOOK] && !this.props.designable) {
-      globalThisPolyfill[DEV_TOOLS_HOOK].inject(this.id, this)
+    const devTools = (globalThisPolyfill as any)[DEV_TOOLS_HOOK]
+    if (devTools && !this.props.designable) {
+      devTools.inject(this.id, this)
     }
   }
 
+  @batch
   onUnmount = () => {
     this.notify(LifeCycleTypes.ON_FORM_UNMOUNT)
     this.query('*').forEach(field => field.destroy(false))
@@ -496,11 +523,13 @@ export class Form<ValueType extends object = any> {
     this.unmounted = true
     this.indexes = {}
     this.heart.clear()
-    if (globalThisPolyfill[DEV_TOOLS_HOOK] && !this.props.designable) {
-      globalThisPolyfill[DEV_TOOLS_HOOK].unmount(this.id)
+    const devTools = (globalThisPolyfill as any)[DEV_TOOLS_HOOK]
+    if (devTools && !this.props.designable) {
+      devTools.unmount(this.id)
     }
   }
 
+  @action
   setState: IModelSetter<IFormState<ValueType>> = createStateSetter(this)
 
   getState: IModelGetter<IFormState<ValueType>> = createStateGetter(this)
@@ -527,14 +556,17 @@ export class Form<ValueType extends object = any> {
     })
   }
 
+  @action
   validate = (pattern: FormPathPattern = '*') => {
     return batchValidate(this, pattern)
   }
 
+  @action
   submit = <T>(onSubmit?: (values: ValueType) => Promise<T> | void): Promise<T> => {
     return batchSubmit(this, onSubmit)
   }
 
+  @action
   reset = (pattern: FormPathPattern = '*', options?: IFieldResetOptions) => {
     return batchReset(this, pattern, options)
   }

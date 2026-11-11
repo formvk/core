@@ -1,12 +1,12 @@
 {
-  "name": "@formvk/core",
+  "name": "@formvk/path",
   "version": "1.0.0",
-  "description": "Formvk Core",
+  "description": "Formvk Path",
   "keywords": [
-    "core",
     "form",
     "formvk",
-    "formvk-core"
+    "formvk-path",
+    "path"
   ],
   "license": "MIT",
   "author": "yiyunwan",
@@ -15,7 +15,7 @@
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "vite build",
+    "build": "tsc --noEmit && vite build",
     "test": "vitest"
   },
   "devDependencies": {}

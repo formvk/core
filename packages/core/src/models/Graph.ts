@@ -12,7 +12,7 @@ export class Graph {
   }
 
   getGraph = (): IFormGraph => {
-    const graph = {}
+    const graph: Record<string, any> = {}
     graph[''] = this.form.getState()
     each(this.form.fields, (field: any, identifier) => {
       graph[identifier] = field.getState()

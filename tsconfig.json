@@ -14,9 +14,8 @@
     "declaration": true,
     "noImplicitThis": true,
     "strictNullChecks": true,
-    "baseUrl": ".",
     "paths": {
-      "@formvk/*": ["packages/*/src"]
+      "@formvk/*": ["./packages/*/src"]
     },
     "resolveJsonModule": true
   }

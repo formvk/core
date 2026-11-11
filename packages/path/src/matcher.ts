@@ -29,13 +29,13 @@ export class Matcher {
 
   private stack: Node[]
 
-  private record: IRecord
+  private record?: IRecord
 
   private excluding: boolean
 
   private wildcards: WildcardOperatorNode[]
 
-  private path: Segments
+  private path: Segments = []
 
   constructor(tree: Node, record?: any) {
     this.tree = tree
@@ -45,7 +45,7 @@ export class Matcher {
     this.record = record
   }
 
-  next(node: Node, pos: number) {
+  next(node: Node, pos: number): boolean {
     //  const isOverToken = pos > this.path.length
     if (node.after) {
       // if (isOverToken) {
@@ -77,7 +77,7 @@ export class Matcher {
   }
 
   shot() {
-    if (this.record?.score >= 0) {
+    if (this.record && this.record.score >= 0) {
       this.record.score++
     }
   }
@@ -142,7 +142,7 @@ export class Matcher {
     return this.next(node, pos)
   }
 
-  matchWildcardOperator(node: WildcardOperatorNode, pos: number) {
+  matchWildcardOperator(node: WildcardOperatorNode, pos: number): boolean {
     let matched = false
     if (node.filter) {
       this.stack.push(node)
@@ -159,7 +159,7 @@ export class Matcher {
     if (node.isExclude) {
       excluding = !this.excluding
     }
-    return toArr(node.value)[excluding ? 'every' : 'some'](item => {
+    return toArr(node.value)[excluding ? 'every' : 'some']((item: Node) => {
       this.wildcards = this.stack.slice() as WildcardOperatorNode[]
       this.excluding = excluding
       return this.matchNode(item, pos)
@@ -184,7 +184,7 @@ export class Matcher {
     }
   }
 
-  matchNode(node: Node, pos = 0) {
+  matchNode(node: Node, pos = 0): boolean {
     if (isDotOperator(node)) {
       return this.next(node, pos + 1)
     } else if (isIdentifier(node)) {
@@ -205,14 +205,14 @@ export class Matcher {
     return false
   }
 
-  match(path: Segments) {
+  match(path: Segments): { matched: boolean; record?: IRecord } {
     this.path = path
     return { matched: this.matchNode(this.tree), record: this.record }
   }
 
-  static matchSegments(source: Segments, target: Segments, record?: any) {
+  static matchSegments(source: Segments, target: Segments, record?: any): { matched: boolean; record?: IRecord } {
     if (source.length !== target.length) return { matched: false, record }
-    const match = (pos = 0) => {
+    const match = (pos = 0): boolean => {
       const current = isSegmentEqual(source[pos], target[pos])
       if (record?.score >= 0) {
         record.score++

@@ -81,7 +81,7 @@ export type DestructorRule = {
   path: Array<number | string>
 }
 
-export type MatcherFunction = ((path: Segments) => boolean) & {
+export type MatcherFunction = ((path: Pattern) => boolean) & {
   path: Path
 }
 

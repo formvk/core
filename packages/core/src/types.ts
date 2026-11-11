@@ -1,7 +1,9 @@
-import type { FormPath } from '@formvk/shared'
+import type { FormPath, FormPathPattern } from '@formvk/shared'
 import type { IValidatorRules, Validator, ValidatorTriggerType } from '@formvk/validator'
 
 import type { ArrayField, Field, Form, LifeCycle, ObjectField, Query, VoidField } from './models'
+
+export type { FormPathPattern }
 
 export type NonFunctionPropertyNames<T> = {
   [K in keyof T]: T[K] extends (...args: any) => any ? never : K
@@ -159,16 +161,6 @@ export type FieldFeedbackCodeTypes =
 export type FormPatternTypes = 'editable' | 'readOnly' | 'disabled' | 'readPretty'
 
 export type FormDisplayTypes = 'none' | 'hidden' | 'visible'
-
-export type FormPathPattern =
-  | string
-  | number
-  | Array<string | number>
-  | FormPath
-  | RegExp
-  | (((address: Array<string | number>) => boolean) & {
-      path: FormPath
-    })
 
 type OmitState<P> = Omit<
   P,

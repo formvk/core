@@ -1,4 +1,4 @@
-export const ReservedProperties = {
+export const ReservedProperties: Record<string, boolean> = {
   form: true,
   parent: true,
   props: true,
@@ -14,9 +14,13 @@ export const ReservedProperties = {
   componentProps: true,
   decoratorType: true,
   decoratorProps: true,
+  record: true,
+  records: true,
+  index: true,
+  destroyed: true,
 }
 
-export const ReadOnlyProperties = {
+export const ReadOnlyProperties: Record<string, boolean> = {
   address: true,
   path: true,
   valid: true,
@@ -32,7 +36,7 @@ export const ReadOnlyProperties = {
 const SELF_DISPLAY = 'selfDisplay'
 const SELF_PATTERN = 'selfPattern'
 
-export const MutuallyExclusiveProperties = {
+export const MutuallyExclusiveProperties: Record<string, string> = {
   pattern: SELF_PATTERN,
   editable: SELF_PATTERN,
   readOnly: SELF_PATTERN,
@@ -46,8 +50,8 @@ export const MutuallyExclusiveProperties = {
 export const RESPONSE_REQUEST_DURATION = 100
 
 export const GlobalState = {
-  lifecycles: [],
-  context: [],
+  lifecycles: [] as any[],
+  context: [] as any[],
   effectStart: false,
   effectEnd: false,
   initializing: false,
