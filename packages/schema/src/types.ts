@@ -1,11 +1,11 @@
 import type { FieldValidator, FormPathPattern, GeneralField, IGeneralFieldState } from '@formvk/core'
 
-export type SchemaEnum<Message> = Array<
+export type SchemaEnum = Array<
   | string
   | number
   | boolean
-  | { label?: Message; value?: any; [key: string]: any }
-  | { key?: any; title?: Message; [key: string]: any }
+  | { label?: string; value?: any; [key: string]: any }
+  | { key?: any; title?: string; [key: string]: any }
 >
 
 export type SchemaTypes =
@@ -154,7 +154,7 @@ export interface ISchema extends ISchemaBase {
   readOnly?: boolean
   writeOnly?: boolean
   type?: SchemaTypes
-  enum?: Stringify<SchemaEnum<string>>
+  enum?: Stringify<SchemaEnum>
   const?: any
   multipleOf?: number
   maximum?: number

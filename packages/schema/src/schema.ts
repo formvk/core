@@ -11,53 +11,31 @@ import type {
   SchemaEnum,
   SchemaKey,
   SchemaProperties,
-  SchemaReaction,
+  SchemaReactions,
   SchemaTypes,
   Slot,
 } from './types'
 
-type SchemaNode<
-  Decorator,
-  Component,
-  DecoratorProps,
-  ComponentProps,
-  Pattern extends ISchema['pattern'],
-  Display extends ISchema['display'],
-  Validator extends ISchema['validator'],
-  Message extends ISchema['title'],
-  ReactionField = any,
-> = Schema<Decorator, Component, DecoratorProps, ComponentProps, Pattern, Display, Validator, Message, ReactionField>
-
-export class Schema<
-  Decorator = any,
-  Component = any,
-  DecoratorProps = any,
-  ComponentProps = any,
-  Pattern extends ISchema['pattern'] = ISchema['pattern'],
-  Display extends ISchema['display'] = ISchema['display'],
-  Validator extends ISchema['validator'] = ISchema['validator'],
-  Message extends ISchema['title'] = ISchema['title'],
-  ReactionField = any,
-> implements ISchema {
+export class Schema implements ISchema {
   parent?: Schema
   root?: Schema
   name?: SchemaKey
-  title?: Message
-  description?: Message
+  title?: ISchema['title']
+  description?: ISchema['description']
   default?: any
   readOnly?: boolean
   writeOnly?: boolean
   type?: SchemaTypes
-  enum?: SchemaEnum<Message>
+  enum?: SchemaEnum
   const?: any
   multipleOf?: number
-  maximum?: number
   exclusiveMaximum?: number
-  minimum?: number
+  maximum?: number
   exclusiveMinimum?: number
+  minimum?: number
   maxLength?: number
   minLength?: number
-  pattern?: Pattern
+  pattern?: ISchema['pattern']
   maxItems?: number
   minItems?: number
   uniqueItems?: boolean
@@ -69,60 +47,31 @@ export class Schema<
   $namespace?: string
 
   /** 嵌套 JSON Schema 描述 */
-  definitions?: Record<
-    string,
-    SchemaNode<Decorator, Component, DecoratorProps, ComponentProps, Pattern, Display, Validator, Message>
-  >
-  properties?: Record<
-    string,
-    SchemaNode<Decorator, Component, DecoratorProps, ComponentProps, Pattern, Display, Validator, Message>
-  >
-  items?:
-    | SchemaNode<Decorator, Component, DecoratorProps, ComponentProps, Pattern, Display, Validator, Message>
-    | SchemaNode<Decorator, Component, DecoratorProps, ComponentProps, Pattern, Display, Validator, Message>[]
-  additionalItems?: SchemaNode<
-    Decorator,
-    Component,
-    DecoratorProps,
-    ComponentProps,
-    Pattern,
-    Display,
-    Validator,
-    Message
-  >
-  patternProperties?: Record<
-    string,
-    SchemaNode<Decorator, Component, DecoratorProps, ComponentProps, Pattern, Display, Validator, Message>
-  >
-  additionalProperties?: SchemaNode<
-    Decorator,
-    Component,
-    DecoratorProps,
-    ComponentProps,
-    Pattern,
-    Display,
-    Validator,
-    Message
-  >
+  definitions?: Record<string, Schema>
+  properties?: Record<string, Schema>
+  items?: Schema | Schema[]
+  additionalItems?: Schema
+  patternProperties?: Record<string, Schema>
+  additionalProperties?: Schema
 
   /** 字段值 */
   value?: any
   /** 顺序描述 */
   index?: number
   /** 展示状态 */
-  display?: Display
+  display?: ISchema['display']
   /** 校验器 */
-  validator?: Validator
+  validator?: ISchema['validator']
   /** 装饰器 */
-  decorator?: Decorator
+  decorator?: any
   /** 装饰器属性 */
-  decoratorProps?: DecoratorProps
+  decoratorProps?: any
   /** 组件 */
-  component?: Component
+  component?: any
   /** 组件属性 */
-  componentProps?: ComponentProps
+  componentProps?: any
   /** 组件响应器 */
-  reactions?: SchemaReaction<ReactionField>[]
+  reactions?: SchemaReactions
   /** 内容 */
   content?: any
   data?: any
@@ -223,37 +172,20 @@ export class Schema<
     return FormPath.getIn(this.root, ref.substring(2).split('/'))
   }
 
-  mapProperties = <T>(
-    callback?: (
-      schema: SchemaNode<Decorator, Component, DecoratorProps, ComponentProps, Pattern, Display, Validator, Message>,
-      key: SchemaKey,
-      index: number
-    ) => T
-  ): T[] => {
+  mapProperties = <T>(callback?: (schema: Schema, key: SchemaKey, index: number) => T): T[] => {
     return Schema.getOrderProperties(this).map(({ schema, key }, index) => {
       return callback?.(schema, key, index) as T
     })
   }
 
-  mapPatternProperties = <T>(
-    callback?: (
-      schema: SchemaNode<Decorator, Component, DecoratorProps, ComponentProps, Pattern, Display, Validator, Message>,
-      key: SchemaKey,
-      index: number
-    ) => T
-  ): T[] => {
+  mapPatternProperties = <T>(callback?: (schema: Schema, key: SchemaKey, index: number) => T): T[] => {
     return Schema.getOrderProperties(this, 'patternProperties').map(({ schema, key }, index) => {
       return callback?.(schema, key, index) as T
     })
   }
 
   reduceProperties = <P, R>(
-    callback?: (
-      buffer: P,
-      schema: SchemaNode<Decorator, Component, DecoratorProps, ComponentProps, Pattern, Display, Validator, Message>,
-      key: SchemaKey,
-      index: number
-    ) => R,
+    callback?: (buffer: P, schema: Schema, key: SchemaKey, index: number) => R,
     predicate?: P
   ): R => {
     let results: any = predicate
@@ -264,12 +196,7 @@ export class Schema<
   }
 
   reducePatternProperties = <P, R>(
-    callback?: (
-      buffer: P,
-      schema: SchemaNode<Decorator, Component, DecoratorProps, ComponentProps, Pattern, Display, Validator, Message>,
-      key: SchemaKey,
-      index: number
-    ) => R,
+    callback?: (buffer: P, schema: Schema, key: SchemaKey, index: number) => R,
     predicate?: P
   ): R => {
     let results: any = predicate

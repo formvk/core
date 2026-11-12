@@ -101,5 +101,5 @@ export type Validator<Context = any> = ValidatorDescription<Context> | MultiVali
 export interface IValidatorOptions<Context = any> {
   validateFirst?: boolean
   triggerType?: ValidatorTriggerType
-  context: Context
+  context?: Context
 }
