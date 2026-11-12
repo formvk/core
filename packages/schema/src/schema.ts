@@ -21,10 +21,10 @@ type SchemaNode<
   Component,
   DecoratorProps,
   ComponentProps,
-  Pattern,
-  Display,
-  Validator,
-  Message,
+  Pattern extends ISchema['pattern'],
+  Display extends ISchema['display'],
+  Validator extends ISchema['validator'],
+  Message extends ISchema['title'],
   ReactionField = any,
 > = Schema<Decorator, Component, DecoratorProps, ComponentProps, Pattern, Display, Validator, Message, ReactionField>
 
@@ -33,10 +33,10 @@ export class Schema<
   Component = any,
   DecoratorProps = any,
   ComponentProps = any,
-  Pattern = any,
-  Display = any,
-  Validator = any,
-  Message = any,
+  Pattern extends ISchema['pattern'] = ISchema['pattern'],
+  Display extends ISchema['display'] = ISchema['display'],
+  Validator extends ISchema['validator'] = ISchema['validator'],
+  Message extends ISchema['title'] = ISchema['title'],
   ReactionField = any,
 > implements ISchema {
   parent?: Schema
@@ -63,7 +63,7 @@ export class Schema<
   uniqueItems?: boolean
   maxProperties?: number
   minProperties?: number
-  required?: string[] | boolean | string
+  required?: ISchema['required']
   format?: string
   $ref?: string
   $namespace?: string
@@ -143,33 +143,17 @@ export class Schema<
 
   version = '2.0'
 
-  constructor(
-    json: ISchema<
-      Decorator,
-      Component,
-      DecoratorProps,
-      ComponentProps,
-      Pattern,
-      Display,
-      Validator,
-      Message,
-      ReactionField
-    >,
-    parent?: Schema
-  ) {
+  constructor(json: ISchema, parent?: Schema) {
     if (parent) {
       this.parent = parent
       this.root = parent.root
     } else {
       this.root = this
     }
-    return this.fromJSON(json)
+    return this.fromJSON(json) as this
   }
 
-  addProperty = (
-    key: SchemaKey,
-    schema: ISchema<Decorator, Component, DecoratorProps, ComponentProps, Pattern, Display, Validator, Message>
-  ) => {
+  addProperty = (key: SchemaKey, schema: ISchema) => {
     this.properties = this.properties || {}
     this.properties[key] = new Schema(schema, this)
     this.properties[key].name = key
@@ -182,28 +166,14 @@ export class Schema<
     return schema
   }
 
-  setProperties = (
-    properties: SchemaProperties<
-      Decorator,
-      Component,
-      DecoratorProps,
-      ComponentProps,
-      Pattern,
-      Display,
-      Validator,
-      Message
-    >
-  ) => {
+  setProperties = (properties: SchemaProperties) => {
     for (const key in properties) {
       this.addProperty(key, properties[key])
     }
     return this
   }
 
-  addPatternProperty = (
-    key: SchemaKey,
-    schema: ISchema<Decorator, Component, DecoratorProps, ComponentProps, Pattern, Display, Validator, Message>
-  ) => {
+  addPatternProperty = (key: SchemaKey, schema: ISchema) => {
     if (!schema) return
     this.patternProperties = this.patternProperties || {}
     this.patternProperties[key] = new Schema(schema, this)
@@ -217,18 +187,7 @@ export class Schema<
     return schema
   }
 
-  setPatternProperties = (
-    properties: SchemaProperties<
-      Decorator,
-      Component,
-      DecoratorProps,
-      ComponentProps,
-      Pattern,
-      Display,
-      Validator,
-      Message
-    >
-  ) => {
+  setPatternProperties = (properties: SchemaProperties) => {
     if (!properties) return this
     for (const key in properties) {
       this.addPatternProperty(key, properties[key])
@@ -236,19 +195,13 @@ export class Schema<
     return this
   }
 
-  setAdditionalProperties = (
-    properties: ISchema<Decorator, Component, DecoratorProps, ComponentProps, Pattern, Display, Validator, Message>
-  ) => {
+  setAdditionalProperties = (properties: ISchema) => {
     if (!properties) return
     this.additionalProperties = new Schema(properties)
     return this.additionalProperties
   }
 
-  setItems = (
-    schema:
-      | ISchema<Decorator, Component, DecoratorProps, ComponentProps, Pattern, Display, Validator, Message>
-      | ISchema<Decorator, Component, DecoratorProps, ComponentProps, Pattern, Display, Validator, Message>[]
-  ) => {
+  setItems = (schema: ISchema | ISchema[]) => {
     if (!schema) return
     if (Array.isArray(schema)) {
       this.items = schema.map(item => new Schema(item, this))
@@ -258,9 +211,7 @@ export class Schema<
     return this.items
   }
 
-  setAdditionalItems = (
-    items: ISchema<Decorator, Component, DecoratorProps, ComponentProps, Pattern, Display, Validator, Message>
-  ) => {
+  setAdditionalItems = (items: ISchema) => {
     if (!items) return
     this.additionalItems = new Schema(items, this)
     return this.additionalItems
@@ -342,9 +293,7 @@ export class Schema<
     return schema
   }
 
-  fromJSON = (
-    json: ISchema<Decorator, Component, DecoratorProps, ComponentProps, Pattern, Display, Validator, Message>
-  ) => {
+  fromJSON = (json: ISchema) => {
     if (!json) return this
     if (Schema.isSchemaInstance(json)) return json
     each(reducePatches(json), (value, key) => {
@@ -368,9 +317,7 @@ export class Schema<
     return this
   }
 
-  toJSON = (
-    recursion = true
-  ): ISchema<Decorator, Component, DecoratorProps, ComponentProps, Pattern, Display, Validator, Message> => {
+  toJSON = (recursion = true): ISchema => {
     const results: any = {}
     each(this, (value: any, key) => {
       if ((isFn(value) && !isFunctionKey(key)) || key === 'parent' || key === 'root') return

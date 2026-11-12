@@ -260,9 +260,8 @@ export type FieldDisplayTypes = 'none' | 'hidden' | 'visible' | ({} & string)
 export type FieldPatternTypes = 'editable' | 'readOnly' | 'disabled' | 'readPretty' | ({} & string)
 
 export type FieldValidatorContext = IValidatorRules & {
-  field?: Field
-  form?: Form
-  value?: any
+  field: Field
+  form: Form
 }
 
 export type FieldValidator = Validator<FieldValidatorContext>

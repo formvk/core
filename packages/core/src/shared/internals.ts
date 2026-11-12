@@ -22,6 +22,7 @@ import type { BaseField } from '../models/BaseField'
 import type {
   FieldFeedbackTypes,
   FieldMatchPattern,
+  FieldValidatorContext,
   GeneralField,
   IExchangeArrayStateProps,
   IFieldFeedback,
@@ -256,7 +257,7 @@ export function updateFeedback(field: Field, feedback?: IFieldFeedback) {
 }
 
 export async function validateToFeedbacks(field: Field, triggerType: ValidatorTriggerType = 'onInput') {
-  const results = await validate(field.value, field.validator, {
+  const results = await validate<FieldValidatorContext>(field.value, field.validator, {
     triggerType,
     validateFirst: field.props.validateFirst ?? field.form.props.validateFirst,
     context: { field, form: field.form },

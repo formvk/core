@@ -1,2 +1,6 @@
 export * from './schema'
 export * from './types'
+export * from './fragment-types'
+export * from './fragment'
+export * from './create-schema'
+export * from './expression'
