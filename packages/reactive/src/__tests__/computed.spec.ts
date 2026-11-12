@@ -77,18 +77,21 @@ test('@computed 以装饰器语法修饰方法/赋值器/字段时抛错', () =>
   const computedDecorator = computed as any
 
   // 装饰器在类定义期即抛错，用匿名类表达式箭头函数承载以便 expect 捕获
-  const defineBadMethod = () =>
-    class {
+  function defineBadMethod() {
+    return class {
       @computedDecorator method() {}
     }
-  const defineBadSetter = () =>
-    class {
+  }
+  function defineBadSetter() {
+    return class {
       @computedDecorator set value(v: number) {}
     }
-  const defineBadField = () =>
-    class {
+  }
+  function defineBadField() {
+    return class {
       @computedDecorator field = 1
     }
+  }
 
   expect(defineBadMethod).toThrowError(ERROR_MESSAGE)
   expect(defineBadSetter).toThrowError(ERROR_MESSAGE)

@@ -548,10 +548,10 @@ test('effect context', async () => {
   let results: any
   let error: any
   let error2: any
-  const consumer = () => {
+  function consumer() {
     results = context.consume()
   }
-  const consumer2 = () => {
+  function consumer2() {
     setTimeout(() => {
       try {
         results = context2.consume()

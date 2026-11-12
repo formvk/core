@@ -6,19 +6,21 @@ import { parentMap, reverseCache } from './internals'
 export { isReactive }
 
 /** 外层 proxy 统一还原为内层 Vue proxy，便于匹配父子关系；入参已由 contains 保证为非空对象 */
-const normalize = (value: object): object => reverseCache.get(value) ?? value
+function normalize(value: object): object {
+  return reverseCache.get(value) ?? value
+}
 
 /** 判断值是否是 observable（wrap 出的 formvk 代理；纯 Vue reactive 不在此列） */
-export const isObservable = (value: any): boolean => {
+export function isObservable(value: any): boolean {
   if (value === null || typeof value !== 'object') return false
   return reverseCache.has(value)
 }
 
 /** 把可观察/响应式对象深拷贝为普通对象，其余值原样返回 */
-export const toJS = <T>(values: T): T => {
+export function toJS<T>(values: T): T {
   const visited = new WeakSet<object>()
 
-  const convert = (value: any): any => {
+  function convert(value: any): any {
     if (value === null || typeof value !== 'object') return value
     if (!isObservable(value) && !isReactive(value)) return value
     if (visited.has(value)) return toRaw(value)
@@ -40,7 +42,7 @@ export const toJS = <T>(values: T): T => {
 }
 
 /** 判断 property 是否就是 target 自身或其后代节点 */
-export const contains = (target: any, property: any): boolean => {
+export function contains(target: any, property: any): boolean {
   if (target === property) return true
   if (target === null || typeof target !== 'object') return false
   if (property === null || typeof property !== 'object') return false

@@ -16,9 +16,9 @@ import { LifeCycleTypes } from '../types'
 import type { Form } from './Form'
 import { Query } from './Query'
 
-export class BaseField<Decorator = any, Component = any, TextType = any> {
-  @shallowRef accessor title: TextType | undefined = undefined
-  @shallowRef accessor description: TextType | undefined = undefined
+export class BaseField<ComponentProps = any, DecoratorProps = any, IRecord extends object = any> {
+  @shallowRef accessor title: any = undefined
+  @shallowRef accessor description: any = undefined
 
   @shallowRef accessor selfDisplay: FieldDisplayTypes | undefined = undefined
   @shallowRef accessor selfPattern: FieldPatternTypes | undefined = undefined
@@ -30,10 +30,10 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
 
   @shallow accessor data: any = undefined
 
-  @shallowRef accessor decoratorType: Decorator | undefined = undefined
-  @reactive accessor decoratorProps: Record<string, any> = {}
-  @shallowRef accessor componentType: Component | undefined = undefined
-  @reactive accessor componentProps: Record<string, any> = {}
+  @shallowRef accessor decoratorType: any = undefined
+  @reactive accessor decoratorProps: DecoratorProps = {} as DecoratorProps
+  @shallowRef accessor componentType: any = undefined
+  @reactive accessor componentProps: ComponentProps = {} as ComponentProps
 
   designable?: boolean
   address!: FormPath
@@ -58,22 +58,22 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
     return this.indexes[this.indexes.length - 1] ?? -1
   }
 
-  get records() {
+  get records(): IRecord[] {
     const array = getArrayParent(this)
-    return array?.value
+    return array?.value as IRecord[]
   }
 
-  get record() {
+  get record(): IRecord {
     const obj = getObjectParent(this)
     if (obj) {
-      return obj.value
+      return obj.value as IRecord
     }
     const index = this.index
     const array = getArrayParent(this)
     if (array) {
-      return array.value?.[index]
+      return array.value?.[index] as IRecord
     }
-    return this.form.values
+    return this.form.values as IRecord
   }
 
   @computed
@@ -81,7 +81,7 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
     return [this.componentType, this.componentProps]
   }
 
-  set component(value: FieldComponent<Component>) {
+  set component(value: FieldComponent<any, ComponentProps>) {
     const component = toArr(value)
     this.componentType = component[0]
     this.componentProps = component[1] || {}
@@ -92,7 +92,7 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
     return [this.decoratorType, this.decoratorProps]
   }
 
-  set decorator(value: FieldDecorator<Decorator>) {
+  set decorator(value: FieldDecorator<any, DecoratorProps>) {
     const decorator = toArr(value)
     this.decoratorType = decorator[0]
     this.decoratorProps = decorator[1] || {}
@@ -230,12 +230,12 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
   }
 
   @action
-  setTitle = (title?: TextType) => {
+  setTitle = (title?: any) => {
     this.title = title
   }
 
   @action
-  setDescription = (description?: TextType) => {
+  setDescription = (description?: any) => {
     this.description = description
   }
 
@@ -250,46 +250,40 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
   }
 
   @action
-  setComponent = <C extends JSXComponent, ComponentProps extends object = {}>(
-    component?: C,
-    props?: ComponentProps
-  ) => {
+  setComponent = <C extends JSXComponent>(component?: C, props?: Partial<ComponentProps>) => {
     if (component) {
       this.componentType = component as any
     }
     if (props) {
-      this.componentProps = this.componentProps || {}
-      Object.assign(this.componentProps, props)
+      this.componentProps = this.componentProps || ({} as ComponentProps)
+      Object.assign(this.componentProps as any, props)
     }
   }
 
   @action
-  setComponentProps = <ComponentProps extends object = {}>(props?: ComponentProps) => {
+  setComponentProps = (props?: Partial<ComponentProps>) => {
     if (props) {
-      this.componentProps = this.componentProps || {}
-      Object.assign(this.componentProps, props)
+      this.componentProps = this.componentProps || ({} as ComponentProps)
+      Object.assign(this.componentProps as any, props)
     }
   }
 
   @action
-  setDecorator = <D extends JSXComponent, ComponentProps extends object = {}>(
-    component?: D,
-    props?: ComponentProps
-  ) => {
+  setDecorator = <D extends JSXComponent>(component?: D, props?: Partial<DecoratorProps>) => {
     if (component) {
       this.decoratorType = component as any
     }
     if (props) {
-      this.decoratorProps = this.decoratorProps || {}
-      Object.assign(this.decoratorProps, props)
+      this.decoratorProps = this.decoratorProps || ({} as DecoratorProps)
+      Object.assign(this.decoratorProps as any, props)
     }
   }
 
   @action
-  setDecoratorProps = <ComponentProps extends object = {}>(props?: ComponentProps) => {
+  setDecoratorProps = (props?: Partial<DecoratorProps>) => {
     if (props) {
-      this.decoratorProps = this.decoratorProps || {}
-      Object.assign(this.decoratorProps, props)
+      this.decoratorProps = this.decoratorProps || ({} as DecoratorProps)
+      Object.assign(this.decoratorProps as any, props)
     }
   }
 

@@ -12,14 +12,14 @@ import type {
 } from './types'
 import { isValidateResult } from './types'
 
-const getRuleMessage = (rule: IValidatorRules, type: string) => {
+function getRuleMessage(rule: IValidatorRules, type: string) {
   if (rule.format) {
     return rule.message || getValidateLocale(rule.format)
   }
   return rule.message || getValidateLocale(type)
 }
 
-export const parseValidatorDescription = (description: ValidatorDescription): IValidatorRules => {
+export function parseValidatorDescription(description: ValidatorDescription): IValidatorRules {
   if (!description) return {}
   let rules: IValidatorRules = {}
   if (isStr(description)) {
@@ -32,7 +32,7 @@ export const parseValidatorDescription = (description: ValidatorDescription): IV
   return rules
 }
 
-export const parseValidatorDescriptions = <Context = any>(validator?: Validator<Context>): IValidatorRules[] => {
+export function parseValidatorDescriptions<Context = any>(validator?: Validator<Context>): IValidatorRules[] {
   if (!validator) return []
   const array = isArr(validator) ? validator : [validator]
   return array.map(description => {
@@ -40,8 +40,8 @@ export const parseValidatorDescriptions = <Context = any>(validator?: Validator<
   })
 }
 
-export const parseValidatorRules = (rules: IValidatorRules = {}): ValidatorParsedFunction[] => {
-  const getRulesKeys = (): string[] => {
+export function parseValidatorRules(rules: IValidatorRules = {}): ValidatorParsedFunction[] {
+  function getRulesKeys(): string[] {
     const keys: any[] = []
     if ('required' in rules) {
       keys.push('required')
@@ -55,7 +55,7 @@ export const parseValidatorRules = (rules: IValidatorRules = {}): ValidatorParse
     }
     return keys
   }
-  const getContext = (context: any, value: any) => {
+  function getContext(context: any, value: any) {
     return {
       ...rules,
       ...context,
@@ -124,7 +124,7 @@ export const parseValidatorRules = (rules: IValidatorRules = {}): ValidatorParse
   }, [])
 }
 
-export const parseValidator = <Context = any>(validator?: Validator<Context>, options: IValidatorOptions = {}) => {
+export function parseValidator<Context = any>(validator?: Validator<Context>, options: IValidatorOptions = {}) {
   if (!validator) return []
   const array = isArr(validator) ? validator : [validator]
   return array.reduce<ValidatorParsedFunction<Context>[]>((buf, description) => {

@@ -2,19 +2,19 @@ import { action, reaction } from '@formvk/reactive'
 import { isArr, move } from '@formvk/shared'
 
 import { cleanupArrayChildren, exchangeArrayState, spliceArrayState } from '../shared/internals'
-import type { FormPathPattern, IFieldProps, JSXComponent } from '../types'
+import type { FormPathPattern, IFieldProps } from '../types'
 import { Field } from './Field'
 import type { Form } from './Form'
 
-export class ArrayField<Decorator extends JSXComponent = any, Component extends JSXComponent = any> extends Field<
-  Decorator,
-  Component,
-  any,
-  any[]
-> {
+export class ArrayField<
+  Value extends any[] = any[],
+  ComponentProps = any,
+  DecoratorProps = any,
+  IRecord extends object = any,
+> extends Field<Value, ComponentProps, DecoratorProps, IRecord> {
   displayName = 'ArrayField' as const
 
-  constructor(address: FormPathPattern, props: IFieldProps<Decorator, Component>, form: Form, designable?: boolean) {
+  constructor(address: FormPathPattern, props: IFieldProps<any, any, any, Value>, form: Form, designable?: boolean) {
     super(address, props, form, designable)
     this.makeAutoCleanable()
   }
@@ -26,8 +26,8 @@ export class ArrayField<Decorator extends JSXComponent = any, Component extends 
         (newLength, oldLength) => {
           if (oldLength && !newLength) {
             cleanupArrayChildren(this, 0)
-          } else if (newLength < oldLength) {
-            cleanupArrayChildren(this, newLength)
+          } else if (newLength! < oldLength!) {
+            cleanupArrayChildren(this, newLength!)
           }
         }
       )
@@ -37,9 +37,9 @@ export class ArrayField<Decorator extends JSXComponent = any, Component extends 
   push = (...items: any[]) => {
     return action(() => {
       if (!isArr(this.value)) {
-        this.value = []
+        this.value = [] as any
       }
-      this.value.push(...items)
+      ;(this.value as any[]).push(...items)
       return this.onInput(this.value)
     })
   }
@@ -47,12 +47,12 @@ export class ArrayField<Decorator extends JSXComponent = any, Component extends 
   pop = () => {
     if (!isArr(this.value)) return
     return action(() => {
-      const index = this.value.length - 1
+      const index = (this.value as any[]).length - 1
       spliceArrayState(this, {
         startIndex: index,
         deleteCount: 1,
       })
-      this.value.pop()
+      ;(this.value as any[]).pop()
       return this.onInput(this.value)
     })
   }
@@ -60,7 +60,7 @@ export class ArrayField<Decorator extends JSXComponent = any, Component extends 
   insert = (index: number, ...items: any[]) => {
     return action(() => {
       if (!isArr(this.value)) {
-        this.value = []
+        this.value = [] as any
       }
       if (items.length === 0) {
         return
@@ -69,7 +69,7 @@ export class ArrayField<Decorator extends JSXComponent = any, Component extends 
         startIndex: index,
         insertCount: items.length,
       })
-      this.value.splice(index, 0, ...items)
+      ;(this.value as any[]).splice(index, 0, ...items)
       return this.onInput(this.value)
     })
   }
@@ -81,7 +81,7 @@ export class ArrayField<Decorator extends JSXComponent = any, Component extends 
         startIndex: index,
         deleteCount: 1,
       })
-      this.value.splice(index, 1)
+      ;(this.value as any[]).splice(index, 1)
       return this.onInput(this.value)
     })
   }
@@ -89,7 +89,7 @@ export class ArrayField<Decorator extends JSXComponent = any, Component extends 
   shift = () => {
     if (!isArr(this.value)) return
     return action(() => {
-      this.value.shift()
+      ;(this.value as any[]).shift()
       return this.onInput(this.value)
     })
   }
@@ -97,13 +97,13 @@ export class ArrayField<Decorator extends JSXComponent = any, Component extends 
   unshift = (...items: any[]) => {
     return action(() => {
       if (!isArr(this.value)) {
-        this.value = []
+        this.value = [] as any
       }
       spliceArrayState(this, {
         startIndex: 0,
         insertCount: items.length,
       })
-      this.value.unshift(...items)
+      ;(this.value as any[]).unshift(...items)
       return this.onInput(this.value)
     })
   }
@@ -112,7 +112,7 @@ export class ArrayField<Decorator extends JSXComponent = any, Component extends 
     if (!isArr(this.value)) return
     if (fromIndex === toIndex) return
     return action(() => {
-      move(this.value, fromIndex, toIndex)
+      move(this.value as any[], fromIndex, toIndex)
       exchangeArrayState(this, {
         fromIndex,
         toIndex,
@@ -123,11 +123,11 @@ export class ArrayField<Decorator extends JSXComponent = any, Component extends 
 
   moveUp = (index: number) => {
     if (!isArr(this.value)) return
-    return this.move(index, index - 1 < 0 ? this.value.length - 1 : index - 1)
+    return this.move(index, index - 1 < 0 ? (this.value as any[]).length - 1 : index - 1)
   }
 
   moveDown = (index: number) => {
     if (!isArr(this.value)) return
-    return this.move(index, index + 1 >= this.value.length ? 0 : index + 1)
+    return this.move(index, index + 1 >= (this.value as any[]).length ? 0 : index + 1)
   }
 }

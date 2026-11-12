@@ -1,28 +1,31 @@
 const toString = Object.prototype.toString
-const isType =
-  <T>(type: string) =>
-  (obj: unknown): obj is T =>
-    toString.call(obj) === `[object ${type}]`
+function isType<T>(type: string) {
+  return (obj: unknown): obj is T => toString.call(obj) === `[object ${type}]`
+}
 export const isFn = isType<(...args: any[]) => any>('Function')
 export const isArr = Array.isArray || isType<unknown[]>('Array')
 export const isPlainObj = isType<object>('Object')
 export const isStr = isType<string>('String')
 export const isBool = isType<boolean>('Boolean')
 export const isNum = isType<number>('Number')
-export const isObj = (val: unknown): val is object => typeof val === 'object'
+export function isObj(val: unknown): val is object {
+  return typeof val === 'object'
+}
 export const isRegExp = isType<RegExp>('RegExp')
-export const isNumberLike = (t: any) => {
+export function isNumberLike(t: any) {
   return isNum(t) || /^(\d+)(\.\d+)?$/.test(t)
 }
 const isArray = isArr
 const keyList = Object.keys
 const hasProp = Object.prototype.hasOwnProperty
 
-export const toArr = <T>(val: T | T[]): T[] => (Array.isArray(val) ? val : val !== undefined ? [val] : [])
-export const isAssignable = (val: any) => {
+export function toArr<T>(val: T | T[]): T[] {
+  return Array.isArray(val) ? val : val !== undefined ? [val] : []
+}
+export function isAssignable(val: any) {
   return typeof val === 'object' || typeof val === 'function'
 }
-export const isEqual = (a: any, b: any) => {
+export function isEqual(a: any, b: any) {
   if (a === b) {
     return true
   }
@@ -73,7 +76,7 @@ export const isEqual = (a: any, b: any) => {
   }
   return a !== a && b !== b
 }
-export const isSegmentEqual = (a: any, b: any) => {
+export function isSegmentEqual(a: any, b: any) {
   a = typeof a === 'symbol' ? a : `${a}`
   b = typeof b === 'symbol' ? b : `${b}`
   return a === b

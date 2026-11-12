@@ -212,7 +212,7 @@ export class Matcher {
 
   static matchSegments(source: Segments, target: Segments, record?: any): { matched: boolean; record?: IRecord } {
     if (source.length !== target.length) return { matched: false, record }
-    const match = (pos = 0): boolean => {
+    function match(pos = 0): boolean {
       const current = isSegmentEqual(source[pos], target[pos])
       if (record?.score >= 0) {
         record.score++

@@ -12,7 +12,7 @@ test('useForceUpdate 返回稳定的刷新函数并触发重渲染', () => {
   const renderCount = vi.fn()
   let updater: () => void = () => {}
 
-  const Component = () => {
+  function Component() {
     renderCount()
     updater = useForceUpdate()
     return <div>强制刷新</div>
@@ -29,7 +29,7 @@ test('useObserver 读取的响应式数据变化时自动重渲染', () => {
   const state = reactive({ count: 0 })
   const renderCount = vi.fn()
 
-  const Counter = () => {
+  function Counter() {
     renderCount()
     return useObserver(() => <div>计数：{state.count}</div>)
   }
@@ -49,7 +49,7 @@ test('useObserver 只追踪 view 中实际读取的字段', () => {
   const state = reactive({ a: 1, b: 10 })
   const renderCount = vi.fn()
 
-  const Viewer = () => {
+  function Viewer() {
     renderCount()
     return useObserver(() => <div>{state.a}</div>)
   }
@@ -69,13 +69,14 @@ test('useObserver 只追踪 view 中实际读取的字段', () => {
 test('useObserver 每次渲染都会重新 track，能拿到最新 props', () => {
   const state = reactive({ suffix: '!' })
 
-  const Viewer = (props: { prefix: string }) =>
-    useObserver(() => (
+  function Viewer(props: { prefix: string }) {
+    return useObserver(() => (
       <div>
         {props.prefix}
         {state.suffix}
       </div>
     ))
+  }
 
   const { rerender } = render(<Viewer prefix="你好" />)
   expect(screen.getByText('你好!')).toBeTruthy()
@@ -93,7 +94,7 @@ test('同步连续写入由 React 批处理合并为一次渲染', () => {
   const state = reactive({ count: 0 })
   const renderCount = vi.fn()
 
-  const Counter = () => {
+  function Counter() {
     renderCount()
     return useObserver(() => <div>{state.count}</div>)
   }
@@ -112,7 +113,7 @@ test('batch 批次内的多次写入在批次结束后只渲染一次', () => {
   const state = reactive({ a: 0, b: 0 })
   const renderCount = vi.fn()
 
-  const Counter = () => {
+  function Counter() {
     renderCount()
     return useObserver(() => (
       <div>
@@ -138,7 +139,7 @@ test('useObserver 支持自定义 scheduler 接管更新', () => {
   const scheduled = vi.fn((updater: () => void) => updater())
   const renderCount = vi.fn()
 
-  const Counter = () => {
+  function Counter() {
     renderCount()
     return useObserver(() => <div>{state.count}</div>, { scheduler: scheduled })
   }
@@ -156,7 +157,7 @@ test('useObserver 组件卸载后不再响应数据变化', () => {
   const state = reactive({ count: 0 })
   const renderCount = vi.fn()
 
-  const Counter = () => {
+  function Counter() {
     renderCount()
     return useObserver(() => <div>{state.count}</div>)
   }
@@ -173,7 +174,9 @@ test('useObserver 组件卸载后不再响应数据变化', () => {
 test('useObserver 在 StrictMode 双挂载下行为正确且无报错', () => {
   const state = reactive({ count: 0 })
 
-  const Counter = () => useObserver(() => <div>严格模式：{state.count}</div>)
+  function Counter() {
+    return useObserver(() => <div>严格模式：{state.count}</div>)
+  }
 
   render(
     <StrictMode>

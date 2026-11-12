@@ -3,7 +3,7 @@ import { expect, test } from 'vitest'
 import { Path } from '../'
 import { Matcher } from '../matcher'
 
-const match = (obj: Record<string, any>) => {
+function match(obj: Record<string, any>) {
   for (const name in obj) {
     test('test match ' + name, () => {
       const path = new Path(name)
@@ -18,7 +18,7 @@ const match = (obj: Record<string, any>) => {
   }
 }
 
-const unMatch = (obj: Record<string, any>) => {
+function unMatch(obj: Record<string, any>) {
   for (const name in obj) {
     test('test unMatch ' + name, () => {
       const path = new Path(name)

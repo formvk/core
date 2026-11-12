@@ -3,14 +3,14 @@ import { expect, test } from 'vitest'
 import { Path } from '..'
 import { Parser } from '../parser'
 
-const parse = (string: string, json: any, index: number) => {
+function parse(string: string, json: any, index: number) {
   test('test ' + string + ` : ${index}`, () => {
     const parser = new Parser(string)
     expect(parser.parse()).toEqual(json)
   })
 }
 
-const batchTest = (obj: Record<string, any>) => {
+function batchTest(obj: Record<string, any>) {
   let i = 0
   for (const key in obj) {
     i++

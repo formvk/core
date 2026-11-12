@@ -14,10 +14,13 @@ const pathCache = new Map()
 
 const isMatcher = Symbol('PATH_MATCHER')
 
-const isMatcherFunction = (val: any): val is MatcherFunction =>
-  isFn(val) && (val as { [isMatcher]?: boolean })[isMatcher] === true
+function isMatcherFunction(val: any): val is MatcherFunction {
+  return isFn(val) && (val as { [isMatcher]?: boolean })[isMatcher] === true
+}
 
-const isValid = (val: any) => val !== undefined && val !== null
+function isValid(val: any) {
+  return val !== undefined && val !== null
+}
 
 interface ParsedPattern {
   entire: string | RegExp
@@ -30,21 +33,28 @@ interface ParsedPattern {
   tree?: Node
 }
 
-const isSimplePath = (val: string) =>
-  val.indexOf('*') === -1 &&
-  val.indexOf('~') === -1 &&
-  val.indexOf('[') === -1 &&
-  val.indexOf(']') === -1 &&
-  val.indexOf(',') === -1 &&
-  val.indexOf(':') === -1 &&
-  val.indexOf(' ') === -1 &&
-  val[0] !== '.'
+function isSimplePath(val: string) {
+  return (
+    val.indexOf('*') === -1 &&
+    val.indexOf('~') === -1 &&
+    val.indexOf('[') === -1 &&
+    val.indexOf(']') === -1 &&
+    val.indexOf(',') === -1 &&
+    val.indexOf(':') === -1 &&
+    val.indexOf(' ') === -1 &&
+    val[0] !== '.'
+  )
+}
 
-const isAssignable = (val: any) => typeof val === 'object' || typeof val === 'function'
+function isAssignable(val: any) {
+  return typeof val === 'object' || typeof val === 'function'
+}
 
-const isNumberIndex = (val: any) => (isStr(val) ? /^\d+$/.test(val) : isNum(val))
+function isNumberIndex(val: any) {
+  return isStr(val) ? /^\d+$/.test(val) : isNum(val)
+}
 
-const getIn = (segments: Segments, source: any) => {
+function getIn(segments: Segments, source: any) {
   for (let i = 0; i < segments.length; i++) {
     const index = segments[i]
     const rules = getDestructor(index as string)
@@ -59,7 +69,7 @@ const getIn = (segments: Segments, source: any) => {
   return source
 }
 
-const setIn = (segments: Segments, source: any, value: any) => {
+function setIn(segments: Segments, source: any, value: any) {
   for (let i = 0; i < segments.length; i++) {
     const index = segments[i]
     const rules = getDestructor(index as string)
@@ -88,7 +98,7 @@ const setIn = (segments: Segments, source: any, value: any) => {
   }
 }
 
-const deleteIn = (segments: Segments, source: any) => {
+function deleteIn(segments: Segments, source: any) {
   for (let i = 0; i < segments.length; i++) {
     const index = segments[i]
     const rules = getDestructor(index as string)
@@ -116,7 +126,7 @@ const deleteIn = (segments: Segments, source: any) => {
 
 const hasOwnProperty = Object.prototype.hasOwnProperty
 
-const existIn = (segments: Segments, source: any, start: number | Path) => {
+function existIn(segments: Segments, source: any, start: number | Path) {
   if (start instanceof Path) {
     start = start.length
   }
@@ -145,7 +155,7 @@ const existIn = (segments: Segments, source: any, start: number | Path) => {
   }
 }
 
-const parse = (pattern: Pattern, base?: Pattern): ParsedPattern => {
+function parse(pattern: Pattern, base?: Pattern): ParsedPattern {
   if (pattern instanceof Path) {
     return {
       entire: pattern.entire,
@@ -243,7 +253,7 @@ const parse = (pattern: Pattern, base?: Pattern): ParsedPattern => {
   }
 }
 
-const parseString = (source: any): any => {
+function parseString(source: any): any {
   if (isStr(source)) {
     source = source.replace(/\s*/g, '')
     try {

@@ -24,31 +24,34 @@ import {
 
 const nonASCIIWhitespace = /[\u1680\u180e\u2000-\u200a\u202f\u205f\u3000\ufeff]/
 
-const fullCharCodeAtPos = (input: string, pos: number) => {
+function fullCharCodeAtPos(input: string, pos: number) {
   return input.codePointAt(pos)
 }
 
-const isRewordCode = (code: number) =>
-  code === 42 ||
-  code === 46 ||
-  code === 33 ||
-  code === 91 ||
-  code === 93 ||
-  code === 40 ||
-  code === 41 ||
-  code === 44 ||
-  code === 58 ||
-  code === 126 ||
-  code === 123 ||
-  code === 125
+function isRewordCode(code: number) {
+  return (
+    code === 42 ||
+    code === 46 ||
+    code === 33 ||
+    code === 91 ||
+    code === 93 ||
+    code === 40 ||
+    code === 41 ||
+    code === 44 ||
+    code === 58 ||
+    code === 126 ||
+    code === 123 ||
+    code === 125
+  )
+}
 
-const getError = (message?: string, props?: any) => {
+function getError(message?: string, props?: any) {
   const err = new Error(message)
   Object.assign(err, props)
   return err
 }
 
-const slice = (string: string, start: number, end: number) => {
+function slice(string: string, start: number, end: number) {
   let str = ''
   for (let i = start; i < end; i++) {
     const ch = string.charAt(i)

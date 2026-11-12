@@ -15,7 +15,7 @@ test('保留初始值', () => {
 })
 
 test('不代理不可代理的值', () => {
-  const fn = () => {}
+  function fn() {}
   const date = new Date()
   const regExp = /x/
   const map = new Map()
@@ -122,7 +122,9 @@ test('registerSkip 可注册多个跳过判定并支持销毁', () => {
 })
 
 test('observable 忽略不支持的装饰器类型', () => {
-  const getter = () => 1
+  function getter() {
+    return 1
+  }
 
   expect((observable as any)(getter, { kind: 'getter' })).toBe(getter)
 })

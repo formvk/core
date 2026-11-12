@@ -6,10 +6,7 @@ import type { AnyFunction } from '../types'
 import { isForm } from './checkers'
 import { GlobalState } from './constants'
 
-export const createEffectHook = <F extends (payload: any, ...ctxs: any[]) => AnyFunction>(
-  type: string,
-  callback?: F
-) => {
+export function createEffectHook<F extends (payload: any, ...ctxs: any[]) => AnyFunction>(type: string, callback?: F) {
   return (...args: Parameters<ReturnType<F>>) => {
     if (GlobalState.effectStart) {
       GlobalState.lifecycles.push(
@@ -25,7 +22,7 @@ export const createEffectHook = <F extends (payload: any, ...ctxs: any[]) => Any
   }
 }
 
-export const createEffectContext = <T = any>(defaultValue?: T) => {
+export function createEffectContext<T = any>(defaultValue?: T) {
   let index: number
   return {
     provide(value?: T) {
@@ -49,10 +46,10 @@ const FormEffectContext = createEffectContext<Form>()
 
 export const useEffectForm = FormEffectContext.consume
 
-export const runEffects = <Context>(
+export function runEffects<Context>(
   context?: Context,
   ...args: (((context: Context) => void) | undefined)[]
-): LifeCycle[] => {
+): LifeCycle[] {
   GlobalState.lifecycles = []
   GlobalState.context = []
   GlobalState.effectStart = true

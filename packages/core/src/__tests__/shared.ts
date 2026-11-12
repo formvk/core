@@ -1,9 +1,10 @@
-export const attach = <T extends { onMount: () => void }>(target: T | undefined): T => {
+export function attach<T extends { onMount: () => void }>(target: T | undefined): T {
   target?.onMount()
   return target as T
 }
 
-export const sleep = (duration = 100) =>
-  new Promise(resolve => {
+export function sleep(duration = 100) {
+  return new Promise(resolve => {
     setTimeout(resolve, duration)
   })
+}

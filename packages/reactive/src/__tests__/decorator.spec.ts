@@ -423,7 +423,9 @@ test('@observable accessor 装饰 Map 与 Set：集合操作可响应', () => {
 
 test('@observable accessor 装饰 Date 与函数：不可代理的引用类型原样透传', () => {
   const now = new Date()
-  const fn = () => 1
+  function fn() {
+    return 1
+  }
 
   class SpecialStore {
     @observable accessor date = now

@@ -12,20 +12,15 @@ import type { IModelGetter, IModelSetter, IVoidFieldProps, IVoidFieldState } fro
 import { BaseField } from './BaseField'
 import type { Form } from './Form'
 
-export class VoidField<Decorator = any, Component = any, TextType = any> extends BaseField<
-  Decorator,
-  Component,
-  TextType
+export class VoidField<ComponentProps = any, DecoratorProps = any, IRecord extends object = any> extends BaseField<
+  ComponentProps,
+  DecoratorProps,
+  IRecord
 > {
   displayName = 'VoidField' as const
-  props: IVoidFieldProps<Decorator, Component>
+  props: IVoidFieldProps
 
-  constructor(
-    address: FormPathPattern,
-    props: IVoidFieldProps<Decorator, Component>,
-    form: Form,
-    designable?: boolean
-  ) {
+  constructor(address: FormPathPattern, props: IVoidFieldProps, form: Form, designable?: boolean) {
     super()
     this.form = form
     this.props = props

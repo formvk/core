@@ -1,12 +1,12 @@
 {
   "name": "@formvk/vue",
   "version": "1.0.0",
-  "description": "Formvk Shared",
+  "description": "Formvk Vue Bindings",
   "keywords": [
     "form",
     "formvk",
-    "formvk-shared",
-    "shared"
+    "formvk-vue",
+    "vue"
   ],
   "license": "MIT",
   "author": "yiyunwan",
@@ -15,7 +15,22 @@
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc --noEmit && vite build"
+    "build": "tsc --noEmit && vite build",
+    "test": "vitest"
   },
-  "devDependencies": {}
+  "dependencies": {
+    "@formvk/core": "workspace:^",
+    "@formvk/reactive": "workspace:^",
+    "@formvk/schema": "workspace:^",
+    "@formvk/shared": "workspace:^"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue-jsx": "^5.1.1",
+    "@vue/test-utils": "^2.4.6",
+    "happy-dom": "^21.0.4",
+    "vue": "3.6.0-rc.12"
+  },
+  "peerDependencies": {
+    "vue": "^3.3.0"
+  }
 }

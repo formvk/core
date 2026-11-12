@@ -3,7 +3,7 @@ import { expect, test } from 'vitest'
 import { createForm } from '..'
 import { attach } from './shared'
 
-const createQueryForm = () => {
+function createQueryForm() {
   const form = attach(createForm())
   const object = attach(form.createObjectField({ name: 'object' })!)
   const voidField = attach(form.createVoidField({ name: 'void', basePath: 'object' })!)

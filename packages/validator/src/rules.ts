@@ -3,7 +3,7 @@ import { each, isArr, isBool, isEmpty, isEqual, isFn, isNum, isStr, isValid, str
 import { getValidateFormats } from './registry'
 import type { IRegistryRules } from './types'
 
-const isValidateEmpty = (value: any) => {
+function isValidateEmpty(value: any) {
   if (isArr(value)) {
     for (let i = 0; i < value.length; i++) {
       if (isValid(value[i])) return false
@@ -19,9 +19,11 @@ const isValidateEmpty = (value: any) => {
   }
 }
 
-const getLength = (value: any) => (isStr(value) ? stringLength(value) : value ? value.length : 0)
+function getLength(value: any) {
+  return isStr(value) ? stringLength(value) : value ? value.length : 0
+}
 
-const extendSameRules = (rules: IRegistryRules, names: Record<string, string>) => {
+function extendSameRules(rules: IRegistryRules, names: Record<string, string>) {
   each(names, (realName, name) => {
     rules[name] = (value, rule, ...args) => rules[realName](value, { ...rule, [realName]: rule[name] }, ...args)
   })

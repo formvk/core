@@ -226,8 +226,12 @@ test('字段同时声明值与初始值时初始值优先生效', () => {
 test('设置组件与装饰器', () => {
   const form = attach(createForm())
   const field = attach(form.createField({ name: 'aa' })!)
-  const Component = () => null
-  const Decorator = () => null
+  function Component() {
+    return null
+  }
+  function Decorator() {
+    return null
+  }
 
   field.setComponent(Component, { a: 1 })
   expect(field.componentType).toBe(Component)

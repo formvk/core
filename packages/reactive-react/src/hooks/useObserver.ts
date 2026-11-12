@@ -61,7 +61,7 @@ export function createAdministration(options?: IObserverOptions): ObserverAdmini
  * 在渲染期执行 view 并追踪其中读取的响应式数据，
  * 依赖变化时自动调度组件重渲染；每次渲染都会重新 track 以拿到最新 props 与依赖。
  */
-export const useObserver = <T>(view: () => T, options?: IObserverOptions): T => {
+export function useObserver<T>(view: () => T, options?: IObserverOptions): T {
   const admRef = useRef<ObserverAdministration | null>(null)
   if (!admRef.current) {
     admRef.current = createAdministration(options)

@@ -147,8 +147,8 @@ function deepmerge(target: any, source: any, options?: Options) {
   }
 }
 
-export const lazyMerge = <T extends object | Function>(target: T, ...args: T[]): any => {
-  const _lazyMerge = <T extends object | Function>(target: T, source: T): {} => {
+export function lazyMerge<T extends object | Function>(target: T, ...args: T[]): any {
+  function _lazyMerge<T extends object | Function>(target: T, source: T): {} {
     if (!isValid(source)) return target
     if (!isValid(target)) return source
     const isTargetObject = typeof target === 'object'
@@ -157,9 +157,13 @@ export const lazyMerge = <T extends object | Function>(target: T, ...args: T[]):
     const isSourceFn = typeof source === 'function'
     if (!isTargetObject && !isTargetFn) return source
     if (!isSourceObject && !isSourceFn) return target
-    const getTarget = () => (typeof target === 'function' ? (target as Function)() : target)
-    const getSource = () => (typeof source === 'function' ? (source as Function)() : source)
-    const set = (_: object, key: PropertyKey, value: any) => {
+    function getTarget() {
+      return typeof target === 'function' ? (target as Function)() : target
+    }
+    function getSource() {
+      return typeof source === 'function' ? (source as Function)() : source
+    }
+    function set(_: object, key: PropertyKey, value: any) {
       const source = getSource()
       const target = getTarget()
       if (key in source) {
@@ -173,7 +177,7 @@ export const lazyMerge = <T extends object | Function>(target: T, ...args: T[]):
       }
       return true
     }
-    const get = (_: object, key: PropertyKey) => {
+    function get(_: object, key: PropertyKey) {
       const source = getSource()
       // @ts-ignore
       if (key in source) {
@@ -182,7 +186,7 @@ export const lazyMerge = <T extends object | Function>(target: T, ...args: T[]):
       // @ts-ignore
       return getTarget()[key]
     }
-    const ownKeys = () => {
+    function ownKeys() {
       const source = getSource()
       const target = getTarget()
       const keys = Object.keys(target)
@@ -193,16 +197,20 @@ export const lazyMerge = <T extends object | Function>(target: T, ...args: T[]):
       }
       return keys
     }
-    const getOwnPropertyDescriptor = (_: object, key: PropertyKey) => ({
-      value: get(_, key),
-      enumerable: true,
-      configurable: true,
-    })
-    const has = (_: object, key: PropertyKey) => {
+    function getOwnPropertyDescriptor(_: object, key: PropertyKey) {
+      return {
+        value: get(_, key),
+        enumerable: true,
+        configurable: true,
+      }
+    }
+    function has(_: object, key: PropertyKey) {
       if (key in getSource() || key in getTarget()) return true
       return false
     }
-    const getPrototypeOf = () => Object.getPrototypeOf({})
+    function getPrototypeOf() {
+      return Object.getPrototypeOf({})
+    }
     return new Proxy(Object.create(null), {
       set,
       get,

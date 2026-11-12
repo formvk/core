@@ -30,7 +30,7 @@ import {
 } from './checkers'
 import { createEffectContext, createEffectHook, useEffectForm } from './effective'
 
-const createForm = <T extends object = any>(options?: IFormProps<T>) => {
+function createForm<T extends object = any>(options?: IFormProps<T>) {
   return new Form(options)
 }
 

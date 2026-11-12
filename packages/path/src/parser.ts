@@ -38,9 +38,9 @@ import type {
   WildcardOperatorNode,
 } from './types'
 
-const createTreeBySegments = (segments: Segments = [], afterNode?: Node) => {
+function createTreeBySegments(segments: Segments = [], afterNode?: Node) {
   const segLen = segments.length
-  const build = (start = 0): Node => {
+  function build(start = 0): Node {
     const after: Node | undefined = start < segLen - 1 ? build(start + 1) : afterNode
     const dot: Node | undefined = after && {
       type: 'DotOperator',
@@ -55,7 +55,7 @@ const createTreeBySegments = (segments: Segments = [], afterNode?: Node) => {
   return build()
 }
 
-const calculate = (a: string | number, b: string | number, operator: string) => {
+function calculate(a: string | number, b: string | number, operator: string) {
   if (isNumberLike(a) && isNumberLike(b)) {
     if (operator === '+') return String(Number(a) + Number(b))
     if (operator === '-') return String(Number(a) - Number(b))

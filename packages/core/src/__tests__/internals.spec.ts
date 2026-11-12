@@ -80,7 +80,7 @@ test('deserialize', () => {
   expect(model.a).toEqual(2)
 
   // 函数型 setter 直接调用
-  const fn = (target: any) => {
+  function fn(target: any) {
     target.b = 3
   }
   expect(deserialize(model, fn)).toEqual({ a: 2, b: 3 })

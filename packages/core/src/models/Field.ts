@@ -43,20 +43,19 @@ import type {
   IModelGetter,
   IModelSetter,
   ISearchFeedback,
-  JSXComponent,
 } from '../types'
 import { LifeCycleTypes } from '../types'
 import { BaseField } from './BaseField'
 import type { Form } from './Form'
 export class Field<
-  Decorator extends JSXComponent = any,
-  Component extends JSXComponent = any,
-  TextType = any,
-  ValueType = any,
-> extends BaseField<Decorator, Component, TextType> {
+  Value = any,
+  ComponentProps = any,
+  DecoratorProps = any,
+  IRecord extends object = any,
+> extends BaseField<ComponentProps, DecoratorProps, IRecord> {
   displayName = 'Field'
 
-  props: IFieldProps<Decorator, Component, TextType, ValueType>
+  props: IFieldProps<any, any, any, Value>
 
   @shallowRef accessor loading: boolean | undefined = false
   @shallowRef accessor validating: boolean | undefined = false
@@ -65,19 +64,14 @@ export class Field<
   @shallowRef accessor visited = false
   @shallowRef accessor selfModified = false
   @shallowRef accessor modified = false
-  @shallowRef accessor inputValue: ValueType = undefined as any
+  @shallowRef accessor inputValue: Value = undefined as any
   @shallowRef accessor inputValues: any[] = []
   @shallowRef accessor dataSource: FieldDataSource | undefined = undefined
   @shallow accessor validator: FieldValidator | undefined = undefined
   @shallowRef accessor feedbacks: IFieldFeedback[] = []
   caches: IFieldCaches = {}
   requests: IFieldRequests = {}
-  constructor(
-    address: FormPathPattern,
-    props: IFieldProps<Decorator, Component, TextType, ValueType>,
-    form: Form,
-    designable?: boolean
-  ) {
+  constructor(address: FormPathPattern, props: IFieldProps<any, any, any, Value>, form: Form, designable?: boolean) {
     super()
     this.form = form
     this.props = props
@@ -241,12 +235,12 @@ export class Field<
   }
 
   @computed
-  get value(): ValueType {
+  get value(): Value {
     return this.form.getValuesIn(this.path)
   }
 
   @computed
-  get initialValue(): ValueType {
+  get initialValue(): Value {
     return this.form.getInitialValuesIn(this.path)
   }
 
@@ -269,11 +263,11 @@ export class Field<
     this.setValidatorRule('required', required)
   }
 
-  set value(value: ValueType) {
+  set value(value: Value | undefined) {
     this.setValue(value)
   }
 
-  set initialValue(initialValue: ValueType) {
+  set initialValue(initialValue: Value) {
     this.setInitialValue(initialValue)
   }
 
@@ -342,7 +336,7 @@ export class Field<
   }
 
   @action
-  setValue = (value?: ValueType) => {
+  setValue = (value?: Value) => {
     if (this.destroyed) return
     if (!this.initialized) {
       if (this.display === 'none') {
@@ -358,7 +352,7 @@ export class Field<
   }
 
   @action
-  setInitialValue = (initialValue?: ValueType) => {
+  setInitialValue = (initialValue?: Value) => {
     if (this.destroyed) return
     if (!this.initialized) {
       if (!allowAssignDefaultValue(this.initialValue, initialValue) && !this.designable) {
@@ -389,9 +383,10 @@ export class Field<
 
   @batch
   onInput = async (...args: any[]) => {
-    const isHTMLInputEventFromSelf = (args: any[]) =>
-      isHTMLInputEvent(args[0]) && 'currentTarget' in args[0] ? args[0]?.target === args[0]?.currentTarget : true
-    const getValues = (args: any[]) => {
+    function isHTMLInputEventFromSelf(args: any[]) {
+      return isHTMLInputEvent(args[0]) && 'currentTarget' in args[0] ? args[0]?.target === args[0]?.currentTarget : true
+    }
+    function getValues(args: any[]) {
       if (args[0]?.target) {
         if (!isHTMLInputEvent(args[0])) return args
       }

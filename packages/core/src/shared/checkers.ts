@@ -1,84 +1,85 @@
 import { isFn } from '@formvk/shared'
 
-import type { DataField, JSXComponent } from '..'
+import type { DataField } from '..'
 import { ArrayField, Field, Form, ObjectField, Query, VoidField } from '../models'
 import type { GeneralField, IFieldState, IFormState, IGeneralFieldState, IVoidFieldState } from '../types'
 
-export const isForm = (node: any): node is Form => {
+export function isForm(node: any): node is Form {
   return node instanceof Form
 }
 
-export const isGeneralField = (node: any): node is GeneralField => {
+export function isGeneralField(node: any): node is GeneralField {
   return node instanceof Field || node instanceof VoidField
 }
 
-export const isField = <
-  Decorator extends JSXComponent = any,
-  Component extends JSXComponent = any,
-  TextType = any,
-  ValueType = any,
->(
+export function isField<Value = any, ComponentProps = any, DecoratorProps = any, IRecord extends object = any>(
   node: any
-): node is Field<Decorator, Component, TextType, ValueType> => {
+): node is Field<Value, ComponentProps, DecoratorProps, IRecord> {
   return node instanceof Field
 }
 
-export const isArrayField = <Decorator extends JSXComponent = any, Component extends JSXComponent = any>(
-  node: any
-): node is ArrayField<Decorator, Component> => {
+export function isArrayField<
+  Value extends any[] = any[],
+  ComponentProps = any,
+  DecoratorProps = any,
+  IRecord extends object = any,
+>(node: any): node is ArrayField<Value, ComponentProps, DecoratorProps, IRecord> {
   return node instanceof ArrayField
 }
 
-export const isObjectField = <Decorator extends JSXComponent = any, Component extends JSXComponent = any>(
-  node: any
-): node is ObjectField<Decorator, Component> => {
+export function isObjectField<
+  Value extends object = Record<string, any>,
+  ComponentProps = any,
+  DecoratorProps = any,
+  IRecord extends object = any,
+>(node: any): node is ObjectField<Value, ComponentProps, DecoratorProps, IRecord> {
   return node instanceof ObjectField
 }
 
-export const isVoidField = <Decorator = any, Component = any, TextType = any>(
+export function isVoidField<ComponentProps = any, DecoratorProps = any, IRecord extends object = any>(
   node: any
-): node is VoidField<Decorator, Component, TextType> => {
+): node is VoidField<ComponentProps, DecoratorProps, IRecord> {
   return node instanceof VoidField
 }
 
-export const isFormState = <T extends Record<any, any> = any>(state: any): state is IFormState<T> => {
+export function isFormState<T extends Record<any, any> = any>(state: any): state is IFormState<T> {
   if (isFn(state?.initialize)) return false
   return state?.displayName === 'Form'
 }
 
-export const isFieldState = (state: any): state is IFieldState => {
+export function isFieldState(state: any): state is IFieldState {
   if (isFn(state?.initialize)) return false
   return state?.displayName === 'Field'
 }
 
-export const isGeneralFieldState = (node: any): node is IGeneralFieldState => {
+export function isGeneralFieldState(node: any): node is IGeneralFieldState {
   if (isFn(node?.initialize)) return false
   return node?.displayName?.indexOf('Field') > -1
 }
 
-export const isArrayFieldState = (state: any): state is IFieldState => {
+export function isArrayFieldState(state: any): state is IFieldState {
   if (isFn(state?.initialize)) return false
   return state?.displayName === 'ArrayField'
 }
 
-export const isDataField = (node: any): node is DataField => {
+export function isDataField(node: any): node is DataField {
   return isField(node) || isArrayField(node) || isObjectField(node)
 }
 
-export const isDataFieldState = (node: any) => {
+export function isDataFieldState(node: any) {
   return isFieldState(node) || isObjectFieldState(node) || isArrayFieldState(node)
 }
 
-export const isObjectFieldState = (state: any): state is IFieldState => {
+export function isObjectFieldState(state: any): state is IFieldState {
   if (isFn(state?.initialize)) return false
   return state?.displayName === 'ObjectField'
 }
 
-export const isVoidFieldState = (state: any): state is IVoidFieldState => {
+export function isVoidFieldState(state: any): state is IVoidFieldState {
   if (isFn(state?.initialize)) return false
   return state?.displayName === 'VoidField'
 }
 
-export const isQuery = (query: any): query is Query => {
+export function isQuery(query: any): query is Query {
   return query && query instanceof Query
 }

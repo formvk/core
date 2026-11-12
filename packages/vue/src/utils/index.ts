@@ -1,0 +1,1 @@
+export { getRawComponent } from './getRawComponent'

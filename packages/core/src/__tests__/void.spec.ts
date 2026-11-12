@@ -113,8 +113,12 @@ test('销毁虚拟字段', () => {
 test('虚拟字段支持组件与装饰器配置', () => {
   const form = attach(createForm())
   const field = attach(form.createVoidField({ name: 'void' })!)
-  const Component = () => null
-  const Decorator = () => null
+  function Component() {
+    return null
+  }
+  function Decorator() {
+    return null
+  }
 
   field.setComponent(Component, { a: 1 })
   field.setComponentProps({ b: 2 })

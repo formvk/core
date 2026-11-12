@@ -1,19 +1,19 @@
 import { reaction } from '@formvk/reactive'
 
 import { cleanupObjectChildren } from '../shared/internals'
-import type { FormPathPattern, IFieldProps, JSXComponent } from '../types'
+import type { FormPathPattern, IFieldProps } from '../types'
 import { Field } from './Field'
 import type { Form } from './Form'
 
-export class ObjectField<Decorator extends JSXComponent = any, Component extends JSXComponent = any> extends Field<
-  Decorator,
-  Component,
-  any,
-  Record<string, any>
-> {
+export class ObjectField<
+  Value extends object = Record<string, any>,
+  ComponentProps = any,
+  DecoratorProps = any,
+  IRecord extends object = any,
+> extends Field<Value, ComponentProps, DecoratorProps, IRecord> {
   displayName = 'ObjectField'
   private additionalProperties: string[] = []
-  constructor(address: FormPathPattern, props: IFieldProps<Decorator, Component>, form: Form, designable?: boolean) {
+  constructor(address: FormPathPattern, props: IFieldProps<any, any, any, Value>, form: Form, designable?: boolean) {
     super(address, props, form, designable)
     this.makeAutoCleanable()
   }

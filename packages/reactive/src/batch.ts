@@ -2,8 +2,9 @@ import type { AnyFunction, BindFunction, Boundary, IBatch } from './types'
 
 type Runner = () => void
 
-const isDecoratorContext = (context: any): context is { kind: string } =>
-  !!context && typeof context === 'object' && typeof context.kind === 'string'
+function isDecoratorContext(context: any): context is { kind: string } {
+  return !!context && typeof context === 'object' && typeof context.kind === 'string'
+}
 
 let batchCount = 0
 let batchScope = false
@@ -12,7 +13,7 @@ const pendingReactions = new Set<Runner>()
 const pendingScopeReactions = new Set<Runner>()
 const batchEndpoints = new Set<() => void>()
 
-const runAll = (runners: Set<Runner>) => {
+function runAll(runners: Set<Runner>) {
   if (runners.size === 0) return
   const queue = Array.from(runners)
   runners.clear()
@@ -21,11 +22,11 @@ const runAll = (runners: Set<Runner>) => {
   }
 }
 
-export const batchStart = () => {
+export function batchStart() {
   batchCount++
 }
 
-export const batchEnd = () => {
+export function batchEnd() {
   batchCount--
   if (batchCount === 0) {
     runAll(pendingReactions)
@@ -37,20 +38,20 @@ export const batchEnd = () => {
   }
 }
 
-export const batchScopeStart = () => {
+export function batchScopeStart() {
   batchScope = true
   // 把批次中尚未刷新的 reaction 转移到 scope，使 scope 结束时能读到最新值
   pendingReactions.forEach(runner => pendingScopeReactions.add(runner))
   pendingReactions.clear()
 }
 
-export const batchScopeEnd = () => {
+export function batchScopeEnd() {
   batchScope = false
   runAll(pendingScopeReactions)
 }
 
 /** reaction 的调度入口：非批量状态立即执行，否则延迟到批次结束 */
-export const scheduleReaction = (runner: Runner) => {
+export function scheduleReaction(runner: Runner) {
   if (batchScope) {
     pendingScopeReactions.add(runner)
   } else if (batchCount > 0) {
@@ -61,8 +62,8 @@ export const scheduleReaction = (runner: Runner) => {
 }
 
 /** 创建在 start / end 之间执行回调的边界函数，可同时作为类成员装饰器 */
-export const createBoundary = (start: () => void, end: () => void): Boundary => {
-  const invoke = <T>(callback?: () => T): T => {
+export function createBoundary(start: () => void, end: () => void): Boundary {
+  function invoke<T>(callback?: () => T): T {
     let result = undefined as T
     try {
       start()
@@ -75,12 +76,13 @@ export const createBoundary = (start: () => void, end: () => void): Boundary => 
     return result as T
   }
 
-  const wrap = (callback: AnyFunction) =>
-    function (this: any, ...args: any[]) {
+  function wrap(callback: AnyFunction) {
+    return function (this: any, ...args: any[]) {
       return invoke(() => callback.apply(this, args))
     }
+  }
 
-  const decorate = (callback: any, context: any) => {
+  function decorate(callback: any, context: any) {
     if (context.kind === 'field') {
       return (initialValue: any) => (typeof initialValue === 'function' ? wrap(initialValue) : initialValue)
     }

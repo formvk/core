@@ -3,7 +3,7 @@ import { FormPath, isFn, isStr } from '@formvk/shared'
 import { getValidateMessageTemplateEngine } from './registry'
 import type { IValidateResult, IValidatorRules } from './types'
 
-export const render = (result: IValidateResult, rules: IValidatorRules): IValidateResult => {
+export function render(result: IValidateResult, rules: IValidatorRules): IValidateResult {
   const { message } = result
   if (isStr(message)) {
     const template = getValidateMessageTemplateEngine()

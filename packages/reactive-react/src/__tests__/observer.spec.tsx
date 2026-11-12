@@ -28,7 +28,7 @@ test('observer 自带 memo：props 不变时父组件重渲染不带动子组件
     return <div>{props.label}</div>
   })
 
-  const Parent = () => {
+  function Parent() {
     const [tick, setTick] = useState(0)
     return (
       <div>
@@ -48,7 +48,7 @@ test('observer 自带 memo：props 不变时父组件重渲染不带动子组件
 
 test('observer 的 props 变化时正常刷新', () => {
   const Child = observer((props: { label: string }) => <div>{props.label}</div>)
-  const Parent = () => {
+  function Parent() {
     const [label, setLabel] = useState('旧文案')
     return (
       <div>

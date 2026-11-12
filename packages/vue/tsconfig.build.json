@@ -4,6 +4,6 @@
     "paths": {},
     "types": []
   },
-  "include": ["./src/**/*.ts"],
+  "include": ["./src/**/*.ts", "./src/**/*.tsx"],
   "exclude": ["./src/**/__tests__/**", "./__tests__/**"]
 }

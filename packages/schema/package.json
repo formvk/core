@@ -17,5 +17,10 @@
   "scripts": {
     "build": "tsc --noEmit && vite build"
   },
+  "dependencies": {
+    "@formvk/core": "workspace:^",
+    "@formvk/reactive": "workspace:^",
+    "@formvk/shared": "workspace:^"
+  },
   "devDependencies": {}
 }

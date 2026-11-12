@@ -16,7 +16,7 @@ test('对象字段添加与删除属性', async () => {
   const field = attach(form.createObjectField({ name: 'object' })!)
 
   await field.addProperty('aa', 123)
-  expect(field.value.aa).toEqual(123)
+  expect(field.value?.aa).toEqual(123)
   expect(field.existProperty('aa')).toBeTruthy()
 
   await field.addProperty('bb', '456')

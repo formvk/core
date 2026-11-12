@@ -7,7 +7,7 @@ import type { Dispose, IReactionOptions } from './types'
  * 自动运行：立即执行 tracker，并追踪其中读取的响应式数据，
  * 任意依赖变化都会整体重跑 tracker。
  */
-export const autorun = (tracker: () => void): Dispose => {
+export function autorun(tracker: () => void): Dispose {
   const runner = effect(tracker, {
     scheduler: () => scheduleReaction(runner),
   })
@@ -18,11 +18,11 @@ export const autorun = (tracker: () => void): Dispose => {
  * 自定义运行：tracker 只负责求值并收集依赖，
  * 依赖变化后重新求值，值发生变更才调用 subscriber。
  */
-export const reaction = <T>(
+export function reaction<T>(
   tracker: () => T,
   subscriber?: (value: T, oldValue: T) => void,
   options?: IReactionOptions<T>
-): Dispose => {
+): Dispose {
   const equals = options?.equals ?? ((oldValue: T, newValue: T) => oldValue === newValue)
   let oldValue = undefined as T
   let firstRun = true

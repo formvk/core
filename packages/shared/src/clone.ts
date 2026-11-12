@@ -1,6 +1,6 @@
 import { isFn, isPlainObj } from './checkers'
 
-export const shallowClone = (values: any) => {
+export function shallowClone(values: any) {
   if (Array.isArray(values)) {
     return values.slice(0)
   } else if (isPlainObj(values)) {
@@ -29,7 +29,7 @@ export const shallowClone = (values: any) => {
   return values
 }
 
-export const clone = <T>(values: T): T => {
+export function clone<T>(values: T): T {
   if (Array.isArray(values)) {
     const res: any[] = []
     values.forEach(item => {

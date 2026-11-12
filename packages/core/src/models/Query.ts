@@ -5,7 +5,7 @@ import { buildDataPath } from '../shared/internals'
 import type { GeneralField, IGeneralFieldState, IQueryProps } from '../types'
 import type { Form } from './Form'
 
-const output = (field: GeneralField, taker: (field: GeneralField, address: FormPath) => any) => {
+function output(field: GeneralField, taker: (field: GeneralField, address: FormPath) => any) {
   if (!field) return
   if (isFn(taker)) {
     return taker(field, field.address)
@@ -13,7 +13,7 @@ const output = (field: GeneralField, taker: (field: GeneralField, address: FormP
   return field
 }
 
-const takeMatchPattern = (form: Form, pattern: FormPath) => {
+function takeMatchPattern(form: Form, pattern: FormPath) {
   const identifier = pattern.toString()
   const indexIdentifier = form.indexes[identifier]
   const absoluteField = form.fields[identifier]

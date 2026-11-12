@@ -15,6 +15,7 @@ export default defineConfig({
       fileName: 'index',
       formats: ['es'],
     },
+    minify: false,
     sourcemap: true,
     target: 'esnext',
   },
