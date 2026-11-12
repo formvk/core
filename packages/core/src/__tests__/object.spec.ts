@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
 
-import { createForm, isObjectField } from '../src'
+import { createForm, isObjectField } from '..'
 import { attach } from './shared'
 
 test('创建对象字段', () => {
@@ -82,4 +82,26 @@ test('整体替换对象值时清理已消失的附加属性子字段', () => {
   expect(object.value).toEqual({ aa: 'aa' })
   expect(form.fields['obj.cc']).toBeUndefined()
   expect(form.fields['obj.aa']).not.toBeUndefined()
+})
+
+test('删除不存在的属性不抛错', async () => {
+  const form = attach(createForm())
+  const field = attach(form.createObjectField({ name: 'obj', value: { aa: 1 } })!)
+
+  expect(field.existProperty('not-exist')).toBeFalsy()
+  await field.removeProperty('not-exist')
+  expect(field.value).toEqual({ aa: 1 })
+})
+
+test('子字段类型变化时补充默认值', () => {
+  const form = attach(createForm())
+  const object = attach(form.createObjectField({ name: 'obj' })!)
+  const child = attach(form.createField({ name: 'aa', basePath: 'obj' })!)
+
+  expect(child.value).toBeUndefined()
+  object.setValue({ aa: '123' })
+  expect(child.value).toEqual('123')
+
+  object.setValue({})
+  expect(child.value).toBeUndefined()
 })

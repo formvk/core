@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
 
-import { createForm, isVoidField, LifeCycleTypes } from '../src'
+import { createForm, isVoidField, LifeCycleTypes } from '..'
 import { attach } from './shared'
 
 test('创建虚拟字段', () => {
@@ -84,7 +84,7 @@ test('设置与读取虚拟字段状态', () => {
   expect(field.display).toEqual('none')
   expect(field.getState(state => state.title)).toEqual('标题')
 
-  const state = field.getState()
+  const state: any = field.getState()
   expect(state.address).toEqual('void')
   expect(state.path).toEqual('void')
   expect(state.display).toEqual('none')
@@ -108,4 +108,52 @@ test('销毁虚拟字段', () => {
   expect(form.fields.void).toBe(field)
   field.destroy()
   expect(form.fields.void).toBeUndefined()
+})
+
+test('虚拟字段支持组件与装饰器配置', () => {
+  const form = attach(createForm())
+  const field = attach(form.createVoidField({ name: 'void' })!)
+  const Component = () => null
+  const Decorator = () => null
+
+  field.setComponent(Component, { a: 1 })
+  field.setComponentProps({ b: 2 })
+  field.setDecorator(Decorator, { c: 3 })
+  field.setDecoratorProps({ d: 4 })
+
+  expect(field.componentType).toBe(Component)
+  expect(field.componentProps).toEqual({ a: 1, b: 2 })
+  expect(field.decoratorType).toBe(Decorator)
+  expect(field.decoratorProps).toEqual({ c: 3, d: 4 })
+})
+
+test('虚拟字段支持标题、描述、内容与数据', () => {
+  const form = attach(createForm())
+  const field = attach(form.createVoidField({ name: 'void' })!)
+
+  field.setTitle('标题')
+  field.setDescription('描述')
+  field.setContent('内容')
+  field.setData({ extra: 1 })
+
+  expect(field.title).toEqual('标题')
+  expect(field.description).toEqual('描述')
+  expect(field.content).toEqual('内容')
+  expect(field.data).toEqual({ extra: 1 })
+})
+
+test('虚拟字段 reactions 响应式执行', () => {
+  const form = attach(createForm())
+  const field = attach(
+    form.createVoidField({
+      name: 'void',
+      reactions(field) {
+        field.title = field.display === 'none' ? '隐藏' : '显示'
+      },
+    })!
+  )
+  expect(field.title).toEqual('显示')
+
+  field.setDisplay('none')
+  expect(field.title).toEqual('隐藏')
 })

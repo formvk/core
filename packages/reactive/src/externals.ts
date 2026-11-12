@@ -1,6 +1,9 @@
-import { toRaw } from '@vue/reactivity'
+import { isReactive, toRaw } from '@vue/reactivity'
 
 import { parentMap, reverseCache } from './internals'
+
+/** 判断值是否是 Vue 响应式代理（reactive / shallowReactive 根对象） */
+export { isReactive }
 
 /** 外层 proxy 统一还原为内层 Vue proxy，便于匹配父子关系；入参已由 contains 保证为非空对象 */
 const normalize = (value: object): object => reverseCache.get(value) ?? value
@@ -11,13 +14,13 @@ export const isObservable = (value: any): boolean => {
   return reverseCache.has(value)
 }
 
-/** 把可观察对象深拷贝为普通对象，不可观察的值原样返回 */
+/** 把可观察/响应式对象深拷贝为普通对象，其余值原样返回 */
 export const toJS = <T>(values: T): T => {
   const visited = new WeakSet<object>()
 
   const convert = (value: any): any => {
     if (value === null || typeof value !== 'object') return value
-    if (!isObservable(value)) return value
+    if (!isObservable(value) && !isReactive(value)) return value
     if (visited.has(value)) return toRaw(value)
     visited.add(value)
     if (Array.isArray(value)) {

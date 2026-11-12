@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest'
 
-import { createForm, setValidateLanguage } from '../src'
-import { attach } from './shared'
+import { createForm, setValidateLanguage } from '..'
+import { attach, sleep } from './shared'
 
 setValidateLanguage('en')
 
@@ -277,7 +277,7 @@ test('设置与读取字段状态', () => {
   })
   expect(field.value).toEqual('123')
 
-  const state = field.getState()
+  const state: any = field.getState()
   expect(state.address).toEqual('aa')
   expect(state.path).toEqual('aa')
   expect(state.value).toEqual('123')
@@ -371,4 +371,198 @@ test('字段级校验配置覆盖表单级配置', async () => {
     await form.validate()
   } catch {}
   expect(skipped.selfErrors).toEqual([])
+})
+
+test('setLoading/setValidating/setSubmitting 延迟生效', async () => {
+  const form = attach(createForm())
+  const field = attach(form.createField({ name: 'aa' })!)
+
+  field.setLoading(true)
+  field.setValidating(true)
+  field.setSubmitting(true)
+  // 状态延迟写入，避免请求瞬间造成闪烁
+  expect(field.loading).toBeFalsy()
+  expect(field.validating).toBeFalsy()
+  expect(field.submitting).toBeFalsy()
+  await sleep(150)
+  expect(field.loading).toBeTruthy()
+  expect(field.validating).toBeTruthy()
+  expect(field.submitting).toBeTruthy()
+
+  field.setLoading(false)
+  field.setValidating(false)
+  field.setSubmitting(false)
+  expect(field.loading).toBeFalsy()
+  expect(field.validating).toBeFalsy()
+  expect(field.submitting).toBeFalsy()
+})
+
+test('selfErrors/selfWarnings/selfSuccesses setter 写入 Effect 反馈', () => {
+  const form = attach(createForm())
+  const field = attach(form.createField({ name: 'aa' })!)
+
+  field.selfErrors = ['effect error']
+  field.selfWarnings = ['effect warning']
+  field.selfSuccesses = ['effect success']
+  expect(field.selfErrors).toEqual(['effect error'])
+  expect(field.selfWarnings).toEqual(['effect warning'])
+  expect(field.selfSuccesses).toEqual(['effect success'])
+  expect(field.queryFeedbacks({ code: 'EffectError' })).toHaveLength(1)
+  expect(field.queryFeedbacks({ code: 'EffectWarning' })).toHaveLength(1)
+  expect(field.queryFeedbacks({ code: 'EffectSuccess' })).toHaveLength(1)
+
+  field.selfErrors = undefined
+  field.selfWarnings = undefined
+  field.selfSuccesses = undefined
+  expect(field.selfErrors).toEqual([])
+  expect(field.selfWarnings).toEqual([])
+  expect(field.selfSuccesses).toEqual([])
+})
+
+test('onFocus/onBlur 切换激活状态并触发对应校验', async () => {
+  const form = attach(createForm())
+  // 校验规则的 triggerType 默认是 onInput，这里显式声明 onFocus
+  const field = attach(
+    form.createField({
+      name: 'aa',
+      validator: [{ triggerType: 'onFocus', validator: () => 'focus error' }],
+    })!
+  )
+
+  await field.onFocus()
+  expect(field.active).toBeTruthy()
+  expect(field.visited).toBeTruthy()
+  expect(field.selfErrors).toEqual(['focus error'])
+
+  await field.onBlur()
+  expect(field.active).toBeFalsy()
+})
+
+test('onInput 只接受来自自身元素的事件', async () => {
+  const form = attach(createForm())
+  const field = attach(form.createField({ name: 'aa' })!)
+
+  const target = { value: '123' }
+  await field.onInput({ target, currentTarget: target })
+  expect(field.value).toEqual('123')
+
+  // target 与 currentTarget 不同说明事件来自子节点冒泡，应忽略
+  await field.onInput({ target: { value: '456' }, currentTarget: { value: '789' } })
+  expect(field.value).toEqual('123')
+
+  // 支持受控 checkbox 的 checked 值
+  const checkedTarget = { checked: true }
+  await field.onInput({ target: checkedTarget, currentTarget: checkedTarget })
+  expect(field.value).toBeTruthy()
+})
+
+test('record/records/index 读取父级数据', () => {
+  const form = attach(createForm({ values: { array: [{ aa: 'a' }] } }))
+  attach(form.createArrayField({ name: 'array' }))
+  const child = attach(form.createField({ name: '0.aa', basePath: 'array' })!)
+
+  expect(child.indexes).toEqual([0])
+  expect(child.index).toEqual(0)
+  expect(child.records).toEqual([{ aa: 'a' }])
+  expect(child.record).toEqual({ aa: 'a' })
+
+  const rootField = attach(form.createField({ name: 'bb' })!)
+  expect(rootField.indexes).toEqual([])
+  expect(rootField.index).toEqual(-1)
+  expect(rootField.records).toBeUndefined()
+  expect(rootField.record).toEqual(form.values)
+})
+
+test('父级 readPretty 覆盖子字段自身的非 editable 模式', () => {
+  const form = attach(createForm())
+  const parent = attach(form.createVoidField({ name: 'parent' })!)
+  const child = attach(form.createField({ name: 'child', basePath: 'parent', pattern: 'disabled' })!)
+
+  parent.setPattern('readPretty')
+  expect(child.pattern).toEqual('readPretty')
+
+  // 子字段显式声明 editable 时可以解除父级 readPretty
+  child.setPattern('editable')
+  expect(child.pattern).toEqual('editable')
+})
+
+test('销毁后的字段忽略写入', () => {
+  const form = attach(createForm())
+  const field = attach(form.createField({ name: 'aa', value: 123 })!)
+
+  field.destroy()
+  field.setValue(456)
+  field.setInitialValue(456)
+  expect(form.values.aa).toBeUndefined()
+  expect(form.initialValues.aa).toBeUndefined()
+})
+
+test('reactions 属性随字段值响应式执行', () => {
+  const form = attach(createForm())
+  const field = attach(
+    form.createField({
+      name: 'aa',
+      reactions(field) {
+        field.title = `值:${field.value ?? ''}`
+      },
+    })!
+  )
+  expect(field.title).toEqual('值:')
+
+  field.setValue('123')
+  expect(field.title).toEqual('值:123')
+})
+
+test('match 支持精确路径与通配符', () => {
+  const form = attach(createForm())
+  const field = attach(form.createField({ name: 'aa' })!)
+  expect(field.match('aa')).toBeTruthy()
+  expect(field.match('*')).toBeTruthy()
+  expect(field.match('bb')).toBeFalsy()
+
+  // 虚拟字段包裹后 path 与 address 不一致，两者都能命中
+  attach(form.createVoidField({ name: 'void' }))
+  const child = attach(form.createField({ name: 'bb', basePath: 'void' })!)
+  expect(child.match('bb')).toBeTruthy()
+  expect(child.match('void.bb')).toBeTruthy()
+})
+
+test('字段 submit 与 reset 的选项', async () => {
+  const form = attach(createForm())
+  const field = attach(form.createField({ name: 'aa', initialValue: 'init', required: true })!)
+
+  await field.onInput('changed')
+  const result = await field.submit()
+  expect(result).toEqual('changed')
+
+  await field.reset()
+  expect(field.value).toEqual('init')
+  expect(field.modified).toBeFalsy()
+
+  await field.reset({ forceClear: true })
+  expect(field.value).toBeUndefined()
+
+  // reset 的 validate 选项只负责写入反馈，不会抛出错误
+  await field.reset({ forceClear: true, validate: true })
+  expect(field.selfErrors).toEqual(['The field value is required'])
+})
+
+test('required setter 与 setValidator 更新校验规则', async () => {
+  const form = attach(createForm())
+  const field = attach(form.createField({ name: 'aa' })!)
+
+  field.required = true
+  expect(field.required).toBeTruthy()
+  await expect(field.validate()).rejects.toBeTruthy()
+  expect(field.selfErrors).toEqual(['The field value is required'])
+
+  field.setValidator(() => '自定义错误')
+  await expect(field.validate()).rejects.toBeTruthy()
+  expect(field.selfErrors).toEqual(['自定义错误'])
+
+  field.setValidator([{ required: true }])
+  expect(field.validator).toEqual([{ required: true }])
+
+  field.setValidator(undefined)
+  expect(field.validator).toBeUndefined()
 })
