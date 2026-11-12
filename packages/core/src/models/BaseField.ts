@@ -1,4 +1,4 @@
-import { action, batch, observable } from '@formvk/reactive'
+import { action, batch, computed, reactive, shallow, shallowRef } from '@formvk/reactive'
 import type { FormPathPattern } from '@formvk/shared'
 import { each, FormPath, isFn, isValid, toArr } from '@formvk/shared'
 
@@ -17,27 +17,27 @@ import type { Form } from './Form'
 import { Query } from './Query'
 
 export class BaseField<Decorator = any, Component = any, TextType = any> {
-  @observable.ref accessor title: TextType | undefined = undefined
-  @observable.ref accessor description: TextType | undefined = undefined
+  @shallowRef accessor title: TextType | undefined = undefined
+  @shallowRef accessor description: TextType | undefined = undefined
 
-  @observable.ref accessor selfDisplay: FieldDisplayTypes | undefined = undefined
-  @observable.ref accessor selfPattern: FieldPatternTypes | undefined = undefined
-  @observable.ref accessor initialized = false
-  @observable.ref accessor mounted = false
-  @observable.ref accessor unmounted = false
+  @shallowRef accessor selfDisplay: FieldDisplayTypes | undefined = undefined
+  @shallowRef accessor selfPattern: FieldPatternTypes | undefined = undefined
+  @shallowRef accessor initialized = false
+  @shallowRef accessor mounted = false
+  @shallowRef accessor unmounted = false
 
-  @observable.ref accessor content: any = undefined
+  @shallowRef accessor content: any = undefined
 
-  @observable.shallow accessor data: any = undefined
+  @shallow accessor data: any = undefined
 
-  @observable.ref accessor decoratorType: Decorator | undefined = undefined
-  @observable accessor decoratorProps: Record<string, any> = {}
-  @observable.ref accessor componentType: Component | undefined = undefined
-  @observable accessor componentProps: Record<string, any> = {}
+  @shallowRef accessor decoratorType: Decorator | undefined = undefined
+  @reactive accessor decoratorProps: Record<string, any> = {}
+  @shallowRef accessor componentType: Component | undefined = undefined
+  @reactive accessor componentProps: Record<string, any> = {}
 
   designable?: boolean
   address!: FormPath
-  @observable.ref accessor path: FormPath = undefined as any
+  @shallowRef accessor path: FormPath = undefined as any
   form!: Form
 
   disposers: (() => void)[] = []
@@ -49,7 +49,7 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
     locateNode(this as any, address)
   }
 
-  @observable.computed
+  @computed
   get indexes(): number[] {
     return this.path.transform(/^\d+$/, (...args) => args.map(index => Number(index))) as number[]
   }
@@ -76,7 +76,7 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
     return this.form.values
   }
 
-  @observable.computed
+  @computed
   get component() {
     return [this.componentType, this.componentProps]
   }
@@ -87,7 +87,7 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
     this.componentProps = component[1] || {}
   }
 
-  @observable.computed
+  @computed
   get decorator() {
     return [this.decoratorType, this.decoratorProps]
   }
@@ -109,7 +109,7 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
     return this.form.fields[identifier]
   }
 
-  @observable.computed
+  @computed
   get display(): FieldDisplayTypes {
     const parentDisplay = (this.parent as any)?.display
     if (parentDisplay && parentDisplay !== 'visible') {
@@ -120,7 +120,7 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
     return parentDisplay || this.form.display || 'visible'
   }
 
-  @observable.computed
+  @computed
   get pattern(): FieldPatternTypes {
     const parentPattern: FieldPatternTypes = (this.parent as any)?.pattern || this.form.pattern || 'editable'
     const selfPattern = this.selfPattern
@@ -133,32 +133,32 @@ export class BaseField<Decorator = any, Component = any, TextType = any> {
     return parentPattern
   }
 
-  @observable.computed
+  @computed
   get editable() {
     return this.pattern === 'editable'
   }
 
-  @observable.computed
+  @computed
   get disabled() {
     return this.pattern === 'disabled'
   }
 
-  @observable.computed
+  @computed
   get readOnly() {
     return this.pattern === 'readOnly'
   }
 
-  @observable.computed
+  @computed
   get readPretty() {
     return this.pattern === 'readPretty'
   }
 
-  @observable.computed
+  @computed
   get hidden() {
     return this.display === 'hidden'
   }
 
-  @observable.computed
+  @computed
   get visible() {
     return this.display === 'visible'
   }

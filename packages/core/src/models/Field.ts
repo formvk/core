@@ -1,4 +1,4 @@
-import { action, batch, observable } from '@formvk/reactive'
+import { action, batch, computed, shallow, shallowRef, toJS } from '@formvk/reactive'
 import type { FormPathPattern } from '@formvk/shared'
 import { isArr, isEmpty, isValid, toArr } from '@formvk/shared'
 import type { ValidatorTriggerType } from '@formvk/validator'
@@ -58,18 +58,18 @@ export class Field<
 
   props: IFieldProps<Decorator, Component, TextType, ValueType>
 
-  @observable.ref accessor loading: boolean | undefined = false
-  @observable.ref accessor validating: boolean | undefined = false
-  @observable.ref accessor submitting: boolean | undefined = false
-  @observable.ref accessor active = false
-  @observable.ref accessor visited = false
-  @observable.ref accessor selfModified = false
-  @observable.ref accessor modified = false
-  @observable.ref accessor inputValue: ValueType = undefined as any
-  @observable.ref accessor inputValues: any[] = []
-  @observable.ref accessor dataSource: FieldDataSource | undefined = undefined
-  @observable.shallow accessor validator: FieldValidator | undefined = undefined
-  @observable.ref accessor feedbacks: IFieldFeedback[] = []
+  @shallowRef accessor loading: boolean | undefined = false
+  @shallowRef accessor validating: boolean | undefined = false
+  @shallowRef accessor submitting: boolean | undefined = false
+  @shallowRef accessor active = false
+  @shallowRef accessor visited = false
+  @shallowRef accessor selfModified = false
+  @shallowRef accessor modified = false
+  @shallowRef accessor inputValue: ValueType = undefined as any
+  @shallowRef accessor inputValues: any[] = []
+  @shallowRef accessor dataSource: FieldDataSource | undefined = undefined
+  @shallow accessor validator: FieldValidator | undefined = undefined
+  @shallowRef accessor feedbacks: IFieldFeedback[] = []
   caches: IFieldCaches = {}
   requests: IFieldRequests = {}
   constructor(
@@ -136,7 +136,7 @@ export class Field<
               validateSelf(this)
             }
             if (!isEmpty(value) && this.display === 'none') {
-              // this.caches.value = toJS(value)
+              this.caches.value = toJS(value)
               this.form.deleteValuesIn(this.path)
             }
           }
@@ -158,7 +158,7 @@ export class Field<
               this.caches.value = undefined
             }
           } else {
-            // this.caches.value = toJS(value) ?? toJS(this.initialValue)
+            this.caches.value = toJS(value) ?? toJS(this.initialValue)
             this.form.deleteValuesIn(this.path)
           }
           if (display === 'none' || display === 'hidden') {
@@ -184,79 +184,79 @@ export class Field<
     createReactions(this)
   }
 
-  @observable.computed
+  @computed
   get selfErrors(): FeedbackMessage {
     return queryFeedbackMessages(this, {
       type: 'error',
     })
   }
 
-  @observable.computed
+  @computed
   get errors(): IFormFeedback[] {
     return this.form.errors.filter(createChildrenFeedbackFilter(this))
   }
 
-  @observable.computed
+  @computed
   get selfWarnings(): FeedbackMessage {
     return queryFeedbackMessages(this, {
       type: 'warning',
     })
   }
 
-  @observable.computed
+  @computed
   get warnings(): IFormFeedback[] {
     return this.form.warnings.filter(createChildrenFeedbackFilter(this))
   }
 
-  @observable.computed
+  @computed
   get selfSuccesses(): FeedbackMessage {
     return queryFeedbackMessages(this, {
       type: 'success',
     })
   }
 
-  @observable.computed
+  @computed
   get successes(): IFormFeedback[] {
     return this.form.successes.filter(createChildrenFeedbackFilter(this))
   }
 
-  @observable.computed
+  @computed
   get selfValid() {
     return !this.selfErrors.length
   }
 
-  @observable.computed
+  @computed
   get valid() {
     return !this.errors.length
   }
 
-  @observable.computed
+  @computed
   get selfInvalid() {
     return !this.selfValid
   }
 
-  @observable.computed
+  @computed
   get invalid() {
     return !this.valid
   }
 
-  @observable.computed
+  @computed
   get value(): ValueType {
     return this.form.getValuesIn(this.path)
   }
 
-  @observable.computed
+  @computed
   get initialValue(): ValueType {
     return this.form.getInitialValuesIn(this.path)
   }
 
-  @observable.computed
+  @computed
   get required() {
     const validators = isArr(this.validator) ? this.validator : parseValidatorDescriptions(this.validator)
     return validators.some(desc => !!(desc as Record<string, any>)?.['required'])
   }
 
-  @observable.computed
+  @computed
   get validateStatus() {
     if (this.validating) return 'validating'
     if (this.selfInvalid) return 'error'

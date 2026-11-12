@@ -1,8 +1,15 @@
 import { expect, test } from 'vitest'
 
+import { computed } from '../computed'
 import { observable } from '../observable'
 import { observe } from '../observe'
+import { reactive } from '../reactive'
+import { shallow } from '../shallow'
+import { shallowRef } from '../shallowRef'
 import type { IChange } from '../types'
+
+const ERROR_MESSAGE =
+  '[formvk] observe 仅支持 observable() 创建的对象；reactive/shallowRef/shallow/computed 的变更请用 autorun 监听'
 
 function collect(state: any, deep = true) {
   const events: IChange[] = []
@@ -166,4 +173,32 @@ test('监听数组变更', () => {
     value: 1,
     path: ['list'],
   })
+})
+
+test('observe 用于普通对象时抛错', () => {
+  expect(() => observe({}, () => {})).toThrowError(ERROR_MESSAGE)
+})
+
+test('observe 用于 reactive 对象时抛错', () => {
+  const state = reactive({ a: 1 })
+
+  expect(() => observe(state, () => {})).toThrowError(ERROR_MESSAGE)
+})
+
+test('observe 用于 shallow 对象时抛错', () => {
+  const state = shallow({ a: 1 })
+
+  expect(() => observe(state, () => {})).toThrowError(ERROR_MESSAGE)
+})
+
+test('observe 用于 shallowRef 盒子时抛错', () => {
+  const box = shallowRef({ count: 1 })
+
+  expect(() => observe(box, () => {})).toThrowError(ERROR_MESSAGE)
+})
+
+test('observe 用于 computed 时抛错', () => {
+  const double = computed(() => 1)
+
+  expect(() => observe(double, () => {})).toThrowError(ERROR_MESSAGE)
 })

@@ -1,10 +1,10 @@
 import { expect, test, vi } from 'vitest'
 
 import { autorun, reaction } from '../autorun'
-import { observable } from '../observable'
+import { reactive } from '../reactive'
 
 test('autorun 立即执行并追踪依赖', () => {
-  const state = observable({ count: 0 })
+  const state = reactive({ count: 0 })
   const values: number[] = []
 
   const dispose = autorun(() => {
@@ -23,7 +23,7 @@ test('autorun 立即执行并追踪依赖', () => {
 })
 
 test('autorun 只追踪实际读取的依赖', () => {
-  const state = observable({ a: 1, b: 1 })
+  const state = reactive({ a: 1, b: 1 })
   const values: number[] = []
 
   autorun(() => {
@@ -37,7 +37,7 @@ test('autorun 只追踪实际读取的依赖', () => {
 })
 
 test('autorun 追踪嵌套属性', () => {
-  const state = observable({ nested: { value: 1 } })
+  const state = reactive({ nested: { value: 1 } })
   const values: number[] = []
 
   autorun(() => {
@@ -49,7 +49,7 @@ test('autorun 追踪嵌套属性', () => {
 })
 
 test('autorun 支持嵌套调用', () => {
-  const state = observable({ outer: 0, inner: 0 })
+  const state = reactive({ outer: 0, inner: 0 })
   const values: string[] = []
 
   autorun(() => {
@@ -65,7 +65,7 @@ test('autorun 支持嵌套调用', () => {
 })
 
 test('reaction 首次只执行 tracker', () => {
-  const state = observable({ count: 0 })
+  const state = reactive({ count: 0 })
   const tracker = vi.fn(() => state.count)
   const subscriber = vi.fn()
 
@@ -76,7 +76,7 @@ test('reaction 首次只执行 tracker', () => {
 })
 
 test('reaction 值变化时触发 subscriber', () => {
-  const state = observable({ count: 0 })
+  const state = reactive({ count: 0 })
   const calls: Array<[number, number]> = []
 
   reaction(
@@ -95,7 +95,7 @@ test('reaction 值变化时触发 subscriber', () => {
 })
 
 test('reaction 值未变化不触发 subscriber', () => {
-  const state = observable({ count: 0 })
+  const state = reactive({ count: 0 })
   const subscriber = vi.fn()
 
   reaction(() => state.count > 10, subscriber)
@@ -109,7 +109,7 @@ test('reaction 值未变化不触发 subscriber', () => {
 })
 
 test('reaction 支持自定义 equals', () => {
-  const state = observable({ count: 0 })
+  const state = reactive({ count: 0 })
   const subscriber = vi.fn()
 
   reaction(() => ({ positive: state.count > 0 }), subscriber, {
@@ -125,7 +125,7 @@ test('reaction 支持自定义 equals', () => {
 })
 
 test('reaction 支持 fireImmediately', () => {
-  const state = observable({ count: 0 })
+  const state = reactive({ count: 0 })
   const subscriber = vi.fn()
 
   reaction(() => state.count, subscriber, { fireImmediately: true })
@@ -137,7 +137,7 @@ test('reaction 支持 fireImmediately', () => {
 })
 
 test('reaction 不收集 subscriber 中的依赖', () => {
-  const state = observable({ count: 0, other: 0 })
+  const state = reactive({ count: 0, other: 0 })
   const tracker = vi.fn(() => state.count)
   const subscriber = vi.fn(() => state.other)
 
@@ -153,7 +153,7 @@ test('reaction 不收集 subscriber 中的依赖', () => {
 })
 
 test('reaction dispose 后不再响应', () => {
-  const state = observable({ count: 0 })
+  const state = reactive({ count: 0 })
   const subscriber = vi.fn()
 
   const dispose = reaction(() => state.count, subscriber)
@@ -161,4 +161,17 @@ test('reaction dispose 后不再响应', () => {
 
   state.count = 1
   expect(subscriber).not.toHaveBeenCalled()
+})
+
+test('reaction 不传 subscriber 时变化只重跑 tracker，不抛错', () => {
+  const state = reactive({ count: 0 })
+  const tracker = vi.fn(() => state.count)
+
+  const dispose = reaction(tracker)
+  expect(tracker).toHaveBeenCalledTimes(1)
+
+  state.count = 1
+  expect(tracker).toHaveBeenCalledTimes(2)
+
+  dispose()
 })

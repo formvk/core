@@ -1,15 +1,14 @@
-import { isReactive, toRaw } from '@vue/reactivity'
+import { toRaw } from '@vue/reactivity'
 
 import { parentMap, reverseCache } from './internals'
 
-/** 外层 proxy 统一还原为内层 Vue proxy，便于匹配父子关系 */
-const normalize = (value: any) =>
-  value === null || typeof value !== 'object' ? value : (reverseCache.get(value) ?? value)
+/** 外层 proxy 统一还原为内层 Vue proxy，便于匹配父子关系；入参已由 contains 保证为非空对象 */
+const normalize = (value: object): object => reverseCache.get(value) ?? value
 
-/** 判断值是否是 observable（Vue reactive 或 wrap 出的代理） */
+/** 判断值是否是 observable（wrap 出的 formvk 代理；纯 Vue reactive 不在此列） */
 export const isObservable = (value: any): boolean => {
   if (value === null || typeof value !== 'object') return false
-  return reverseCache.has(value) || isReactive(value)
+  return reverseCache.has(value)
 }
 
 /** 把可观察对象深拷贝为普通对象，不可观察的值原样返回 */

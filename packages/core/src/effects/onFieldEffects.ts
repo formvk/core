@@ -84,7 +84,7 @@ export function onFieldChange(
     if (isFn(callback)) callback(field, form)
     const dispose = reaction(
       () => {
-        return toArr(watches).map(key => {
+        return toArr(watches).map((key: keyof IFieldState) => {
           return (field as unknown as Record<string, any>)[key]
         })
       },

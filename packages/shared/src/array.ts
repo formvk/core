@@ -10,7 +10,10 @@ type MemoArrayIterator<T, U> = (previousValue: U, currentValue: T, key: number) 
 type MemoStringIterator<T> = (previousValue: T, currentValue: string, key: number) => T
 type MemoObjectIterator<TValue, TResult> = (previousValue: TResult, currentValue: TValue, key: string) => TResult
 
-export const toArr = (val: any): any[] => (isArr(val) ? val : val ? [val] : [])
+export function toArr<T extends any, R = T extends (infer P)[] ? P[] : T extends any[] ? T : any[]>(val: T): R {
+  return (isArr(val) ? val : val ? [val] : []) as R
+}
+
 export function each(val: string, iterator: EachStringIterator, revert?: boolean): void
 export function each<T>(val: T[], iterator: EachArrayIterator<T>, revert?: boolean): void
 export function each<T extends object, TValue extends T[keyof T]>(

@@ -3,10 +3,10 @@ import { expect, test, vi } from 'vitest'
 import { action } from '../action'
 import { autorun, reaction } from '../autorun'
 import { batch } from '../batch'
-import { observable } from '../observable'
+import { reactive } from '../reactive'
 
 test('batch 合并批次内的多次写入', () => {
-  const state = observable({ count: 0 })
+  const state = reactive({ count: 0 })
   const handler = vi.fn()
 
   autorun(() => {
@@ -26,7 +26,7 @@ test('batch 合并批次内的多次写入', () => {
 })
 
 test('嵌套 batch 只在最外层结束时刷新', () => {
-  const state = observable({ count: 0 })
+  const state = reactive({ count: 0 })
   const handler = vi.fn()
 
   autorun(() => {
@@ -48,7 +48,7 @@ test('嵌套 batch 只在最外层结束时刷新', () => {
 })
 
 test('batch 回调抛错后仍能正常结束', () => {
-  const state = observable({ count: 0 })
+  const state = reactive({ count: 0 })
   const handler = vi.fn()
 
   autorun(() => {
@@ -66,7 +66,7 @@ test('batch 回调抛错后仍能正常结束', () => {
 })
 
 test('batch.bound', () => {
-  const state = observable({ count: 0 })
+  const state = reactive({ count: 0 })
   const handler = vi.fn()
   const context = { step: 10 }
 
@@ -98,7 +98,7 @@ test('batch.endpoint 在批次结束时执行', () => {
 })
 
 test('batch.scope 在外层 batch 结束前刷新', () => {
-  const state = observable({ count: 0 })
+  const state = reactive({ count: 0 })
   const handler = vi.fn()
 
   autorun(() => {
@@ -121,7 +121,7 @@ test('batch.scope 在外层 batch 结束前刷新', () => {
 })
 
 test('batch 中的 reaction 只触发一次', () => {
-  const state = observable({ count: 0 })
+  const state = reactive({ count: 0 })
   const subscriber = vi.fn()
 
   reaction(() => state.count, subscriber)
@@ -136,7 +136,7 @@ test('batch 中的 reaction 只触发一次', () => {
 })
 
 test('action 合并通知并阻止依赖收集', () => {
-  const state = observable({ a: 0, b: 0 })
+  const state = reactive({ a: 0, b: 0 })
   const handler = vi.fn()
 
   autorun(() => {
@@ -158,7 +158,7 @@ test('action 合并通知并阻止依赖收集', () => {
 })
 
 test('action.bound', () => {
-  const state = observable({ count: 0 })
+  const state = reactive({ count: 0 })
   const handler = vi.fn()
   const context = { step: 5 }
 
@@ -177,7 +177,7 @@ test('action.bound', () => {
 })
 
 test('action.scope', () => {
-  const state = observable({ count: 0 })
+  const state = reactive({ count: 0 })
   const handler = vi.fn()
 
   autorun(() => {
@@ -194,7 +194,7 @@ test('action.scope', () => {
 })
 
 test('batch 方法装饰器合并写入', () => {
-  const state = observable({ count: 0 })
+  const state = reactive({ count: 0 })
   const handler = vi.fn()
 
   autorun(() => {
@@ -217,7 +217,7 @@ test('batch 方法装饰器合并写入', () => {
 })
 
 test('batch 字段装饰器包装箭头函数', () => {
-  const state = observable({ count: 0 })
+  const state = reactive({ count: 0 })
   const handler = vi.fn()
 
   autorun(() => {
@@ -238,7 +238,7 @@ test('batch 字段装饰器包装箭头函数', () => {
 })
 
 test('batch.scope 方法装饰器在外层 batch 结束前刷新', () => {
-  const state = observable({ count: 0 })
+  const state = reactive({ count: 0 })
   const handler = vi.fn()
 
   autorun(() => {
@@ -264,8 +264,34 @@ test('batch.scope 方法装饰器在外层 batch 结束前刷新', () => {
   expect(handler).toHaveBeenCalledTimes(2)
 })
 
+test('batch 无回调调用也能正常进出批次', () => {
+  expect(() => batch()).not.toThrow()
+})
+
+test('batch.endpoint 收到非函数入参时静默忽略', () => {
+  expect(() => (batch.endpoint as any)(undefined)).not.toThrow()
+  expect(() => (batch.endpoint as any)(123)).not.toThrow()
+})
+
+test('batch 字段装饰器修饰非函数字段时原值透传', () => {
+  class Store {
+    @batch flag = true
+    @batch name = 'store'
+  }
+
+  const store = new Store()
+  expect(store.flag).toBe(true)
+  expect(store.name).toBe('store')
+})
+
+test('batch 收到非函数回调与非 field 装饰器上下文时原样返回', () => {
+  const raw = { mark: 'x' }
+
+  expect((batch as any)(raw, { kind: 'method' })).toBe(raw)
+})
+
 test('action 方法装饰器合并通知并阻止依赖收集', () => {
-  const state = observable({ a: 0, b: 0 })
+  const state = reactive({ a: 0, b: 0 })
   const handler = vi.fn()
 
   class Store {

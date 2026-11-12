@@ -1,6 +1,7 @@
-import { action, batch, observable } from '@formvk/reactive'
+import { action, autorun, batch, computed, observable, observe, shallow, shallowRef } from '@formvk/reactive'
+import type { Dispose } from '@formvk/reactive'
 import type { FormPathPattern } from '@formvk/shared'
-import { FormPath, globalThisPolyfill, isPlainObj, isValid, merge, uid } from '@formvk/shared'
+import { FormPath, globalThisPolyfill, isArr, isObj, isPlainObj, isValid, merge, uid } from '@formvk/shared'
 
 import { isVoidField } from '../shared/checkers'
 import { runEffects } from '../shared/effective'
@@ -16,6 +17,8 @@ import {
   setLoading,
   setSubmitting,
   setValidating,
+  triggerFormInitialValuesChange,
+  triggerFormValuesChange,
 } from '../shared/internals'
 import type {
   FormDisplayTypes,
@@ -39,11 +42,11 @@ import type {
   JSXComponent,
 } from '../types'
 import { LifeCycleTypes } from '../types'
-import type { ArrayField } from './ArrayField'
-import type { Field } from './Field'
+import { ArrayField } from './ArrayField'
+import { Field } from './Field'
 import { Graph } from './Graph'
 import { Heart } from './Heart'
-import type { ObjectField } from './ObjectField'
+import { ObjectField } from './ObjectField'
 import { Query } from './Query'
 import { VoidField } from './VoidField'
 
@@ -52,23 +55,23 @@ const DEV_TOOLS_HOOK = '__FORMILY_DEV_TOOLS_HOOK__'
 export class Form<ValueType extends object = any> {
   displayName = 'Form'
   id = ''
-  @observable.ref accessor initialized = false
-  @observable.ref accessor validating: boolean | undefined = false
-  @observable.ref accessor submitting: boolean | undefined = false
-  @observable.ref accessor loading: boolean | undefined = false
-  @observable.ref accessor modified = false
-  @observable.ref accessor pattern: FormPatternTypes = 'editable'
-  @observable.ref accessor display: FormDisplayTypes = 'visible'
+  @shallowRef accessor initialized = false
+  @shallowRef accessor validating: boolean | undefined = false
+  @shallowRef accessor submitting: boolean | undefined = false
+  @shallowRef accessor loading: boolean | undefined = false
+  @shallowRef accessor modified = false
+  @shallowRef accessor pattern: FormPatternTypes = 'editable'
+  @shallowRef accessor display: FormDisplayTypes = 'visible'
   @observable accessor values: ValueType = {} as ValueType
   @observable accessor initialValues: ValueType = {} as ValueType
-  @observable.ref accessor mounted = false
-  @observable.ref accessor unmounted = false
+  @shallowRef accessor mounted = false
+  @shallowRef accessor unmounted = false
   props: IFormProps<ValueType> = {}
   heart!: Heart
   graph!: Graph
-  @observable.shallow accessor fields: IFormFields = {}
+  @shallow accessor fields: IFormFields = {}
   requests: IFormRequests = {}
-  @observable.shallow accessor indexes: Record<string, string> = {}
+  @shallow accessor indexes: Record<string, string> = {}
   disposers: (() => void)[] = []
 
   constructor(props: IFormProps<ValueType> = {}) {
@@ -109,44 +112,63 @@ export class Form<ValueType extends object = any> {
   }
 
   protected makeReactive() {
-    this.disposers
-      .push
-      // observe(
-      //   this,
-      //   change => {
-      //     triggerFormInitialValuesChange(this, change)
-      //     triggerFormValuesChange(this, change)
-      //   },
-      //   true
-      // )
-      ()
+    // 装饰器架构下 Form 实例本身不是代理，需要分别观察 values / initialValues，
+    // 并用 autorun 跟踪引用变化，overwrite 重新赋值后自动重新订阅
+    let disposeValues: Dispose | undefined
+    let disposeInitialValues: Dispose | undefined
+    this.disposers.push(
+      autorun(() => {
+        disposeValues?.()
+        disposeValues = observe(
+          this.values,
+          change => {
+            triggerFormValuesChange(this, change)
+          },
+          true
+        )
+      }),
+      autorun(() => {
+        disposeInitialValues?.()
+        disposeInitialValues = observe(
+          this.initialValues,
+          change => {
+            triggerFormInitialValuesChange(this, change)
+          },
+          true
+        )
+      }),
+      () => {
+        disposeValues?.()
+        disposeInitialValues?.()
+      }
+    )
   }
 
-  @observable.computed
+  @computed
   get valid() {
     return !this.invalid
   }
 
-  @observable.computed
+  @computed
   get invalid() {
     return this.errors.length > 0
   }
 
-  @observable.computed
+  @computed
   get errors() {
     return this.queryFeedbacks({
       type: 'error',
     })
   }
 
-  @observable.computed
+  @computed
   get warnings() {
     return this.queryFeedbacks({
       type: 'warning',
     })
   }
 
-  @observable.computed
+  @computed
   get successes() {
     return this.queryFeedbacks({
       type: 'success',
@@ -157,12 +179,12 @@ export class Form<ValueType extends object = any> {
     return runEffects(this, this.props.effects)
   }
 
-  @observable.computed
+  @computed
   get hidden() {
     return this.display === 'hidden'
   }
 
-  @observable.computed
+  @computed
   get visible() {
     return this.display === 'visible'
   }
@@ -185,7 +207,7 @@ export class Form<ValueType extends object = any> {
     }
   }
 
-  @observable.computed
+  @computed
   get editable() {
     return this.pattern === 'editable'
   }
@@ -199,7 +221,7 @@ export class Form<ValueType extends object = any> {
     }
   }
 
-  @observable.computed
+  @computed
   get readOnly() {
     return this.pattern === 'readOnly'
   }
@@ -213,7 +235,7 @@ export class Form<ValueType extends object = any> {
     }
   }
 
-  @observable.computed
+  @computed
   get disabled() {
     return this.pattern === 'disabled'
   }
@@ -227,7 +249,7 @@ export class Form<ValueType extends object = any> {
     }
   }
 
-  @observable.computed
+  @computed
   get readPretty() {
     return this.pattern === 'readPretty'
   }
@@ -250,9 +272,9 @@ export class Form<ValueType extends object = any> {
     const identifier = address.toString()
     if (!identifier) return
     if (!this.fields[identifier] || this.props.designable) {
-      // batch(() => {
-      //   new Field(address, props, this, this.props.designable)
-      // })
+      batch(() => {
+        new Field(address, props, this, this.props.designable)
+      })
       this.notify(LifeCycleTypes.ON_FORM_GRAPH_CHANGE)
     }
     return this.fields[identifier] as any
@@ -265,17 +287,17 @@ export class Form<ValueType extends object = any> {
     const identifier = address.toString()
     if (!identifier) return
     if (!this.fields[identifier] || this.props.designable) {
-      // batch(() => {
-      //   new ArrayField(
-      //     address,
-      //     {
-      //       ...props,
-      //       value: isArr(props.value) ? props.value : [],
-      //     },
-      //     this,
-      //     this.props.designable
-      //   )
-      // })
+      batch(() => {
+        new ArrayField(
+          address,
+          {
+            ...props,
+            value: isArr(props.value) ? props.value : [],
+          },
+          this,
+          this.props.designable
+        )
+      })
       this.notify(LifeCycleTypes.ON_FORM_GRAPH_CHANGE)
     }
     return this.fields[identifier] as ArrayField<Decorator, Component>
@@ -288,17 +310,17 @@ export class Form<ValueType extends object = any> {
     const identifier = address.toString()
     if (!identifier) return
     if (!this.fields[identifier] || this.props.designable) {
-      // batch(() => {
-      //   new ObjectField(
-      //     address,
-      //     {
-      //       ...props,
-      //       value: isObj(props.value) ? props.value : {},
-      //     },
-      //     this,
-      //     this.props.designable
-      //   )
-      // })
+      batch(() => {
+        new ObjectField(
+          address,
+          {
+            ...props,
+            value: isObj(props.value) ? props.value : {},
+          },
+          this,
+          this.props.designable
+        )
+      })
       this.notify(LifeCycleTypes.ON_FORM_GRAPH_CHANGE)
     }
     return this.fields[identifier] as ObjectField<Decorator, Component>
@@ -311,9 +333,9 @@ export class Form<ValueType extends object = any> {
     const identifier = address.toString()
     if (!identifier) return
     if (!this.fields[identifier] || this.props.designable) {
-      // batch(() => {
-      new VoidField(address, props, this, this.props.designable)
-      // })
+      batch(() => {
+        new VoidField(address, props, this, this.props.designable)
+      })
       this.notify(LifeCycleTypes.ON_FORM_GRAPH_CHANGE)
     }
     return this.fields[identifier] as VoidField<Decorator, Component>

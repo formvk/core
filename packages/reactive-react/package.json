@@ -1,0 +1,40 @@
+{
+  "name": "@formvk/reactive-react",
+  "version": "1.0.0",
+  "description": "Formvk Reactive React Bindings",
+  "keywords": [
+    "form",
+    "formvk",
+    "formvk-reactive-react",
+    "observer",
+    "react"
+  ],
+  "license": "MIT",
+  "author": "yiyunwan",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc --noEmit && vite build",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@formvk/reactive": "workspace:^",
+    "hoist-non-react-statics": "^3.3.2"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.3.3",
+    "@types/hoist-non-react-statics": "^3.3.7",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "happy-dom": "^21.0.4",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
+  }
+}

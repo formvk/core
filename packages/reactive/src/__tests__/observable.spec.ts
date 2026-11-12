@@ -65,65 +65,6 @@ test('解包 ref 但不代理', () => {
   expect(count.value).toBe(2)
 })
 
-test('observable.shallow 只跟踪顶层属性', () => {
-  const state = observable.shallow({ nested: { count: 1 } })
-  const events: IChange[] = []
-  observe(state, change => {
-    events.push(change)
-  })
-
-  state.nested.count = 2
-  expect(events).toHaveLength(0)
-
-  state.nested = { count: 3 }
-  expect(events).toHaveLength(1)
-  expect(events[0]).toMatchObject({ type: 'set', key: 'nested', path: [] })
-})
-
-test('observable.ref 返回可观察盒子', () => {
-  const initial = { count: 1 }
-  const box = observable.ref(initial)
-
-  expect(box.value).toBe(initial)
-
-  const events: IChange[] = []
-  observe(box, change => {
-    events.push(change)
-  })
-
-  box.value.count = 2
-  expect(events).toHaveLength(0)
-
-  box.value = { count: 3 }
-  expect(events).toHaveLength(1)
-  expect(events[0]).toMatchObject({ type: 'set', key: 'value', path: [] })
-})
-
-test('observable.computed 追踪依赖', () => {
-  const state = observable({ count: 1 })
-  const double = observable.computed(() => state.count * 2)
-
-  expect(double.value).toBe(2)
-
-  state.count = 2
-  expect(double.value).toBe(4)
-})
-
-test('observable.computed 支持可写', () => {
-  const state = observable({ count: 1 })
-  const double = observable.computed({
-    get: () => state.count * 2,
-    set: (value: number) => {
-      state.count = value / 2
-    },
-  })
-
-  double.value = 10
-
-  expect(state.count).toBe(5)
-  expect(double.value).toBe(10)
-})
-
 test('非对象输入原样返回', () => {
   const date = new Date()
   const skipped = { __v_skip: true, count: 1 }
@@ -134,16 +75,6 @@ test('非对象输入原样返回', () => {
   expect(observable(date)).toBe(date)
   expect(observable(skipped)).toBe(skipped)
   expect(observable(count)).toBe(count)
-})
-
-test('observable.shallow 非对象输入原样返回', () => {
-  const date = new Date()
-  const count = ref(1)
-
-  expect(observable.shallow(1)).toBe(1)
-  expect(observable.shallow(null)).toBe(null)
-  expect(observable.shallow(date)).toBe(date)
-  expect(observable.shallow(count)).toBe(count)
 })
 
 test('内置跳过对 React 元素与 Vue VNode 的包装', () => {
@@ -163,7 +94,6 @@ test('内置跳过对 React 元素与 Vue VNode 的包装', () => {
 
   expect(observable(reactElement)).toBe(reactElement)
   expect(observable(vnode)).toBe(vnode)
-  expect(observable.shallow(reactElement)).toBe(reactElement)
 })
 
 test('registerSkip 可注册多个跳过判定并支持销毁', () => {
@@ -181,7 +111,6 @@ test('registerSkip 可注册多个跳过判定并支持销毁', () => {
   expect(state.widget).toBe(widget)
   expect(state.custom).toBe(custom)
   expect(observable(widget)).toBe(widget)
-  expect(observable.shallow(custom)).toBe(custom)
 
   disposeWidget()
   disposeCustom()
@@ -192,12 +121,10 @@ test('registerSkip 可注册多个跳过判定并支持销毁', () => {
   expect(observable(widget)).not.toBe(widget)
 })
 
-test('observable 系列忽略不支持的装饰器类型', () => {
+test('observable 忽略不支持的装饰器类型', () => {
   const getter = () => 1
 
   expect((observable as any)(getter, { kind: 'getter' })).toBe(getter)
-  expect((observable.ref as any)(getter, { kind: 'getter' })).toBe(getter)
-  expect((observable.shallow as any)(getter, { kind: 'getter' })).toBe(getter)
 })
 
 test('observable 的读取与写入接入 Vue 响应式', () => {
@@ -234,39 +161,15 @@ test('observable 数组变更触发 Vue computed', () => {
   expect(total.value).toBe(15)
 })
 
-test('observable.shallow 只有顶层变更触发 Vue effect', () => {
-  const state = observable.shallow({ top: 0, nested: { count: 0 } })
-  const seen: number[] = []
-
-  effect(() => {
-    seen.push(state.top + state.nested.count)
+test('observable 的变更可被 observe 监听', () => {
+  const state = observable({ nested: { count: 1 } })
+  const events: IChange[] = []
+  observe(state, change => {
+    events.push(change)
   })
-
-  expect(seen).toEqual([0])
-
-  state.top = 1
-  expect(seen).toEqual([0, 1])
 
   state.nested.count = 2
-  expect(seen).toEqual([0, 1])
 
-  state.nested = { count: 3 }
-  expect(seen).toEqual([0, 1, 4])
-})
-
-test('observable.ref 盒子变更触发 Vue effect', () => {
-  const state = observable.ref({ count: 0 })
-  const seen: number[] = []
-
-  effect(() => {
-    seen.push(state.value.count)
-  })
-
-  expect(seen).toEqual([0])
-
-  state.value = { count: 1 }
-  expect(seen).toEqual([0, 1])
-
-  state.value.count = 2
-  expect(seen).toEqual([0, 1])
+  expect(events).toHaveLength(1)
+  expect(events[0]).toMatchObject({ type: 'set', key: 'count', path: ['nested'] })
 })

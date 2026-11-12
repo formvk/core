@@ -655,7 +655,8 @@ export const triggerFormInitialValuesChange = (form: Form, change: DataChange) =
   if (Array.isArray(change.target) && change.key === 'length') return
   if (contains(form.initialValues, change.target) || form.initialValues === change.value) {
     if (change.type === 'add' || change.type === 'set') {
-      patchFormValues(form, change.path.slice(1) as (string | number)[], change.value)
+      // 直接观察 initialValues 根对象，path 不含变更键，需要拼上 key 才是完整数据路径
+      patchFormValues(form, [...change.path, change.key] as (string | number)[], change.value)
     }
     if (form.initialized) {
       form.notify(LifeCycleTypes.ON_FORM_INITIAL_VALUES_CHANGE)
@@ -761,6 +762,12 @@ export const batchSubmit = async <T>(
   return results
 }
 
+const shouldValidate = (field: Field) => {
+  const validatePattern = field.props.validatePattern ?? field.form.props.validatePattern ?? ['editable']
+  const validateDisplay = field.props.validateDisplay ?? field.form.props.validateDisplay ?? ['visible']
+  return validatePattern.includes(field.pattern) && validateDisplay.includes(field.display)
+}
+
 export const batchValidate = async (
   target: Form | Field,
   pattern: FormPathPattern,
@@ -768,7 +775,7 @@ export const batchValidate = async (
 ) => {
   if (isForm(target)) target.setValidating(true)
   else {
-    if (target.pattern !== 'editable' || target.display !== 'visible') return
+    if (!shouldValidate(target)) return
   }
   const tasks: any[] = []
   target.query(pattern).forEach(field => {
@@ -813,7 +820,7 @@ export const validateSelf = batch.bound(async (target: Field, triggerType?: Vali
     }
   }
 
-  if (target.pattern !== 'editable' || target.display !== 'visible') return {}
+  if (!shouldValidate(target)) return {}
   start()
   if (!triggerType) {
     const allTriggerTypes = parseValidatorDescriptions(target.validator).reduce(
