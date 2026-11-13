@@ -1,6 +1,6 @@
 # 基础表单
 
-一个包含初始值、校验规则、提交与重置的完整表单，使用 `createFragment` 构建，由 `SchemaField` 渲染。
+一个包含初始值、校验规则、提交与重置的完整表单，schema 由 `createSchemaField` 返回的 fragment 构建，组件 props 类型从扁平组件映射自动推断。
 
 <BasicFormDemo />
 
@@ -16,15 +16,19 @@ import BasicFormDemo from '../../demos/zh/basic-form.vue'
 
 ```vue
 <script setup lang="ts">
-import { createForm, FormProvider, SchemaField, createFragment, createSchema } from '@formvk/vue'
+import { createForm, FormProvider, createSchema, createSchemaField } from '@formvk/vue'
 
-import { demoComponents, type DemoComponents } from '../../demos/components'
+import { DemoArrayItems, demoComponents } from '../../demos/components'
 
 const form = createForm({
   values: { username: '', role: '', subscribe: false, bio: '' },
 })
 
-const f = createFragment<DemoComponents>()
+// 扁平组件映射直接驱动所有类型，无需手写任何泛型
+const { SchemaField, fragment: f } = createSchemaField({
+  components: demoComponents,
+  arrayComponents: { ArrayItems: DemoArrayItems },
+})
 const schema = createSchema({
   username: f.Input({
     title: '用户名',
@@ -45,7 +49,7 @@ async function onSubmit() {
 
 <template>
   <FormProvider :form="form">
-    <SchemaField :schema="schema" :components="demoComponents" />
+    <SchemaField :schema="schema" />
     <button @click="onSubmit">提交</button>
   </FormProvider>
 </template>

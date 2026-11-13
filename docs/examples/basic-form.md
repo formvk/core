@@ -1,6 +1,6 @@
 # Basic Form
 
-A complete form with initial values, validation rules, submit and reset — built with `createFragment` and rendered by `SchemaField`.
+A complete form with initial values, validation rules, submit and reset — the schema is built with the fragment returned by `createSchemaField`, which infers every component prop type from the flat component map.
 
 <BasicFormDemo />
 
@@ -16,15 +16,19 @@ import BasicFormDemo from '../demos/basic-form.vue'
 
 ```vue
 <script setup lang="ts">
-import { createForm, FormProvider, SchemaField, createFragment, createSchema } from '@formvk/vue'
+import { createForm, FormProvider, createSchema, createSchemaField } from '@formvk/vue'
 
-import { demoComponents, type DemoComponents } from '../demos/components'
+import { DemoArrayItems, demoComponents } from '../demos/components'
 
 const form = createForm({
   values: { username: '', role: '', subscribe: false, bio: '' },
 })
 
-const f = createFragment<DemoComponents>()
+// The flat component map drives every type: no generic arguments needed
+const { SchemaField, fragment: f } = createSchemaField({
+  components: demoComponents,
+  arrayComponents: { ArrayItems: DemoArrayItems },
+})
 const schema = createSchema({
   username: f.Input({
     title: 'Username',
@@ -45,7 +49,7 @@ async function onSubmit() {
 
 <template>
   <FormProvider :form="form">
-    <SchemaField :schema="schema" :components="demoComponents" />
+    <SchemaField :schema="schema" />
     <button @click="onSubmit">Submit</button>
   </FormProvider>
 </template>

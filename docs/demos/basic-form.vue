@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { createForm, FormProvider, SchemaField, createFragment, createSchema } from '@formvk/vue'
+import { createForm, FormProvider, createSchema, createSchemaField } from '@formvk/vue'
 import { ref } from 'vue'
 
-import { demoComponents, type DemoComponents } from './components'
+import { DemoArrayItems, demoComponents } from './components'
 
 const form = createForm({
   values: {
@@ -15,7 +15,10 @@ const form = createForm({
 
 const submitted = ref('')
 
-const f = createFragment<DemoComponents>()
+const { SchemaField, fragment: f } = createSchemaField({
+  components: demoComponents,
+  arrayComponents: { ArrayItems: DemoArrayItems },
+})
 const schema = createSchema({
   username: f.Input({
     title: 'Username',
@@ -66,7 +69,7 @@ function onReset() {
 <template>
   <FormProvider :form="form">
     <div class="demo">
-      <SchemaField :schema="schema" :components="demoComponents" />
+      <SchemaField :schema="schema" />
       <div class="demo-actions">
         <button class="demo-btn" :disabled="form.submitting" @click="onSubmit">
           {{ form.submitting ? 'Submitting…' : 'Submit' }}

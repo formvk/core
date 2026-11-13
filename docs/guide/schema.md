@@ -82,23 +82,21 @@ const schema = createSchema({
 
 ### Component props typing
 
-Pass a component props map to `createFragment` to type `componentProps` and get dynamic creators:
+Pass component props maps to `createFragment` to type `componentProps` and get dynamic creators. The first three type arguments are independent maps — `F` for field components, `V` for void / layout components and `A` for array components:
 
 ```ts
-type MyComponents = {
-  field: {
-    Input: { placeholder?: string; maxLength?: number }
-    NumberPicker: { min?: number; max?: number }
-  }
-  void: {
-    Card: { title?: string }
-  }
-  array: {
-    ArrayTable: { columns?: string[] }
-  }
+interface MyFieldComponents {
+  Input: { placeholder?: string; maxLength?: number }
+  NumberPicker: { min?: number; max?: number }
+}
+interface MyVoidComponents {
+  Card: { title?: string }
+}
+interface MyArrayComponents {
+  ArrayTable: { columns?: string[] }
 }
 
-const f = createFragment<MyComponents>()
+const f = createFragment<MyFieldComponents, MyVoidComponents, MyArrayComponents>()
 
 f.Field({ component: 'Input', componentProps: { placeholder: 'Name' } })
 f.Input({ componentProps: { maxLength: 10 } })
@@ -106,16 +104,16 @@ f.Void({}, { component: 'Card' })
 f.Array(f.Field(), { component: 'ArrayTable' })
 ```
 
-`f.Input(...)` is a shorthand that sets `component: 'Input'`. Components declared in `void` or `array` are treated as `void` / `array` nodes; everything else is a field.
+`f.Input(...)` is a shorthand that sets `component: 'Input'`. Components declared in `V` or `A` are treated as `void` / `array` nodes; everything else is a field.
 
-Dynamic creators only exist for declared components. Without a map, `f.Input` is a type error — use `f.Field({ component: 'Input' })` or declare the component in `field`.
+Dynamic creators only exist for declared components. Without a map, `f.Input` is a type error — use `f.Field({ component: 'Input' })` or declare the component in `F`.
 
-The component category is type-level information: at runtime the fragment is a Proxy that cannot inspect the map. Void and array creators therefore also need the matching runtime options, otherwise they fall back to `type: 'string'`:
+The component category is type-level information: at runtime the fragment is a Proxy that cannot inspect the maps. Void and array creators therefore also need the matching runtime options, otherwise they fall back to `type: 'string'`:
 
 ```ts
-const f = createFragment<MyComponents>({
-  voidComponents: ['Card'],
-  arrayComponents: ['ArrayTable'],
+const f = createFragment<MyFieldComponents, MyVoidComponents, MyArrayComponents>({
+  voidComponentNames: ['Card'],
+  arrayComponentNames: ['ArrayTable'],
 })
 ```
 

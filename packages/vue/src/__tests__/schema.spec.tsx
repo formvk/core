@@ -1,4 +1,5 @@
-import { describe, expect, test } from 'vitest'
+import type { SchemaKey } from '@formvk/schema'
+import { describe, expect, expectTypeOf, test } from 'vitest'
 import { defineComponent, nextTick } from 'vue'
 
 import { RecursionField, Schema, SchemaField, createForm, createSchemaField, useField, useFieldSchema } from '..'
@@ -123,10 +124,10 @@ describe('SchemaField / RecursionField', () => {
     const wrapper = mountWithForm(form, () => (
       <SchemaField
         components={{ Input }}
-        mapProperties={(schema: any, name: string) =>
+        mapProperties={(schema: any, name: SchemaKey) =>
           name === 'a' ? { type: 'string', component: 'Input', componentProps: { placeholder: 'mapped' } } : undefined
         }
-        filterProperties={(_schema: any, name: string) => name !== 'b'}
+        filterProperties={(_schema: any, name: SchemaKey) => name !== 'b'}
         schema={{
           type: 'object',
           properties: {
@@ -258,7 +259,7 @@ describe('SchemaField / RecursionField', () => {
     expect(wrapper.find('[data-testid="target"]').exists()).toBe(true)
   })
 
-  test('createSchemaField 预绑定组件，运行时 components 覆盖同名组件', () => {
+  test('SchemaField 接受扁平 components，同名组件可在 props 层覆盖', () => {
     const InputA = defineComponent({
       name: 'InputA',
       props: ['value'],
@@ -274,9 +275,6 @@ describe('SchemaField / RecursionField', () => {
       },
     })
 
-    const { SchemaField: BoundSchemaField } = createSchemaField({
-      components: { Input: InputA },
-    })
     const schema = {
       type: 'object',
       properties: {
@@ -285,12 +283,12 @@ describe('SchemaField / RecursionField', () => {
     }
 
     const formA = createForm()
-    const wrapperA = mountWithForm(formA, () => <BoundSchemaField schema={schema} />)
+    const wrapperA = mountWithForm(formA, () => <SchemaField schema={schema} components={{ Input: InputA }} />)
     expect(wrapperA.find('.input-a').exists()).toBe(true)
     expect(wrapperA.find('.input-b').exists()).toBe(false)
 
     const formB = createForm()
-    const wrapperB = mountWithForm(formB, () => <BoundSchemaField components={{ Input: InputB }} schema={schema} />)
+    const wrapperB = mountWithForm(formB, () => <SchemaField components={{ Input: InputB }} schema={schema} />)
     expect(wrapperB.find('.input-b').exists()).toBe(true)
     expect(wrapperB.find('.input-a').exists()).toBe(false)
   })
@@ -321,6 +319,40 @@ describe('SchemaField / RecursionField', () => {
     expect(first.unmounted).toBe(true)
     expect(form.fields['b']).toBeTruthy()
     expect(wrapper.find('input').attributes('data-testid')).toBe('b')
+  })
+
+  test('hotReload：schema 引用变化后按新 schema 重建字段并保留值', async () => {
+    const form = createForm({ values: { a: 'keep', b: 'stale' } })
+    let schema: any = {
+      type: 'object',
+      properties: {
+        a: { type: 'string', component: 'Input', title: 'old-title' },
+        b: { type: 'string', component: 'Input' },
+      },
+    }
+    const wrapper = mountWithForm(form, () => <SchemaField hotReload components={{ Input }} schema={schema} />)
+
+    const firstA = form.fields['a'] as any
+    expect(firstA.title).toBe('old-title')
+
+    schema = {
+      type: 'object',
+      properties: {
+        a: { type: 'string', component: 'Input', title: 'new-title' },
+        c: { type: 'string', component: 'Input' },
+      },
+    }
+    wrapper.vm.$forceUpdate()
+    await nextTick()
+    await nextTick()
+
+    expect(form.fields['a']).not.toBe(firstA)
+    expect((form.fields['a'] as any).title).toBe('new-title')
+    expect(form.values.a).toBe('keep')
+    expect(form.values.b).toBeUndefined()
+    expect(form.fields['b']).toBeUndefined()
+    expect(form.fields['c']).toBeTruthy()
+    expect(wrapper.findAll('input').map(input => input.attributes('data-testid'))).toEqual(['a', 'c'])
   })
 
   test('schema prop 支持直接传入 Schema 实例', () => {
@@ -381,5 +413,175 @@ describe('SchemaField / RecursionField', () => {
     expect(form.fields['v']).toBeUndefined()
     expect(form.fields['v.a']).toBeTruthy()
     expect(wrapper.find('input').attributes('data-testid')).toBe('v.a')
+  })
+})
+
+const TypedInput = defineComponent({
+  name: 'TypedInput',
+  props: { maxLength: Number, placeholder: String },
+  setup: () => () => <input />,
+})
+
+const TypedArray = defineComponent({
+  name: 'TypedArray',
+  props: { maxItems: Number },
+  setup: () => () => <div />,
+})
+
+const TypedLayout = defineComponent({
+  name: 'TypedLayout',
+  props: { colon: Boolean },
+  setup: () => () => <div />,
+})
+
+const demoComponents = {
+  Input: TypedInput,
+}
+
+describe('createSchemaField 返回 SchemaField + fragment', () => {
+  test('运行时：工厂返回 { SchemaField, fragment } 双 key', () => {
+    const built = createSchemaField({ components: { Input: TypedInput } })
+
+    expect(Object.keys(built).sort()).toEqual(['SchemaField', 'fragment'])
+    expect(built.SchemaField).toBeTruthy()
+    expect(typeof built.fragment.Field).toBe('function')
+  })
+
+  test('运行时：分类入参传组件 map，动态构造器按分类产出节点', () => {
+    const { fragment: f } = createSchemaField({
+      components: { Input: TypedInput },
+      voidComponents: { Layout: TypedLayout },
+      arrayComponents: { ArrayList: TypedArray },
+      defaultDecorator: 'Layout',
+    })
+
+    expect(f.Field()()).toMatchObject({ type: 'string' })
+    expect(f.Input({ title: '姓名' })()).toMatchObject({
+      type: 'string',
+      component: 'Input',
+      title: '姓名',
+      decorator: 'Layout',
+    })
+    expect(f.ArrayList(f.Input())()).toMatchObject({
+      type: 'array',
+      component: 'ArrayList',
+      items: { type: 'string', component: 'Input' },
+    })
+    expect(f.Layout({})()).toMatchObject({ type: 'void', component: 'Layout' })
+    expect(
+      f.Object({
+        name: f.Input({ required: true }),
+      })()
+    ).toMatchObject({ type: 'object', properties: { name: { type: 'string', component: 'Input' } } })
+  })
+
+  test('运行时：预绑定 SchemaField 无需再传 components 即可渲染 fragment 产出的 schema', () => {
+    const { SchemaField: BoundSchemaField, fragment: f } = createSchemaField({
+      components: { Input: TypedInput },
+      arrayComponents: { ArrayList: TypedArray },
+    })
+    const schema = f.Object({ name: f.Input({ required: true }) })()
+    const form = createForm()
+
+    const wrapper = mountWithForm(form, () => <BoundSchemaField schema={schema} />)
+
+    expect(wrapper.find('input').exists()).toBe(true)
+    expect(form.fields['name']).toBeTruthy()
+  })
+
+  test('运行时：预绑定 SchemaField 支持 props 传扁平 map 覆盖同名组件', () => {
+    const OverrideInput = defineComponent({
+      name: 'OverrideInput',
+      props: ['value'],
+      setup: () => () => <input class="override-input" />,
+    })
+    const { SchemaField: BoundSchemaField, fragment: f } = createSchemaField({
+      components: { Input: TypedInput },
+    })
+    const schema = f.Object({ name: f.Input() })()
+    const form = createForm()
+
+    const wrapper = mountWithForm(form, () => (
+      <BoundSchemaField schema={schema} components={{ Input: OverrideInput }} />
+    ))
+
+    expect(wrapper.find('.override-input').exists()).toBe(true)
+  })
+
+  test('运行时：无参调用仍可用，动态构造器运行时保持宽松', () => {
+    const { fragment: f } = createSchemaField()
+    expect(f.Field()()).toMatchObject({ type: 'string' })
+    expect((f as any).Anything()()).toMatchObject({ type: 'string', component: 'Anything' })
+  })
+
+  test('类型：组件 props、父子值类型与 scope 全部由扁平 components 推断，无需手写泛型', () => {
+    const { fragment: f } = createSchemaField({
+      components: demoComponents,
+      voidComponents: { Layout: TypedLayout },
+      arrayComponents: { ArrayList: TypedArray },
+      scope: { $moment: (value: string) => value },
+    })
+
+    // @ts-expect-error 分类入参只接收组件 map，不再接收名字数组
+    createSchemaField({ components: demoComponents, arrayComponents: ['ArrayList'] })
+
+    f.Input({ componentProps: { maxLength: 10, placeholder: 'name' } })
+    // @ts-expect-error componentProps 由组件 props 推导，maxLength 必须是 number
+    f.Input({ componentProps: { maxLength: '10' } })
+    // @ts-expect-error 未在 components 中声明的组件名不在类型表面
+    void f.NotExist
+
+    f.Object<{ name: string; age: number }>({
+      name: f.Field({
+        required: true,
+        reactions: (field, scope) => {
+          expectTypeOf(field.value).toEqualTypeOf<string>()
+          expectTypeOf(scope.$moment).toEqualTypeOf<(value: string) => string>()
+          expectTypeOf(scope.$record).toEqualTypeOf<{ name: string; age: number } & { $lookup: any; $index: number }>()
+        },
+      }),
+      age: f.Field({
+        required: true,
+        reactions: field => {
+          expectTypeOf(field.value).toEqualTypeOf<number>()
+        },
+      }),
+      layout: f.Layout({}),
+    })
+
+    // @ts-expect-error 未在父级 record 中声明的 key 不允许产生值的字段，错误落在调用表达式上
+    f.Object<{ name: string }>({
+      name: f.Field({ required: true }),
+      extra: f.Field(),
+    })
+
+    f.ArrayList(
+      f.Object<{ name: string }>({
+        name: f.Field({
+          required: true,
+          reactions: (_field, scope) => {
+            expectTypeOf(scope.$record).toEqualTypeOf<{ name: string } & { $lookup: any; $index: number }>()
+          },
+        }),
+      }),
+      {
+        reactions: (field, scope) => {
+          expectTypeOf(field.value).toEqualTypeOf<{ name: string }[]>()
+          expectTypeOf(scope.$moment).toEqualTypeOf<(value: string) => string>()
+        },
+      }
+    )
+  })
+
+  test('类型：defaultDecorator 推断后收窄 decoratorProps', () => {
+    const { fragment: f } = createSchemaField({
+      components: { Input: TypedInput },
+      voidComponents: { Layout: TypedLayout },
+      defaultDecorator: 'Layout',
+    })
+
+    f.Input({ title: '姓名', decoratorProps: { colon: true } })
+    // @ts-expect-error decoratorProps 按 Layout 的 props 推导
+    f.Input({ title: '姓名', decoratorProps: { unknown: 1 } })
   })
 })

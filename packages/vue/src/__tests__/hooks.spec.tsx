@@ -4,9 +4,7 @@ import { describe, expect, test, vi } from 'vitest'
 import { defineComponent, nextTick, provide, shallowRef } from 'vue'
 
 import {
-  FieldSymbol,
   FormProvider,
-  FormSymbol,
   SchemaField,
   createForm,
   useAttach,
@@ -16,6 +14,7 @@ import {
   useFormEffects,
   useParentForm,
 } from '..'
+import { FieldSymbol, FormSymbol } from '../shared/context'
 import { Input, mountWithForm } from './shared'
 
 describe('hooks', () => {

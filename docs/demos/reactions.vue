@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { createForm, FormProvider, SchemaField, createExpression, createFragment, createSchema } from '@formvk/vue'
+import { createForm, FormProvider, createExpression, createSchema, createSchemaField } from '@formvk/vue'
 
-import { demoComponents, type DemoComponents } from './components'
+import { DemoArrayItems, demoComponents } from './components'
 
 const form = createForm({
   values: { plan: 'free', subscribe: false, email: '', company: '' },
@@ -9,7 +9,10 @@ const form = createForm({
 
 const exp = createExpression<{ plan: string; subscribe: boolean }>('$values')
 
-const f = createFragment<DemoComponents>()
+const { SchemaField, fragment: f } = createSchemaField({
+  components: demoComponents,
+  arrayComponents: { ArrayItems: DemoArrayItems },
+})
 const schema = createSchema({
   plan: f.Select({
     title: 'Plan',
@@ -55,7 +58,7 @@ const schema = createSchema({
 <template>
   <FormProvider :form="form">
     <div class="demo">
-      <SchemaField :schema="schema" :components="demoComponents" />
+      <SchemaField :schema="schema" />
       <div class="demo-result">values: {{ JSON.stringify(form.values) }}</div>
     </div>
   </FormProvider>

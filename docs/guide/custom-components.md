@@ -58,7 +58,7 @@ The same map is searched for decorator components and nested nodes, so one regis
 
 ## Type `componentProps`
 
-Without a component map, `componentProps` is untyped. Pass a `ComponentPropsMap` to `createFragment`, extracting each component's props with the `ComponentProps<T>` helper:
+Without a component map, `componentProps` is untyped. Pass component props maps to `createFragment` — the first three type arguments are independent maps for field, void / layout and array components — extracting each component's props with the `ComponentProps<T>` helper:
 
 ```ts
 import type { ComponentProps } from '@formvk/vue'
@@ -71,20 +71,46 @@ const fieldComponents = {
   Select: MySelect,
 }
 
-type Components = {
-  field: {
-    Input: ComponentProps<typeof MyInput>
-    Select: ComponentProps<typeof MySelect>
-  }
+interface FieldMap {
+  Input: ComponentProps<typeof MyInput>
+  Select: ComponentProps<typeof MySelect>
 }
 
-const f = createFragment<Components>()
+const f = createFragment<FieldMap>()
 
 f.Input({ componentProps: { placeholder: 'Name' } })
 // typo or unknown prop here is a type error
 ```
 
-Declare layout-only components under `void`, and array components under `array`. Array creators additionally need the runtime hint `createFragment<Components>({ arrayComponents: ['ArrayItems'] })`, because component categories are type-level information.
+Layout-only components go in the second map (`V`) and array components in the third map (`A`). Array creators additionally need the runtime hint `arrayComponentNames`, because component categories are type-level information:
+
+```ts
+interface VoidMap {
+  Card: { title?: string }
+}
+interface ArrayMap {
+  ArrayItems: ComponentProps<typeof MyArrayItems>
+}
+
+const f2 = createFragment<FieldMap, VoidMap, ArrayMap>({
+  arrayComponentNames: ['ArrayItems'],
+})
+```
+
+### Skip the map: let `createSchemaField` infer everything
+
+When the schema lives in the same app as the components, pass a flat runtime component map to `createSchemaField` and classify the special components with `voidComponents` / `arrayComponents` component maps — they are merged into the runtime component map automatically, so no duplicate registration is needed. The factory returns `{ SchemaField, fragment }` and extracts each component's props automatically — no hand-written component props maps, no type arguments:
+
+```ts
+const { SchemaField, fragment: f } = createSchemaField({
+  components: { Input: MyInput },
+  arrayComponents: { ArrayItems: MyArrayItems },
+})
+
+f.Input({ componentProps: { placeholder: 'Name' } }) // checked against MyInput's props
+```
+
+The returned `SchemaField` is pre-bound with the flattened map, so rendering needs no `components` prop: `<SchemaField :schema="schema" />`. See [Vue Bindings](/api/vue#schemafield) for the full option list.
 
 ## Adapt an existing component library
 
@@ -152,11 +178,11 @@ The field is an `ArrayField`, so `push`, `pop`, `insert`, `remove`, `move`, `mov
 
 - **`useField()` returns `null`** outside a `SchemaField` / `RecursionField` subtree — the component must be referenced from a schema, not mounted directly.
 - **Values do not update** when emitting raw values into `onInput`; use `field.setValue(value)` for non-event payloads.
-- **Props are untyped** when no `ComponentPropsMap` is passed; dynamic creators such as `f.Input` also stop existing as typed symbols.
+- **Props are untyped** when no component props map is passed; dynamic creators such as `f.Input` also stop existing as typed symbols.
 - **Pattern flags** (`disabled`, `readOnly`, `readPretty`) are inherited from the form and parent fields, so components should read them from the field model rather than hard-coding them.
 
 ## Next steps
 
 - [Validation guide](/guide/validation) — rules and error display inside custom components.
 - [Vue bindings reference](/api/vue) — full component and hook signatures.
-- [Schema DSL reference](/api/schema) — `ComponentPropsMap`, creators and field schema fields.
+- [Schema DSL reference](/api/schema) — component props maps, creators and field schema fields.

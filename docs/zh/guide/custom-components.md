@@ -58,7 +58,7 @@ const schema = createSchema({
 
 ## 给 `componentProps` 加类型
 
-不传组件映射时，`componentProps` 没有类型约束。把 `ComponentPropsMap` 传给 `createFragment`，并用 `ComponentProps<T>` 工具类型提取每个组件的 props：
+不传组件映射时，`componentProps` 没有类型约束。把组件 props map 传给 `createFragment` —— 前三个类型参数分别是 field、void / 布局、array 三个相互独立的 map —— 并用 `ComponentProps<T>` 工具类型提取每个组件的 props：
 
 ```ts
 import type { ComponentProps } from '@formvk/vue'
@@ -71,20 +71,46 @@ const fieldComponents = {
   Select: MySelect,
 }
 
-type Components = {
-  field: {
-    Input: ComponentProps<typeof MyInput>
-    Select: ComponentProps<typeof MySelect>
-  }
+interface FieldMap {
+  Input: ComponentProps<typeof MyInput>
+  Select: ComponentProps<typeof MySelect>
 }
 
-const f = createFragment<Components>()
+const f = createFragment<FieldMap>()
 
 f.Input({ componentProps: { placeholder: '名称' } })
 // 拼写错误或传入未知 props 会直接报类型错误
 ```
 
-纯布局组件声明在 `void` 下，数组组件声明在 `array` 下。数组构造器还需要运行时提示 `createFragment<Components>({ arrayComponents: ['ArrayItems'] })`，因为组件分类只存在于类型层面。
+纯布局组件声明在第二个 map（`V`）中，数组组件声明在第三个 map（`A`）中。数组构造器还需要运行时提示 `arrayComponentNames`，因为组件分类只存在于类型层面：
+
+```ts
+interface VoidMap {
+  Card: { title?: string }
+}
+interface ArrayMap {
+  ArrayItems: ComponentProps<typeof MyArrayItems>
+}
+
+const f2 = createFragment<FieldMap, VoidMap, ArrayMap>({
+  arrayComponentNames: ['ArrayItems'],
+})
+```
+
+### 跳过手写映射：让 `createSchemaField` 自动推断
+
+当 schema 与组件位于同一个应用中时，把扁平的运行时组件映射传给 `createSchemaField`，再用 `voidComponents` / `arrayComponents` **组件 map** 归类特殊组件 —— 它们会被自动合并进运行时组件映射，无需重复注册。工厂返回 `{ SchemaField, fragment }` 并自动提取每个组件的 props —— 不需要手写组件 props map，也不需要任何类型参数：
+
+```ts
+const { SchemaField, fragment: f } = createSchemaField({
+  components: { Input: MyInput },
+  arrayComponents: { ArrayItems: MyArrayItems },
+})
+
+f.Input({ componentProps: { placeholder: '名称' } }) // 按 MyInput 的 props 校验
+```
+
+返回的 `SchemaField` 已预绑定拍平后的映射，渲染时无需再传 `components` prop：`<SchemaField :schema="schema" />`。完整选项见 [Vue 绑定](/zh/api/vue#schemafield)。
 
 ## 接入既有组件库
 
@@ -152,11 +178,11 @@ const schema = useFieldSchema()
 
 - **`useField()` 返回 `null`**：组件不在 `SchemaField` / `RecursionField` 子树内。组件必须由 schema 引用，不能直接挂载。
 - **取值不更新**：把原始值传给了 `onInput`。非事件载荷请使用 `field.setValue(value)`。
-- **props 没有类型**：没有传入 `ComponentPropsMap`；此时 `f.Input` 这类动态构造器也不会作为类型符号存在。
+- **props 没有类型**：没有传入组件 props map；此时 `f.Input` 这类动态构造器也不会作为类型符号存在。
 - **pattern 标记**（`disabled`、`readOnly`、`readPretty`）会从表单和父字段继承，组件应从字段模型读取，不要写死。
 
 ## 下一步
 
 - [校验指南](/zh/guide/validation) —— 自定义组件中的规则与错误展示。
 - [Vue 绑定参考](/zh/api/vue) —— 完整的组件与 hooks 签名。
-- [Schema DSL 参考](/zh/api/schema) —— `ComponentPropsMap`、构造器与字段 schema。
+- [Schema DSL 参考](/zh/api/schema) —— 组件 props map、构造器与字段 schema。

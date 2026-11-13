@@ -38,7 +38,12 @@ export type SchemaEffectTypes =
   | 'onFieldValidateFailed'
   | 'onFieldValidateSuccess'
 
-export type SchemaReaction<Field extends GeneralField = GeneralField, Scope extends object = {}> =
+export type SchemaReaction<
+  Field extends GeneralField = GeneralField,
+  Scope extends object = {},
+  IRecord extends object = any,
+  IValues extends object = any,
+> =
   | {
       dependencies?:
         | Array<
@@ -66,11 +71,14 @@ export type SchemaReaction<Field extends GeneralField = GeneralField, Scope exte
       }
       [key: string]: any
     }
-  | ((field: Field, scope: TScope<Scope, Field>) => void)
+  | ((field: Field, scope: TScope<Scope, Field, IRecord, IValues>) => void)
 
-export type SchemaReactions<Field extends GeneralField = GeneralField, Scope extends object = {}> =
-  | SchemaReaction<Field, Scope>
-  | SchemaReaction<Field, Scope>[]
+export type SchemaReactions<
+  Field extends GeneralField = GeneralField,
+  Scope extends object = {},
+  IRecord extends object = any,
+  IValues extends object = any,
+> = SchemaReaction<Field, Scope, IRecord, IValues> | SchemaReaction<Field, Scope, IRecord, IValues>[]
 
 export type SchemaItems = ISchema | ISchema[]
 

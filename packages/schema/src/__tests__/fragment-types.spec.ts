@@ -3,7 +3,7 @@ import { describe, expectTypeOf, test } from 'vitest'
 
 import { createSchema } from '../create-schema'
 import { createFragment } from '../fragment'
-import type { ComponentPropsMap, SchemaCreator } from '../fragment-types'
+import type { SchemaCreator } from '../fragment-types'
 import type { ISchema, SchemaExpression, SchemaReaction, Stringify, TScope } from '../types'
 
 declare module '../types' {
@@ -12,28 +12,26 @@ declare module '../types' {
   }
 }
 
-interface Components extends ComponentPropsMap {
-  field: {
-    Input: { maxLength?: number }
-    Select: { options?: Array<{ label: string; value: any }> }
-  }
-  void: {
-    FormItem: { label?: string }
-    FormLayout: { colon?: boolean }
-  }
-  array: {
-    ArrayItems: { maxItems?: number }
-  }
+interface FieldMap {
+  Input: { maxLength?: number }
+  Select: { options?: Array<{ label: string; value: any }> }
+}
+interface VoidMap {
+  FormItem: { label?: string }
+  FormLayout: { colon?: boolean }
+}
+interface ArrayMap {
+  ArrayItems: { maxItems?: number }
 }
 
-const f = createFragment<Components>()
+const f = createFragment<FieldMap, VoidMap, ArrayMap>()
 
 describe('fragment types', () => {
   test('field creator value', () => {
-    expectTypeOf(f.Field()).toEqualTypeOf<SchemaCreator<string | undefined>>()
-    expectTypeOf(f.Field<number>({ title: '年龄' })).toEqualTypeOf<SchemaCreator<number | undefined>>()
-    expectTypeOf(f.Field({ required: true })).toEqualTypeOf<SchemaCreator<string>>()
-    expectTypeOf(f.Field<number>({ title: '年龄', required: true })).toEqualTypeOf<SchemaCreator<number>>()
+    expectTypeOf(f.Field()).toEqualTypeOf<SchemaCreator<string | undefined, {}>>()
+    expectTypeOf(f.Field<number>({ title: '年龄' })).toEqualTypeOf<SchemaCreator<number | undefined, {}>>()
+    expectTypeOf(f.Field({ required: true })).toEqualTypeOf<SchemaCreator<string, {}>>()
+    expectTypeOf(f.Field<number>({ title: '年龄', required: true })).toEqualTypeOf<SchemaCreator<number, {}>>()
   })
 
   test('field component props', () => {
@@ -41,12 +39,67 @@ describe('fragment types', () => {
     f.Field({ component: 'Select', componentProps: { options: [{ label: 'a', value: 1 }] } })
     f.Input({ componentProps: { maxLength: 10 } })
     f.Input({ title: '姓名' })
-    // @ts-expect-error componentProps 由 ComponentPropsMap 推导
+    // @ts-expect-error componentProps 由分类 props map 推导
     f.Input({ componentProps: { maxLength: '10' } })
     // @ts-expect-error componentProps 由 component 名推导
     f.Field({ component: 'Input', componentProps: { maxLength: '10' } })
     // @ts-expect-error field 的 type 固定为 string
     f.Field({ type: 'number' })
+  })
+
+  test('default decorator option', () => {
+    createFragment<FieldMap, VoidMap, ArrayMap>({ defaultDecorator: 'FormItem' })
+    // 允许未注册的组件名，运行时从 components 映射解析
+    createFragment<FieldMap, VoidMap, ArrayMap>({ defaultDecorator: 'FieldWrapper' })
+    // @ts-expect-error defaultDecorator 必须是组件名或组件引用
+    createFragment<FieldMap, VoidMap, ArrayMap>({ defaultDecorator: 1 })
+    // @ts-expect-error 第五个泛型声明后，运行时取值必须一致
+    createFragment<FieldMap, VoidMap, ArrayMap, {}, 'FormItem'>({ defaultDecorator: 'FormLayout' })
+  })
+
+  test('default decorator drives decoratorProps', () => {
+    const decorated = createFragment<FieldMap, VoidMap, ArrayMap, {}, 'FormItem'>({ defaultDecorator: 'FormItem' })
+
+    decorated.Field({ title: '姓名', decoratorProps: { label: '姓名' } })
+    decorated.Input({ title: '姓名', decoratorProps: { label: '姓名' } })
+    decorated.Object({}, { decoratorProps: { label: '布局' } })
+    decorated.Void({}, { decoratorProps: { label: '布局' } })
+    decorated.Array(decorated.Field(), { decoratorProps: { label: '列表' } })
+    decorated.FormLayout({ decoratorProps: { label: '布局' } })
+    decorated.ArrayItems(decorated.Field(), { decoratorProps: { label: '列表' } })
+
+    // @ts-expect-error decoratorProps 由默认装饰器推导
+    decorated.Field({ title: '姓名', decoratorProps: { colon: true } })
+    // @ts-expect-error decoratorProps 由默认装饰器推导
+    decorated.Input({ title: '姓名', decoratorProps: { colon: true } })
+    // @ts-expect-error decoratorProps 由默认装饰器推导
+    decorated.Object({}, { decoratorProps: { colon: true } })
+    // @ts-expect-error decoratorProps 由默认装饰器推导
+    decorated.Void({}, { decoratorProps: { colon: true } })
+    // @ts-expect-error decoratorProps 由默认装饰器推导
+    decorated.Array(decorated.Field(), { decoratorProps: { colon: true } })
+    // @ts-expect-error decoratorProps 由默认装饰器推导
+    decorated.FormLayout({ decoratorProps: { colon: true } })
+    // @ts-expect-error decoratorProps 由默认装饰器推导
+    decorated.ArrayItems(decorated.Field(), { decoratorProps: { colon: true } })
+
+    // 显式 decorator 仍然覆盖默认值
+    decorated.Field({ title: '姓名', decorator: 'FormLayout', decoratorProps: { colon: true } })
+    // @ts-expect-error decoratorProps 由显式 decorator 推导
+    decorated.Field({ title: '姓名', decorator: 'FormLayout', decoratorProps: { label: '姓名' } })
+  })
+
+  test('default decorator reference drives decoratorProps', () => {
+    class StubFormItem {
+      $props!: { label?: string }
+    }
+    const decorated = createFragment<FieldMap, VoidMap, ArrayMap, {}, typeof StubFormItem>({
+      defaultDecorator: StubFormItem,
+    })
+
+    decorated.Field({ title: '姓名', decoratorProps: { label: '姓名' } })
+    // @ts-expect-error decoratorProps 由默认装饰器组件推导
+    decorated.Field({ title: '姓名', decoratorProps: { colon: true } })
   })
 
   test('field decorator props', () => {
@@ -250,7 +303,7 @@ describe('fragment types', () => {
     interface MyScope {
       $moment: (value: string) => string
     }
-    const scoped = createFragment<Components, MyScope>()
+    const scoped = createFragment<FieldMap, VoidMap, ArrayMap, MyScope>()
 
     scoped.Field<number>({
       reactions: (field, scope) => {
@@ -281,6 +334,90 @@ describe('fragment types', () => {
       reactions: (field, scope) => {
         expectTypeOf(scope.$moment).toEqualTypeOf<(value: string) => string>()
       },
+    })
+  })
+
+  test('parent declared record and scope flow into children', () => {
+    interface MyScope {
+      $moment: (value: string) => string
+    }
+    type Values = { list: Array<{ name: string }> }
+    const scoped = createFragment<FieldMap, VoidMap, ArrayMap, MyScope>()
+
+    scoped.Object<{ name: string; age: number }, MyScope>({
+      name: scoped.Field({
+        required: true,
+        reactions: (field, scope) => {
+          expectTypeOf(field.value).toEqualTypeOf<string>()
+          expectTypeOf(scope.$moment).toEqualTypeOf<(value: string) => string>()
+          expectTypeOf(scope.$record).toEqualTypeOf<{ name: string; age: number } & { $lookup: any; $index: number }>()
+        },
+      }),
+      // 不写 Field 泛型时，值类型由父级 Record 的 `age: number` 收敛
+      age: scoped.Field({
+        required: true,
+        reactions: (field, scope) => {
+          expectTypeOf(field.value).toEqualTypeOf<number>()
+          expectTypeOf(scope.$record).toEqualTypeOf<{ name: string; age: number } & { $lookup: any; $index: number }>()
+        },
+      }),
+      // 未在父级 Record 中声明的 key 只允许 void 子节点
+      layout: scoped.FormLayout(),
+      // @ts-expect-error 未声明的 key 不允许产生值的字段
+      extra: scoped.Field(),
+    })
+
+    // 嵌套对象显式声明自身值类型即可，Scope 与父级一致时无需重复声明
+    scoped.Object<{ address: { street: string } }>({
+      address: scoped.Object<{ street: string }>({
+        street: scoped.Field({
+          required: true,
+          reactions: (field, scope) => {
+            expectTypeOf(field.value).toEqualTypeOf<string>()
+            expectTypeOf(scope.$moment).toEqualTypeOf<(value: string) => string>()
+            expectTypeOf(scope.$record).toEqualTypeOf<{ street: string } & { $lookup: any; $index: number }>()
+          },
+        }),
+      }),
+    })
+
+    scoped.Void<{ name: string }, MyScope>({
+      name: scoped.Field({
+        required: true,
+        reactions: (field, scope) => {
+          expectTypeOf(scope.$moment).toEqualTypeOf<(value: string) => string>()
+          expectTypeOf(scope.$record).toEqualTypeOf<{ name: string } & { $lookup: any; $index: number }>()
+        },
+      }),
+      layout: scoped.FormLayout(),
+    })
+
+    scoped.Array<{ name: string }, MyScope>(
+      scoped.Object<{ name: string }>({
+        name: scoped.Field({
+          required: true,
+          reactions: (field, scope) => {
+            expectTypeOf(scope.$record).toEqualTypeOf<{ name: string } & { $lookup: any; $index: number }>()
+          },
+        }),
+      }),
+      {
+        reactions: (field, scope) => {
+          expectTypeOf(field.value).toEqualTypeOf<{ name: string }[]>()
+          expectTypeOf(scope.$moment).toEqualTypeOf<(value: string) => string>()
+        },
+      }
+    )
+
+    // 父级声明后子级仍可显式覆盖 record 与 values
+    scoped.Object<{ name: string }, MyScope, { name: string }>({
+      name: scoped.Field<string, 'Input', 'FormItem', MyScope, { name: string }, Values>({
+        required: true,
+        reactions: (field, scope) => {
+          expectTypeOf(field.value).toEqualTypeOf<string>()
+          expectTypeOf(scope.$values).toEqualTypeOf<Values>()
+        },
+      }),
     })
   })
 
@@ -326,7 +463,7 @@ describe('fragment types', () => {
       name?: string
     }>()
     f.FormLayout({ componentProps: { colon: true } })
-    // @ts-expect-error componentProps 由 ComponentPropsMap 推导
+    // @ts-expect-error componentProps 由分类 props map 推导
     f.FormLayout({ componentProps: { colon: 'true' } })
   })
 
@@ -336,7 +473,7 @@ describe('fragment types', () => {
     const arrayItems = f.ArrayItems(f.Field({ required: true }))
     expectTypeOf<(typeof arrayItems._$types$_)[0]>().toEqualTypeOf<string[]>()
     f.ArrayItems(f.Field(), { componentProps: { maxItems: 2 } })
-    // @ts-expect-error componentProps 由 ComponentPropsMap 推导
+    // @ts-expect-error componentProps 由分类 props map 推导
     f.ArrayItems(f.Field(), { componentProps: { maxItems: '2' } })
   })
 

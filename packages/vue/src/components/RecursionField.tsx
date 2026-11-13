@@ -6,7 +6,7 @@ import type { Ref } from 'vue'
 
 import { useField } from '../hooks/useField'
 import { SchemaExpressionScopeSymbol, SchemaOptionsSymbol, SchemaSymbol } from '../shared/context'
-import type { ISchemaFieldFactoryOptions, ISchemaFilter, ISchemaMapper } from '../types'
+import type { ISchemaFieldRuntimeOptions, ISchemaFilter, ISchemaMapper } from '../types'
 import { ReactiveField } from './ReactiveField'
 
 type SlotFn = (props?: any) => any
@@ -43,7 +43,7 @@ export const RecursionField = defineComponent({
   },
   setup(props) {
     const parentRef = useField()
-    const optionsRef = inject(SchemaOptionsSymbol, ref({})) as Ref<ISchemaFieldFactoryOptions>
+    const optionsRef = inject(SchemaOptionsSymbol, ref({})) as Ref<ISchemaFieldRuntimeOptions>
     const scopeRef = inject(SchemaExpressionScopeSymbol, ref({}))
 
     const fieldSchemaRef = computed(() => {

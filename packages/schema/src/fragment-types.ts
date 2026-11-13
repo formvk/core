@@ -2,64 +2,74 @@ import type { ArrayField, Field, ObjectField, VoidField } from '@formvk/core'
 
 import type { ISchema, SchemaPatch, SchemaReactions } from './types'
 
-/** 组件名 → props 的映射，只区分 field / void / array 三类 */
-export interface ComponentPropsMap {
-  /** 数据字段组件：string / number 等，也是动态组件的默认分类 */
-  field?: Record<string, any>
-  /** 无值组件：void 字段、object 字段、decorator */
-  void?: Record<string, any>
-  /** 数组组件：array 字段 */
-  array?: Record<string, any>
-}
+/**
+ * 三个独立的组件 props map，泛型顺序与运行时分类通道一致：
+ * - F：数据字段组件（string / number 等，也是动态组件的默认分类）
+ * - V：无值组件（void 字段、object 字段、decorator）
+ * - A：数组组件（array 字段）
+ */
+export type FragmentPropsMap = Record<string, any>
 
-export interface FragmentOptions {
+export interface FragmentOptions<
+  V extends FragmentPropsMap = {},
+  DefaultDecorator extends AnyComponent<V> = AnyComponent<V>,
+> {
   patches?: SchemaPatchInput | SchemaPatchInput[]
   /** 动态组件中按 void 处理的组件名，其余未声明组件按 field 处理 */
-  voidComponents?: string[]
+  voidComponentNames?: string[]
   /** 动态组件中按 array 处理的组件名 */
-  arrayComponents?: string[]
+  arrayComponentNames?: string[]
+  /**
+   * 默认装饰器：string 字段声明了 title 且未显式设置 decorator 时自动补上。
+   * 与 formily-pro 的 defaultDecoratorPatch 语义一致，object / void / array 不生效。
+   * 指定 createFragment 的第五个泛型后，decoratorProps 会按该装饰器收窄。
+   */
+  defaultDecorator?: DefaultDecorator
 }
 
 /** 支持 `{ pre: true, patch }` 形式的 patch，pre 会提前执行 */
 export type SchemaPatchInput = SchemaPatch | { pre?: boolean; patch: SchemaPatch }
 
-export type FieldComponents<C extends ComponentPropsMap> = C extends { field: infer FieldMap }
-  ? NonNullable<FieldMap>
-  : never
-export type VoidComponents<C extends ComponentPropsMap> = C extends { void: infer VoidMap }
-  ? NonNullable<VoidMap>
-  : never
-export type ArrayComponents<C extends ComponentPropsMap> = C extends { array: infer ArrayMap }
-  ? NonNullable<ArrayMap>
-  : never
-
 type ComponentName<Map> = [Map] extends [never] ? never : keyof Map & string
 
-export type FieldComponentName<C extends ComponentPropsMap> = ComponentName<FieldComponents<C>>
-export type VoidComponentName<C extends ComponentPropsMap> = ComponentName<VoidComponents<C>>
-export type ArrayComponentName<C extends ComponentPropsMap> = ComponentName<ArrayComponents<C>>
+/**
+ * 组件入参通用形态：分类 map 中已声明的组件名 | 任意字符串组件名 | 组件引用（函数或对象组件）。
+ * field / void / array 组件与 decorator 的取值约束共用本类型，分类语义由传入的 F / V / A map 承载。
+ * 注意：object 成员不校验组件具体形状（跨 Vue 选项式 / 函数组件的宽松约束），非组件对象也能通过类型检查，
+ * 其合法性最终交给渲染层 h() 兜底。
+ */
+export type AnyComponent<Map extends FragmentPropsMap> =
+  | ComponentName<Map>
+  | (string & {})
+  | ((...args: any[]) => any)
+  | object
 
-/** 直接传入的组件引用：Vue / React 组件对象或函数组件均满足 */
-export type ComponentLike = ((...args: any[]) => any) | object
-
-/** 从组件类型提取 props；Vue 从 `$props`、类组件从构造函数首参、函数组件从入参提取，无法识别时退回宽松类型 */
-type TPropsOfComponent<Component> = Component extends abstract new (...args: any) => { $props: infer Props }
+/**
+ * 从组件类型提取 props；Vue 从 `$props`、类组件从构造函数首参、函数组件从入参提取。
+ * 无法识别组件形状时退回 `Record<string, unknown>`：保持对象可赋值、但不再放行任意属性运算（any 会污染下游）。
+ * 与 vue 包 ComponentProps 的差异：vue 侧只服务 Vue 组件，识别失败退化为 never（严格）；
+ * 本类型需兼容跨框架的任意组件引用，识别失败只能退化为宽松 record。
+ */
+export type TPropsOfComponent<Component> = Component extends abstract new (...args: any) => { $props: infer Props }
   ? Props
   : Component extends abstract new (props: infer Props, ...args: any[]) => any
     ? Props
     : Component extends (props: infer Props, ...args: any[]) => any
       ? Props
-      : Record<string, any>
+      : Record<string, unknown>
 
 type TComponentProps<Map, Component> = [Component] extends [never]
-  ? Record<string, any>
+  ? Record<string, unknown>
   : Component extends string
     ? [Map] extends [never]
-      ? Record<string, any>
+      ? Record<string, unknown>
       : Component extends keyof Map
         ? Map[Component]
-        : Record<string, any>
+        : Record<string, unknown>
     : TPropsOfComponent<Component>
+
+/** 四类 Schema 统一重写的 ISchema 键：节点类型、组件/装饰器引用及其 props、reactions；各 Schema 再按结构追加自身专有键 */
+type SchemaOverrideKeys = 'type' | 'component' | 'componentProps' | 'decorator' | 'decoratorProps' | 'reactions'
 
 /**
  * 结构化的 creator 约束。
@@ -81,6 +91,37 @@ export type ValidateSchemaProperties<P> = {
   [K in keyof P]: P[K] extends SchemaCreatorLike | ISchema | null | undefined ? P[K] : never
 }
 
+/**
+ * 父级声明类型的 properties 上下文。
+ * - Record 中声明的 key 会收敛子级 creator 的值类型与 reactions 的 `$record`
+ * - 未在 Record 中声明的 key 只允许 void 字段，用于布局等不产生值的节点
+ * - 子级未显式声明 Scope 时自动继承父级 Scope
+ *
+ * 这里刻意使用非 homomorphic 的映射类型（`Extract<keyof IRecord, string | number>`），
+ * 避免 TS 从子级 creator 反向推断父级 Record，保证显式声明的类型优先。
+ */
+export type SchemaPropertiesContext<
+  IRecord extends object = any,
+  Scope extends object = {},
+  IValues extends object = any,
+> =
+  | {
+      [K in Extract<keyof IRecord, string | number>]?:
+        | SchemaCreator<IRecord[K], Scope, IRecord, IValues>
+        | ISchema
+        | null
+        | undefined
+    }
+  | {
+      [key: string]: VoidSchemaCreator<IRecord, Scope, IValues> | ISchema | null | undefined
+    }
+
+/**
+ * 显式 overload 的调用守卫：第一个类型参数默认 never，未显式提供时参数类型为 never，
+ * 使调用落到后面的推断 overload；显式提供泛型时还原为真实入参类型。
+ */
+type ExplicitTypeArgGuard<T, Context> = [T] extends [never] ? never : Context
+
 export interface SchemaCreator<Value = any, IScope = any, IRecord extends object = any, IValues = any> {
   (patches?: SchemaPatchInput | SchemaPatchInput[]): ISchema
   /** 仅用于类型标记，请勿使用 */
@@ -98,128 +139,151 @@ export type SchemaPropertiesValues<P extends Record<string, any>> = {
 }
 
 export type FieldSchema<
-  C extends ComponentPropsMap,
-  Component extends FieldComponentName<C> | (string & {}) | ComponentLike = FieldComponentName<C>,
-  Decorator extends VoidComponentName<C> | (string & {}) | ComponentLike = VoidComponentName<C>,
+  F extends FragmentPropsMap,
+  V extends FragmentPropsMap,
+  Component extends AnyComponent<F> = ComponentName<F>,
+  Decorator extends AnyComponent<V> = ComponentName<V>,
   Value = any,
   IRecord extends object = any,
   Scope extends object = {},
-> = Omit<ISchema, 'type' | 'component' | 'componentProps' | 'decorator' | 'decoratorProps' | 'reactions'> & {
+  IValues extends object = any,
+> = Omit<ISchema, SchemaOverrideKeys> & {
   component?: Component
-  componentProps?: TComponentProps<FieldComponents<C>, Component>
+  componentProps?: TComponentProps<F, Component>
   decorator?: Decorator
-  decoratorProps?: TComponentProps<VoidComponents<C>, Decorator>
+  decoratorProps?: TComponentProps<V, Decorator>
   reactions?: SchemaReactions<
-    Field<
-      Value,
-      TComponentProps<FieldComponents<C>, Component>,
-      TComponentProps<VoidComponents<C>, Decorator>,
-      IRecord
-    >,
-    Scope
+    Field<Value, TComponentProps<F, Component>, TComponentProps<V, Decorator>, IRecord>,
+    Scope,
+    IRecord,
+    IValues
   >
 }
 
 export type ObjectSchema<
-  C extends ComponentPropsMap,
-  Component extends VoidComponentName<C> | (string & {}) | ComponentLike = VoidComponentName<C>,
-  Decorator extends VoidComponentName<C> | (string & {}) | ComponentLike = VoidComponentName<C>,
+  V extends FragmentPropsMap,
+  Component extends AnyComponent<V> = ComponentName<V>,
+  Decorator extends AnyComponent<V> = ComponentName<V>,
   Value extends object = any,
   IRecord extends object = any,
   Scope extends object = {},
-> = Omit<
-  ISchema,
-  'type' | 'properties' | 'component' | 'componentProps' | 'decorator' | 'decoratorProps' | 'reactions'
-> & {
+  IValues extends object = any,
+> = Omit<ISchema, SchemaOverrideKeys | 'properties'> & {
   component?: Component
-  componentProps?: TComponentProps<VoidComponents<C>, Component>
+  componentProps?: TComponentProps<V, Component>
   decorator?: Decorator
-  decoratorProps?: TComponentProps<VoidComponents<C>, Decorator>
+  decoratorProps?: TComponentProps<V, Decorator>
   properties?: SchemaPropertiesInput
   reactions?: SchemaReactions<
-    ObjectField<
-      Value,
-      TComponentProps<VoidComponents<C>, Component>,
-      TComponentProps<VoidComponents<C>, Decorator>,
-      IRecord
-    >,
-    Scope
+    ObjectField<Value, TComponentProps<V, Component>, TComponentProps<V, Decorator>, IRecord>,
+    Scope,
+    IRecord,
+    IValues
   >
 }
 
 export type ArraySchema<
-  C extends ComponentPropsMap,
-  Component extends ArrayComponentName<C> | (string & {}) | ComponentLike = ArrayComponentName<C>,
-  Decorator extends VoidComponentName<C> | (string & {}) | ComponentLike = VoidComponentName<C>,
+  A extends FragmentPropsMap,
+  V extends FragmentPropsMap,
+  Component extends AnyComponent<A> = ComponentName<A>,
+  Decorator extends AnyComponent<V> = ComponentName<V>,
   Value extends any[] = any[],
   IRecord extends object = any,
   Scope extends object = {},
-> = Omit<
-  ISchema,
-  'type' | 'items' | 'properties' | 'component' | 'componentProps' | 'decorator' | 'decoratorProps' | 'reactions'
-> & {
+  IValues extends object = any,
+> = Omit<ISchema, SchemaOverrideKeys | 'items' | 'properties'> & {
   component?: Component
-  componentProps?: TComponentProps<ArrayComponents<C>, Component>
+  componentProps?: TComponentProps<A, Component>
   decorator?: Decorator
-  decoratorProps?: TComponentProps<VoidComponents<C>, Decorator>
+  decoratorProps?: TComponentProps<V, Decorator>
   properties?: SchemaPropertiesInput
   reactions?: SchemaReactions<
-    ArrayField<
-      Value,
-      TComponentProps<ArrayComponents<C>, Component>,
-      TComponentProps<VoidComponents<C>, Decorator>,
-      IRecord
-    >,
-    Scope
+    ArrayField<Value, TComponentProps<A, Component>, TComponentProps<V, Decorator>, IRecord>,
+    Scope,
+    IRecord,
+    IValues
   >
 }
 
 export type VoidSchema<
-  C extends ComponentPropsMap,
-  Component extends VoidComponentName<C> | (string & {}) | ComponentLike = VoidComponentName<C>,
-  Decorator extends VoidComponentName<C> | (string & {}) | ComponentLike = VoidComponentName<C>,
+  V extends FragmentPropsMap,
+  Component extends AnyComponent<V> = ComponentName<V>,
+  Decorator extends AnyComponent<V> = ComponentName<V>,
+  IRecord extends object = any,
   Scope extends object = {},
-> = Omit<
-  ISchema,
-  'type' | 'properties' | 'component' | 'componentProps' | 'decorator' | 'decoratorProps' | 'reactions'
-> & {
+  IValues extends object = any,
+> = Omit<ISchema, SchemaOverrideKeys | 'properties'> & {
   component?: Component
-  componentProps?: TComponentProps<VoidComponents<C>, Component>
+  componentProps?: TComponentProps<V, Component>
   decorator?: Decorator
-  decoratorProps?: TComponentProps<VoidComponents<C>, Decorator>
+  decoratorProps?: TComponentProps<V, Decorator>
   properties?: SchemaPropertiesInput
   reactions?: SchemaReactions<
-    VoidField<TComponentProps<VoidComponents<C>, Component>, TComponentProps<VoidComponents<C>, Decorator>, any>,
-    Scope
+    VoidField<TComponentProps<V, Component>, TComponentProps<V, Decorator>, IRecord>,
+    Scope,
+    IRecord,
+    IValues
   >
 }
 
-export interface FieldFragment<C extends ComponentPropsMap, Scope extends object = {}> {
-  <Value = string>(): SchemaCreator<Value | undefined>
+export interface FieldFragment<
+  F extends FragmentPropsMap,
+  V extends FragmentPropsMap,
+  Scope extends object = {},
+  DefaultDecorator extends AnyComponent<V> = ComponentName<V>,
+> {
+  <Value = string>(): SchemaCreator<Value | undefined, Scope>
   <
     Value = string,
-    Component extends FieldComponentName<C> | (string & {}) | ComponentLike = FieldComponentName<C>,
-    Decorator extends VoidComponentName<C> | (string & {}) | ComponentLike = VoidComponentName<C>,
+    Component extends AnyComponent<F> = ComponentName<F>,
+    Decorator extends AnyComponent<V> = DefaultDecorator,
+    FieldScope extends object = Scope,
+    IRecord extends object = any,
+    IValues extends object = any,
   >(
-    schema: FieldSchema<C, Component, Decorator, Value, any, Scope> & { required: true }
-  ): SchemaCreator<Value>
+    schema: FieldSchema<F, V, Component, Decorator, Value, IRecord, FieldScope, IValues> & { required: true }
+  ): SchemaCreator<Value, FieldScope, IRecord, IValues>
   <
     Value = string,
-    Component extends FieldComponentName<C> | (string & {}) | ComponentLike = FieldComponentName<C>,
-    Decorator extends VoidComponentName<C> | (string & {}) | ComponentLike = VoidComponentName<C>,
+    Component extends AnyComponent<F> = ComponentName<F>,
+    Decorator extends AnyComponent<V> = DefaultDecorator,
+    FieldScope extends object = Scope,
+    IRecord extends object = any,
+    IValues extends object = any,
   >(
-    schema: FieldSchema<C, Component, Decorator, Value, any, Scope>
-  ): SchemaCreator<Value | undefined>
+    schema: FieldSchema<F, V, Component, Decorator, Value, IRecord, FieldScope, IValues>
+  ): SchemaCreator<Value | undefined, FieldScope, IRecord, IValues>
 }
 
-export interface ObjectFragment<C extends ComponentPropsMap, Scope extends object = {}> {
+export interface ObjectFragment<
+  V extends FragmentPropsMap,
+  Scope extends object = {},
+  DefaultDecorator extends AnyComponent<V> = ComponentName<V>,
+> {
+  /**
+   * 显式声明对象值类型与字段级 Scope，properties 中的子级自动继承：
+   * - 子级 creator 的值类型与 `$record` 由 Value 收敛
+   * - 子级未显式声明 Scope 时继承 FieldScope
+   * 对象自身位于父级容器中，`$record` 无法从 properties 推断，默认 any，可通过第三个泛型显式声明。
+   * Value 默认 never 配合 Guard，保证不传泛型时由下方的推断 overload 接管。
+   */
+  <
+    Value extends object = never,
+    FieldScope extends object = Scope,
+    Record extends object = any,
+    Component extends AnyComponent<V> = ComponentName<V>,
+    Decorator extends AnyComponent<V> = DefaultDecorator,
+  >(
+    properties: ExplicitTypeArgGuard<Value, SchemaPropertiesContext<Value, FieldScope>>,
+    schema?: ObjectSchema<V, Component, Decorator, Value, Record, FieldScope>
+  ): SchemaCreator<Value, FieldScope, Record>
   <
     Properties extends Record<string, unknown>,
-    Component extends VoidComponentName<C> | (string & {}) | ComponentLike = VoidComponentName<C>,
-    Decorator extends VoidComponentName<C> | (string & {}) | ComponentLike = VoidComponentName<C>,
+    Component extends AnyComponent<V> = ComponentName<V>,
+    Decorator extends AnyComponent<V> = DefaultDecorator,
   >(
     properties: Properties & ValidateSchemaProperties<Properties>,
-    schema?: ObjectSchema<C, Component, Decorator, SchemaPropertiesValues<Properties>, any, Scope>
+    schema?: ObjectSchema<V, Component, Decorator, SchemaPropertiesValues<Properties>, any, Scope>
   ): SchemaCreator<
     SchemaPropertiesValues<Properties>,
     any,
@@ -233,15 +297,25 @@ export type SchemaCreatorValue<T> = T extends SchemaCreator<infer Value, any, an
 /** 数组项可作为 record 类型时直接使用，基础类型退回 any（与核心 ArrayField 的 IRecord 约束一致） */
 type TRecordOfItem<Item> = Item extends object ? Item : any
 
-export interface ArrayFragment<C extends ComponentPropsMap, Scope extends object = {}> {
+export interface ArrayFragment<
+  A extends FragmentPropsMap,
+  V extends FragmentPropsMap,
+  Scope extends object = {},
+  DefaultDecorator extends AnyComponent<V> = ComponentName<V>,
+> {
+  /**
+   * 无泛型调用：从 items creator 推断数组项类型。
+   * 约束限定为 creator，避免显式泛型调用（第一个泛型是 Item 类型）误选本 overload。
+   */
   <
-    Items extends SchemaCreator<any> | ISchema,
-    Component extends ArrayComponentName<C> | (string & {}) | ComponentLike = ArrayComponentName<C>,
-    Decorator extends VoidComponentName<C> | (string & {}) | ComponentLike = VoidComponentName<C>,
+    Items extends SchemaCreator<any>,
+    Component extends AnyComponent<A> = ComponentName<A>,
+    Decorator extends AnyComponent<V> = DefaultDecorator,
   >(
     items: Items,
     schema?: ArraySchema<
-      C,
+      A,
+      V,
       Component,
       Decorator,
       SchemaCreatorValue<Items>[],
@@ -249,83 +323,175 @@ export interface ArrayFragment<C extends ComponentPropsMap, Scope extends object
       Scope
     >
   ): SchemaCreator<SchemaCreatorValue<Items>[], any, SchemaCreatorValue<Items>, SchemaCreatorValue<Items>[]>
+  /**
+   * 显式声明数组项类型与字段级 Scope：
+   * - items 中的子级 creator 值类型收敛为 Item
+   * - 子级未显式声明 Scope 时继承 FieldScope
+   * 数组自身位于父级容器中，`$record` 无法从 items 推断，默认 any，可通过第三个泛型显式声明。
+   */
+  <
+    Item = any,
+    FieldScope extends object = Scope,
+    Record extends object = any,
+    Component extends AnyComponent<A> = ComponentName<A>,
+    Decorator extends AnyComponent<V> = DefaultDecorator,
+  >(
+    items: SchemaCreator<Item, FieldScope> | ISchema,
+    schema?: ArraySchema<A, V, Component, Decorator, Item[], Record, FieldScope>
+  ): SchemaCreator<Item[], FieldScope, Record>
 }
 
-export interface VoidFragment<C extends ComponentPropsMap, Scope extends object = {}> {
+export interface VoidFragment<
+  V extends FragmentPropsMap,
+  Scope extends object = {},
+  DefaultDecorator extends AnyComponent<V> = ComponentName<V>,
+> {
+  /**
+   * 显式声明记录类型与字段级 Scope，properties 中的子级自动继承：
+   * - 子级 reactions 的 `$record` 收敛为 Record
+   * - 子级未显式声明 Scope 时继承 FieldScope
+   * Record 默认 never 配合 Guard，保证不传泛型时由下方的推断 overload 接管。
+   */
+  <
+    Record extends object = never,
+    FieldScope extends object = Scope,
+    Component extends AnyComponent<V> = ComponentName<V>,
+    Decorator extends AnyComponent<V> = DefaultDecorator,
+  >(
+    properties: ExplicitTypeArgGuard<Record, SchemaPropertiesContext<Record, FieldScope>>,
+    schema?: VoidSchema<V, Component, Decorator, Record, FieldScope>
+  ): VoidSchemaCreator<Record, FieldScope>
   <
     Properties extends Record<string, unknown>,
-    Component extends VoidComponentName<C> | (string & {}) | ComponentLike = VoidComponentName<C>,
-    Decorator extends VoidComponentName<C> | (string & {}) | ComponentLike = VoidComponentName<C>,
+    Component extends AnyComponent<V> = ComponentName<V>,
+    Decorator extends AnyComponent<V> = DefaultDecorator,
   >(
     properties: Properties & ValidateSchemaProperties<Properties>,
-    schema?: VoidSchema<C, Component, Decorator, Scope>
+    schema?: VoidSchema<V, Component, Decorator, any, Scope>
   ): VoidSchemaCreator<SchemaPropertiesValues<Properties>, any, SchemaPropertiesValues<Properties>>
 }
 
-export interface FragmentBase<C extends ComponentPropsMap, Scope extends object = {}> {
-  Field: FieldFragment<C, Scope>
-  Object: ObjectFragment<C, Scope>
-  Array: ArrayFragment<C, Scope>
-  Void: VoidFragment<C, Scope>
+export interface FragmentBase<
+  F extends FragmentPropsMap,
+  V extends FragmentPropsMap,
+  A extends FragmentPropsMap,
+  Scope extends object = {},
+  DefaultDecorator extends AnyComponent<V> = ComponentName<V>,
+> {
+  Field: FieldFragment<F, V, Scope, DefaultDecorator>
+  Object: ObjectFragment<V, Scope, DefaultDecorator>
+  Array: ArrayFragment<A, V, Scope, DefaultDecorator>
+  Void: VoidFragment<V, Scope, DefaultDecorator>
   transform: (schema?: ISchema) => ISchema
 }
 
 export interface FieldFragmentItem<
-  C extends ComponentPropsMap,
-  K extends FieldComponentName<C>,
+  F extends FragmentPropsMap,
+  V extends FragmentPropsMap,
+  K extends ComponentName<F>,
   Scope extends object = {},
+  DefaultDecorator extends AnyComponent<V> = ComponentName<V>,
 > {
-  <Value = string, Decorator extends VoidComponentName<C> | (string & {}) | ComponentLike = VoidComponentName<C>>(
-    schema: Omit<FieldSchema<C, K, Decorator, Value, any, Scope>, 'component'> & { required: true }
-  ): SchemaCreator<Value>
-  <Value = string, Decorator extends VoidComponentName<C> | (string & {}) | ComponentLike = VoidComponentName<C>>(
-    schema?: Omit<FieldSchema<C, K, Decorator, Value, any, Scope>, 'component'>
-  ): SchemaCreator<Value | undefined>
+  <
+    Value = string,
+    Decorator extends AnyComponent<V> = DefaultDecorator,
+    FieldScope extends object = Scope,
+    IRecord extends object = any,
+    IValues extends object = any,
+  >(
+    schema: Omit<FieldSchema<F, V, K, Decorator, Value, IRecord, FieldScope, IValues>, 'component'> & { required: true }
+  ): SchemaCreator<Value, FieldScope, IRecord, IValues>
+  <
+    Value = string,
+    Decorator extends AnyComponent<V> = DefaultDecorator,
+    FieldScope extends object = Scope,
+    IRecord extends object = any,
+    IValues extends object = any,
+  >(
+    schema?: Omit<FieldSchema<F, V, K, Decorator, Value, IRecord, FieldScope, IValues>, 'component'>
+  ): SchemaCreator<Value | undefined, FieldScope, IRecord, IValues>
 }
 
 export interface VoidFragmentItem<
-  C extends ComponentPropsMap,
-  K extends VoidComponentName<C>,
+  V extends FragmentPropsMap,
+  K extends ComponentName<V>,
   Scope extends object = {},
+  DefaultDecorator extends AnyComponent<V> = ComponentName<V>,
 > {
-  <Value = any, Decorator extends VoidComponentName<C> | (string & {}) | ComponentLike = VoidComponentName<C>>(
-    schema?: Omit<VoidSchema<C, K, Decorator, Scope>, 'type' | 'component'>
-  ): VoidSchemaCreator<any, any, Value>
+  <
+    Value = any,
+    Decorator extends AnyComponent<V> = DefaultDecorator,
+    FieldScope extends object = Scope,
+    IRecord extends object = any,
+  >(
+    schema?: Omit<VoidSchema<V, K, Decorator, IRecord, FieldScope>, 'type' | 'component'>
+  ): VoidSchemaCreator<IRecord, FieldScope, Value>
 }
 
 export interface ArrayFragmentItem<
-  C extends ComponentPropsMap,
-  K extends ArrayComponentName<C>,
+  A extends FragmentPropsMap,
+  V extends FragmentPropsMap,
+  K extends ComponentName<A>,
   Scope extends object = {},
+  DefaultDecorator extends AnyComponent<V> = ComponentName<V>,
 > {
-  <
-    Items extends SchemaCreator<any> | ISchema,
-    Decorator extends VoidComponentName<C> | (string & {}) | ComponentLike = VoidComponentName<C>,
-  >(
+  /**
+   * 无泛型调用：从 items creator 推断数组项类型。
+   */
+  <Items extends SchemaCreator<any>, Decorator extends AnyComponent<V> = DefaultDecorator>(
     items: Items,
     schema?: Omit<
-      ArraySchema<C, K, Decorator, SchemaCreatorValue<Items>[], TRecordOfItem<SchemaCreatorValue<Items>>, Scope>,
+      ArraySchema<A, V, K, Decorator, SchemaCreatorValue<Items>[], TRecordOfItem<SchemaCreatorValue<Items>>, Scope>,
       'component'
     >
   ): SchemaCreator<SchemaCreatorValue<Items>[], any, SchemaCreatorValue<Items>, SchemaCreatorValue<Items>[]>
+  /**
+   * 显式声明数组项类型与字段级 Scope，items 中的子级自动继承。
+   */
+  <
+    Item = any,
+    FieldScope extends object = Scope,
+    Record extends object = any,
+    Decorator extends AnyComponent<V> = DefaultDecorator,
+  >(
+    items: SchemaCreator<Item, FieldScope> | ISchema,
+    schema?: Omit<ArraySchema<A, V, K, Decorator, Item[], Record, FieldScope>, 'component'>
+  ): SchemaCreator<Item[], FieldScope, Record>
 }
 
-export type FieldFragmentMapping<C extends ComponentPropsMap, Scope extends object = {}> = {
-  [K in FieldComponentName<C>]: FieldFragmentItem<C, K, Scope>
+export type FieldFragmentMapping<
+  F extends FragmentPropsMap,
+  V extends FragmentPropsMap,
+  Scope extends object = {},
+  DefaultDecorator extends AnyComponent<V> = ComponentName<V>,
+> = {
+  [K in ComponentName<F>]: FieldFragmentItem<F, V, K, Scope, DefaultDecorator>
 }
 
-export type VoidFragmentMapping<C extends ComponentPropsMap, Scope extends object = {}> = {
-  [K in VoidComponentName<C>]: VoidFragmentItem<C, K, Scope>
+export type VoidFragmentMapping<
+  V extends FragmentPropsMap,
+  Scope extends object = {},
+  DefaultDecorator extends AnyComponent<V> = ComponentName<V>,
+> = {
+  [K in ComponentName<V>]: VoidFragmentItem<V, K, Scope, DefaultDecorator>
 }
 
-export type ArrayFragmentMapping<C extends ComponentPropsMap, Scope extends object = {}> = {
-  [K in ArrayComponentName<C>]: ArrayFragmentItem<C, K, Scope>
+export type ArrayFragmentMapping<
+  A extends FragmentPropsMap,
+  V extends FragmentPropsMap,
+  Scope extends object = {},
+  DefaultDecorator extends AnyComponent<V> = ComponentName<V>,
+> = {
+  [K in ComponentName<A>]: ArrayFragmentItem<A, V, K, Scope, DefaultDecorator>
 }
 
-export type Fragment<C extends ComponentPropsMap = ComponentPropsMap, Scope extends object = {}> = FragmentBase<
-  C,
-  Scope
-> &
-  FieldFragmentMapping<C, Scope> &
-  VoidFragmentMapping<C, Scope> &
-  ArrayFragmentMapping<C, Scope>
+export type Fragment<
+  F extends FragmentPropsMap = {},
+  V extends FragmentPropsMap = {},
+  A extends FragmentPropsMap = {},
+  Scope extends object = {},
+  DefaultDecorator extends AnyComponent<V> = ComponentName<V>,
+> = FragmentBase<F, V, A, Scope, DefaultDecorator> &
+  FieldFragmentMapping<F, V, Scope, DefaultDecorator> &
+  VoidFragmentMapping<V, Scope, DefaultDecorator> &
+  ArrayFragmentMapping<A, V, Scope, DefaultDecorator>

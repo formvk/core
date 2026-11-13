@@ -9,7 +9,7 @@ import { useAttach } from '../hooks/useAttach'
 import { useField } from '../hooks/useField'
 import { useForm } from '../hooks/useForm'
 import { FieldSymbol, SchemaOptionsSymbol } from '../shared/context'
-import type { IReactiveFieldProps, ISchemaFieldFactoryOptions } from '../types'
+import type { IReactiveFieldProps, ISchemaFieldRuntimeOptions } from '../types'
 import { getRawComponent } from '../utils/getRawComponent'
 
 type SlotFn = (props?: any) => any
@@ -104,7 +104,7 @@ export const ReactiveField = defineComponent({
   setup(props, { slots }) {
     const formRef = useForm()
     const parentRef = useField()
-    const optionsRef = inject(SchemaOptionsSymbol, ref({})) as Ref<ISchemaFieldFactoryOptions>
+    const optionsRef = inject(SchemaOptionsSymbol, ref({})) as Ref<ISchemaFieldRuntimeOptions>
 
     function createField(): GeneralField {
       const fieldType = (props as IReactiveFieldProps).fieldType ?? 'Field'

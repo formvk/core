@@ -82,23 +82,21 @@ const schema = createSchema({
 
 ### 组件 props 类型
 
-给 `createFragment` 传入组件 props 映射，即可获得 `componentProps` 类型与动态构造器：
+给 `createFragment` 传入组件 props map，即可获得 `componentProps` 类型与动态构造器。前三个类型参数是相互独立的 map —— `F` 对应 field 组件、`V` 对应 void / 布局组件、`A` 对应 array 组件：
 
 ```ts
-type MyComponents = {
-  field: {
-    Input: { placeholder?: string; maxLength?: number }
-    NumberPicker: { min?: number; max?: number }
-  }
-  void: {
-    Card: { title?: string }
-  }
-  array: {
-    ArrayTable: { columns?: string[] }
-  }
+interface MyFieldComponents {
+  Input: { placeholder?: string; maxLength?: number }
+  NumberPicker: { min?: number; max?: number }
+}
+interface MyVoidComponents {
+  Card: { title?: string }
+}
+interface MyArrayComponents {
+  ArrayTable: { columns?: string[] }
 }
 
-const f = createFragment<MyComponents>()
+const f = createFragment<MyFieldComponents, MyVoidComponents, MyArrayComponents>()
 
 f.Field({ component: 'Input', componentProps: { placeholder: '姓名' } })
 f.Input({ componentProps: { maxLength: 10 } })
@@ -106,16 +104,16 @@ f.Void({}, { component: 'Card' })
 f.Array(f.Field(), { component: 'ArrayTable' })
 ```
 
-`f.Input(...)` 是自动设置 `component: 'Input'` 的快捷方式。声明在 `void` 中的组件会作为 void 节点处理，声明在 `array` 中的作为数组节点处理，其余都按字段处理。
+`f.Input(...)` 是自动设置 `component: 'Input'` 的快捷方式。声明在 `V` 中的组件会作为 void 节点处理，声明在 `A` 中的作为数组节点处理，其余都按字段处理。
 
-只有声明过的组件才会生成动态构造器。不传组件映射时 `f.Input` 会直接报类型错误，此时可以用 `f.Field({ component: 'Input' })`，或在 `field` 中声明该组件。
+只有声明过的组件才会生成动态构造器。不传组件 map 时 `f.Input` 会直接报类型错误，此时可以用 `f.Field({ component: 'Input' })`，或在 `F` 中声明该组件。
 
-组件分类只存在于类型层面：运行时 fragment 是 Proxy，无法读取类型映射。因此 void 与 array 构造器还需要配套的运行时选项，否则会回退为 `type: 'string'`：
+组件分类只存在于类型层面：运行时 fragment 是 Proxy，无法读取类型 map。因此 void 与 array 构造器还需要配套的运行时选项，否则会回退为 `type: 'string'`：
 
 ```ts
-const f = createFragment<MyComponents>({
-  voidComponents: ['Card'],
-  arrayComponents: ['ArrayTable'],
+const f = createFragment<MyFieldComponents, MyVoidComponents, MyArrayComponents>({
+  voidComponentNames: ['Card'],
+  arrayComponentNames: ['ArrayTable'],
 })
 ```
 

@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import { createForm, FormProvider, SchemaField, createFragment, createSchema } from '@formvk/vue'
+import { createForm, FormProvider, createSchema, createSchemaField } from '@formvk/vue'
 
-import { demoComponents, type DemoComponents } from '../components'
+import { DemoArrayItems, demoComponents } from '../components'
 
 const form = createForm({
   values: { profile: { name: 'Alice', role: 'developer' } },
 })
 
-const f = createFragment<DemoComponents>()
+const { SchemaField, fragment: f } = createSchemaField({
+  components: demoComponents,
+  arrayComponents: { ArrayItems: DemoArrayItems },
+})
 const schema = createSchema({
   profile: f.Object({
     name: f.Input({ title: '姓名' }),
@@ -27,7 +30,7 @@ const schema = createSchema({
 <template>
   <FormProvider :form="form">
     <div class="demo">
-      <SchemaField :schema="schema" :components="demoComponents" />
+      <SchemaField :schema="schema" />
       <div class="demo-result">values: {{ JSON.stringify(form.values) }}</div>
     </div>
   </FormProvider>
