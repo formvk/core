@@ -84,9 +84,9 @@ function propertiesPatch(schema: any, patches?: SchemaPatchInput | SchemaPatchIn
  * 底层 schema 构造器。
  * 默认不内置任何 patch，组件 props 类型由 ComponentPropsMap 注入。
  */
-export function createFragment<C extends ComponentPropsMap = ComponentPropsMap>(
+export function createFragment<C extends ComponentPropsMap = ComponentPropsMap, Scope extends object = {}>(
   options: FragmentOptions = {}
-): Fragment<C> {
+): Fragment<C, Scope> {
   function creator(_schema: any = {}): SchemaCreator | VoidSchemaCreator {
     return ((patches?: SchemaPatchInput | SchemaPatchInput[]) => {
       const realPatches = sortPatches([...toArr(options.patches), ...toArr(patches)])

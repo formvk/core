@@ -1,0 +1,11 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "declaration": false,
+    "types": ["vite/client"],
+    "paths": {}
+  },
+  "include": ["./env.d.ts", "./.vitepress/**/*.ts", "./.vitepress/**/*.mts", "./demos/**/*.vue"],
+  "exclude": ["./.vitepress/cache", "./.vitepress/dist"]
+}

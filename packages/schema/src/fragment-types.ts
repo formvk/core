@@ -23,19 +23,43 @@ export interface FragmentOptions {
 /** 支持 `{ pre: true, patch }` 形式的 patch，pre 会提前执行 */
 export type SchemaPatchInput = SchemaPatch | { pre?: boolean; patch: SchemaPatch }
 
-export type FieldComponents<C extends ComponentPropsMap> = NonNullable<C['field']>
-export type VoidComponents<C extends ComponentPropsMap> = NonNullable<C['void']>
-export type ArrayComponents<C extends ComponentPropsMap> = NonNullable<C['array']>
+export type FieldComponents<C extends ComponentPropsMap> = C extends { field: infer FieldMap }
+  ? NonNullable<FieldMap>
+  : never
+export type VoidComponents<C extends ComponentPropsMap> = C extends { void: infer VoidMap }
+  ? NonNullable<VoidMap>
+  : never
+export type ArrayComponents<C extends ComponentPropsMap> = C extends { array: infer ArrayMap }
+  ? NonNullable<ArrayMap>
+  : never
 
-export type FieldComponentName<C extends ComponentPropsMap> = keyof FieldComponents<C> & string
-export type VoidComponentName<C extends ComponentPropsMap> = keyof VoidComponents<C> & string
-export type ArrayComponentName<C extends ComponentPropsMap> = keyof ArrayComponents<C> & string
+type ComponentName<Map> = [Map] extends [never] ? never : keyof Map & string
+
+export type FieldComponentName<C extends ComponentPropsMap> = ComponentName<FieldComponents<C>>
+export type VoidComponentName<C extends ComponentPropsMap> = ComponentName<VoidComponents<C>>
+export type ArrayComponentName<C extends ComponentPropsMap> = ComponentName<ArrayComponents<C>>
+
+/** 直接传入的组件引用：Vue / React 组件对象或函数组件均满足 */
+export type ComponentLike = ((...args: any[]) => any) | object
+
+/** 从组件类型提取 props；Vue 从 `$props`、类组件从构造函数首参、函数组件从入参提取，无法识别时退回宽松类型 */
+type TPropsOfComponent<Component> = Component extends abstract new (...args: any) => { $props: infer Props }
+  ? Props
+  : Component extends abstract new (props: infer Props, ...args: any[]) => any
+    ? Props
+    : Component extends (props: infer Props, ...args: any[]) => any
+      ? Props
+      : Record<string, any>
 
 type TComponentProps<Map, Component> = [Component] extends [never]
   ? Record<string, any>
-  : Component extends keyof Map
-    ? Map[Component]
-    : Record<string, any>
+  : Component extends string
+    ? [Map] extends [never]
+      ? Record<string, any>
+      : Component extends keyof Map
+        ? Map[Component]
+        : Record<string, any>
+    : TPropsOfComponent<Component>
 
 /**
  * 结构化的 creator 约束。
@@ -75,69 +99,127 @@ export type SchemaPropertiesValues<P extends Record<string, any>> = {
 
 export type FieldSchema<
   C extends ComponentPropsMap,
-  Component extends FieldComponentName<C> | (string & {}) = FieldComponentName<C>,
+  Component extends FieldComponentName<C> | (string & {}) | ComponentLike = FieldComponentName<C>,
+  Decorator extends VoidComponentName<C> | (string & {}) | ComponentLike = VoidComponentName<C>,
+  Value = any,
+  IRecord extends object = any,
+  Scope extends object = {},
 > = Omit<ISchema, 'type' | 'component' | 'componentProps' | 'decorator' | 'decoratorProps' | 'reactions'> & {
   component?: Component
   componentProps?: TComponentProps<FieldComponents<C>, Component>
-  decorator?: VoidComponentName<C> | (string & {})
-  decoratorProps?: TComponentProps<VoidComponents<C>, VoidComponentName<C>>
+  decorator?: Decorator
+  decoratorProps?: TComponentProps<VoidComponents<C>, Decorator>
   reactions?: SchemaReactions<
     Field<
-      any,
+      Value,
       TComponentProps<FieldComponents<C>, Component>,
-      TComponentProps<VoidComponents<C>, VoidComponentName<C>>,
-      any
-    >
+      TComponentProps<VoidComponents<C>, Decorator>,
+      IRecord
+    >,
+    Scope
   >
 }
 
 export type ObjectSchema<
   C extends ComponentPropsMap,
-  Component extends VoidComponentName<C> | (string & {}) = VoidComponentName<C>,
-> = Omit<ISchema, 'type' | 'properties' | 'component' | 'componentProps' | 'reactions'> & {
+  Component extends VoidComponentName<C> | (string & {}) | ComponentLike = VoidComponentName<C>,
+  Decorator extends VoidComponentName<C> | (string & {}) | ComponentLike = VoidComponentName<C>,
+  Value extends object = any,
+  IRecord extends object = any,
+  Scope extends object = {},
+> = Omit<
+  ISchema,
+  'type' | 'properties' | 'component' | 'componentProps' | 'decorator' | 'decoratorProps' | 'reactions'
+> & {
   component?: Component
   componentProps?: TComponentProps<VoidComponents<C>, Component>
+  decorator?: Decorator
+  decoratorProps?: TComponentProps<VoidComponents<C>, Decorator>
   properties?: SchemaPropertiesInput
-  reactions?: SchemaReactions<ObjectField<any, TComponentProps<VoidComponents<C>, Component>, any, any>>
+  reactions?: SchemaReactions<
+    ObjectField<
+      Value,
+      TComponentProps<VoidComponents<C>, Component>,
+      TComponentProps<VoidComponents<C>, Decorator>,
+      IRecord
+    >,
+    Scope
+  >
 }
 
 export type ArraySchema<
   C extends ComponentPropsMap,
-  Component extends ArrayComponentName<C> | (string & {}) = ArrayComponentName<C>,
-> = Omit<ISchema, 'type' | 'items' | 'properties' | 'component' | 'componentProps' | 'reactions'> & {
+  Component extends ArrayComponentName<C> | (string & {}) | ComponentLike = ArrayComponentName<C>,
+  Decorator extends VoidComponentName<C> | (string & {}) | ComponentLike = VoidComponentName<C>,
+  Value extends any[] = any[],
+  IRecord extends object = any,
+  Scope extends object = {},
+> = Omit<
+  ISchema,
+  'type' | 'items' | 'properties' | 'component' | 'componentProps' | 'decorator' | 'decoratorProps' | 'reactions'
+> & {
   component?: Component
   componentProps?: TComponentProps<ArrayComponents<C>, Component>
+  decorator?: Decorator
+  decoratorProps?: TComponentProps<VoidComponents<C>, Decorator>
   properties?: SchemaPropertiesInput
-  reactions?: SchemaReactions<ArrayField<any[], TComponentProps<ArrayComponents<C>, Component>, any, any>>
+  reactions?: SchemaReactions<
+    ArrayField<
+      Value,
+      TComponentProps<ArrayComponents<C>, Component>,
+      TComponentProps<VoidComponents<C>, Decorator>,
+      IRecord
+    >,
+    Scope
+  >
 }
 
 export type VoidSchema<
   C extends ComponentPropsMap,
-  Component extends VoidComponentName<C> | (string & {}) = VoidComponentName<C>,
-> = Omit<ISchema, 'type' | 'properties' | 'component' | 'componentProps' | 'reactions'> & {
+  Component extends VoidComponentName<C> | (string & {}) | ComponentLike = VoidComponentName<C>,
+  Decorator extends VoidComponentName<C> | (string & {}) | ComponentLike = VoidComponentName<C>,
+  Scope extends object = {},
+> = Omit<
+  ISchema,
+  'type' | 'properties' | 'component' | 'componentProps' | 'decorator' | 'decoratorProps' | 'reactions'
+> & {
   component?: Component
   componentProps?: TComponentProps<VoidComponents<C>, Component>
+  decorator?: Decorator
+  decoratorProps?: TComponentProps<VoidComponents<C>, Decorator>
   properties?: SchemaPropertiesInput
-  reactions?: SchemaReactions<VoidField<TComponentProps<VoidComponents<C>, Component>, any, any>>
+  reactions?: SchemaReactions<
+    VoidField<TComponentProps<VoidComponents<C>, Component>, TComponentProps<VoidComponents<C>, Decorator>, any>,
+    Scope
+  >
 }
 
-export interface FieldFragment<C extends ComponentPropsMap> {
+export interface FieldFragment<C extends ComponentPropsMap, Scope extends object = {}> {
   <Value = string>(): SchemaCreator<Value | undefined>
-  <Value = string, Component extends FieldComponentName<C> | (string & {}) = FieldComponentName<C>>(
-    schema: FieldSchema<C, Component> & { required: true }
+  <
+    Value = string,
+    Component extends FieldComponentName<C> | (string & {}) | ComponentLike = FieldComponentName<C>,
+    Decorator extends VoidComponentName<C> | (string & {}) | ComponentLike = VoidComponentName<C>,
+  >(
+    schema: FieldSchema<C, Component, Decorator, Value, any, Scope> & { required: true }
   ): SchemaCreator<Value>
-  <Value = string, Component extends FieldComponentName<C> | (string & {}) = FieldComponentName<C>>(
-    schema: FieldSchema<C, Component>
+  <
+    Value = string,
+    Component extends FieldComponentName<C> | (string & {}) | ComponentLike = FieldComponentName<C>,
+    Decorator extends VoidComponentName<C> | (string & {}) | ComponentLike = VoidComponentName<C>,
+  >(
+    schema: FieldSchema<C, Component, Decorator, Value, any, Scope>
   ): SchemaCreator<Value | undefined>
 }
 
-export interface ObjectFragment<C extends ComponentPropsMap> {
+export interface ObjectFragment<C extends ComponentPropsMap, Scope extends object = {}> {
   <
     Properties extends Record<string, unknown>,
-    Component extends VoidComponentName<C> | (string & {}) = VoidComponentName<C>,
+    Component extends VoidComponentName<C> | (string & {}) | ComponentLike = VoidComponentName<C>,
+    Decorator extends VoidComponentName<C> | (string & {}) | ComponentLike = VoidComponentName<C>,
   >(
     properties: Properties & ValidateSchemaProperties<Properties>,
-    schema?: ObjectSchema<C, Component>
+    schema?: ObjectSchema<C, Component, Decorator, SchemaPropertiesValues<Properties>, any, Scope>
   ): SchemaCreator<
     SchemaPropertiesValues<Properties>,
     any,
@@ -148,63 +230,102 @@ export interface ObjectFragment<C extends ComponentPropsMap> {
 
 export type SchemaCreatorValue<T> = T extends SchemaCreator<infer Value, any, any, any> ? Value : any
 
-export interface ArrayFragment<C extends ComponentPropsMap> {
+/** 数组项可作为 record 类型时直接使用，基础类型退回 any（与核心 ArrayField 的 IRecord 约束一致） */
+type TRecordOfItem<Item> = Item extends object ? Item : any
+
+export interface ArrayFragment<C extends ComponentPropsMap, Scope extends object = {}> {
   <
     Items extends SchemaCreator<any> | ISchema,
-    Component extends ArrayComponentName<C> | (string & {}) = ArrayComponentName<C>,
+    Component extends ArrayComponentName<C> | (string & {}) | ComponentLike = ArrayComponentName<C>,
+    Decorator extends VoidComponentName<C> | (string & {}) | ComponentLike = VoidComponentName<C>,
   >(
     items: Items,
-    schema?: ArraySchema<C, Component>
+    schema?: ArraySchema<
+      C,
+      Component,
+      Decorator,
+      SchemaCreatorValue<Items>[],
+      TRecordOfItem<SchemaCreatorValue<Items>>,
+      Scope
+    >
   ): SchemaCreator<SchemaCreatorValue<Items>[], any, SchemaCreatorValue<Items>, SchemaCreatorValue<Items>[]>
 }
 
-export interface VoidFragment<C extends ComponentPropsMap> {
+export interface VoidFragment<C extends ComponentPropsMap, Scope extends object = {}> {
   <
     Properties extends Record<string, unknown>,
-    Component extends VoidComponentName<C> | (string & {}) = VoidComponentName<C>,
+    Component extends VoidComponentName<C> | (string & {}) | ComponentLike = VoidComponentName<C>,
+    Decorator extends VoidComponentName<C> | (string & {}) | ComponentLike = VoidComponentName<C>,
   >(
     properties: Properties & ValidateSchemaProperties<Properties>,
-    schema?: VoidSchema<C, Component>
+    schema?: VoidSchema<C, Component, Decorator, Scope>
   ): VoidSchemaCreator<SchemaPropertiesValues<Properties>, any, SchemaPropertiesValues<Properties>>
 }
 
-export interface FragmentBase<C extends ComponentPropsMap> {
-  Field: FieldFragment<C>
-  Object: ObjectFragment<C>
-  Array: ArrayFragment<C>
-  Void: VoidFragment<C>
+export interface FragmentBase<C extends ComponentPropsMap, Scope extends object = {}> {
+  Field: FieldFragment<C, Scope>
+  Object: ObjectFragment<C, Scope>
+  Array: ArrayFragment<C, Scope>
+  Void: VoidFragment<C, Scope>
   transform: (schema?: ISchema) => ISchema
 }
 
-export interface FieldFragmentItem<C extends ComponentPropsMap, K extends FieldComponentName<C>> {
-  <Value = string>(schema: Omit<FieldSchema<C, K>, 'component'> & { required: true }): SchemaCreator<Value>
-  <Value = string>(schema?: Omit<FieldSchema<C, K>, 'component'>): SchemaCreator<Value | undefined>
+export interface FieldFragmentItem<
+  C extends ComponentPropsMap,
+  K extends FieldComponentName<C>,
+  Scope extends object = {},
+> {
+  <Value = string, Decorator extends VoidComponentName<C> | (string & {}) | ComponentLike = VoidComponentName<C>>(
+    schema: Omit<FieldSchema<C, K, Decorator, Value, any, Scope>, 'component'> & { required: true }
+  ): SchemaCreator<Value>
+  <Value = string, Decorator extends VoidComponentName<C> | (string & {}) | ComponentLike = VoidComponentName<C>>(
+    schema?: Omit<FieldSchema<C, K, Decorator, Value, any, Scope>, 'component'>
+  ): SchemaCreator<Value | undefined>
 }
 
-export interface VoidFragmentItem<C extends ComponentPropsMap, K extends VoidComponentName<C>> {
-  <Value = any>(schema?: Omit<VoidSchema<C, K>, 'type' | 'component'>): VoidSchemaCreator<any, any, Value>
+export interface VoidFragmentItem<
+  C extends ComponentPropsMap,
+  K extends VoidComponentName<C>,
+  Scope extends object = {},
+> {
+  <Value = any, Decorator extends VoidComponentName<C> | (string & {}) | ComponentLike = VoidComponentName<C>>(
+    schema?: Omit<VoidSchema<C, K, Decorator, Scope>, 'type' | 'component'>
+  ): VoidSchemaCreator<any, any, Value>
 }
 
-export interface ArrayFragmentItem<C extends ComponentPropsMap, K extends ArrayComponentName<C>> {
-  <Items extends SchemaCreator<any> | ISchema>(
+export interface ArrayFragmentItem<
+  C extends ComponentPropsMap,
+  K extends ArrayComponentName<C>,
+  Scope extends object = {},
+> {
+  <
+    Items extends SchemaCreator<any> | ISchema,
+    Decorator extends VoidComponentName<C> | (string & {}) | ComponentLike = VoidComponentName<C>,
+  >(
     items: Items,
-    schema?: Omit<ArraySchema<C, K>, 'component'>
+    schema?: Omit<
+      ArraySchema<C, K, Decorator, SchemaCreatorValue<Items>[], TRecordOfItem<SchemaCreatorValue<Items>>, Scope>,
+      'component'
+    >
   ): SchemaCreator<SchemaCreatorValue<Items>[], any, SchemaCreatorValue<Items>, SchemaCreatorValue<Items>[]>
 }
 
-export type FieldFragmentMapping<C extends ComponentPropsMap> = {
-  [K in FieldComponentName<C>]: FieldFragmentItem<C, K>
+export type FieldFragmentMapping<C extends ComponentPropsMap, Scope extends object = {}> = {
+  [K in FieldComponentName<C>]: FieldFragmentItem<C, K, Scope>
 }
 
-export type VoidFragmentMapping<C extends ComponentPropsMap> = {
-  [K in VoidComponentName<C>]: VoidFragmentItem<C, K>
+export type VoidFragmentMapping<C extends ComponentPropsMap, Scope extends object = {}> = {
+  [K in VoidComponentName<C>]: VoidFragmentItem<C, K, Scope>
 }
 
-export type ArrayFragmentMapping<C extends ComponentPropsMap> = {
-  [K in ArrayComponentName<C>]: ArrayFragmentItem<C, K>
+export type ArrayFragmentMapping<C extends ComponentPropsMap, Scope extends object = {}> = {
+  [K in ArrayComponentName<C>]: ArrayFragmentItem<C, K, Scope>
 }
 
-export type Fragment<C extends ComponentPropsMap = ComponentPropsMap> = FragmentBase<C> &
-  FieldFragmentMapping<C> &
-  VoidFragmentMapping<C> &
-  ArrayFragmentMapping<C>
+export type Fragment<C extends ComponentPropsMap = ComponentPropsMap, Scope extends object = {}> = FragmentBase<
+  C,
+  Scope
+> &
+  FieldFragmentMapping<C, Scope> &
+  VoidFragmentMapping<C, Scope> &
+  ArrayFragmentMapping<C, Scope>

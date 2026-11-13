@@ -1,4 +1,5 @@
-import type { FieldValidator, FormPathPattern, GeneralField, IGeneralFieldState } from '@formvk/core'
+import type { FieldValidator, Form, FormPathPattern, GeneralField, IGeneralFieldState } from '@formvk/core'
+import type { autorun } from '@formvk/reactive'
 
 export type SchemaEnum = Array<
   | string
@@ -37,7 +38,7 @@ export type SchemaEffectTypes =
   | 'onFieldValidateFailed'
   | 'onFieldValidateSuccess'
 
-export type SchemaReaction<Field = any> =
+export type SchemaReaction<Field extends GeneralField = GeneralField, Scope extends object = {}> =
   | {
       dependencies?:
         | Array<
@@ -65,9 +66,11 @@ export type SchemaReaction<Field = any> =
       }
       [key: string]: any
     }
-  | ((field: Field, scope: IScopeContext) => void)
+  | ((field: Field, scope: TScope<Scope, Field>) => void)
 
-export type SchemaReactions<Field = any> = SchemaReaction<Field> | SchemaReaction<Field>[]
+export type SchemaReactions<Field extends GeneralField = GeneralField, Scope extends object = {}> =
+  | SchemaReaction<Field, Scope>
+  | SchemaReaction<Field, Scope>[]
 
 export type SchemaItems = ISchema | ISchema[]
 
@@ -79,20 +82,81 @@ export interface ISchemaFieldUpdateRequest {
   run?: string
 }
 
-export interface IScopeContext {
-  [key: string]: any
+/**
+ * reactions / expressions 中内置的动态能力
+ */
+export interface IScopeDefault {
+  /** 等同 autorun，追踪回调中的响应式依赖 */
+  $effect: typeof autorun
+  /** 立即执行回调并返回结果 */
+  $memo: <T>(callback: () => T) => T
+  /** 将对象转换为 observable */
+  $observable: <T extends object>(target: T) => T
 }
+
+/**
+ * reactions / expressions 中内置的字段上下文
+ */
+export interface IScopeBase<
+  Field extends GeneralField = GeneralField,
+  IRecord extends object = any,
+  IValues extends object = any,
+> extends IScopeDefault {
+  /** 当前字段 */
+  $self: Field
+  /** 当前表单 */
+  $form: Form<IValues>
+  /** 表单值 */
+  $values: IValues
+  /** 当前字段在数组中的下标 */
+  $index: number
+  /** 父级记录 */
+  $record: IRecord & {
+    $lookup: any
+    $index: number
+  }
+  /** 父级记录数组 */
+  $records: IRecord[]
+  /** 设置当前字段的组件属性 */
+  $props: Field['setComponentProps']
+}
+
+/**
+ * 全局 scope 扩展点。
+ * 可通过声明合并全局扩展，所有未显式传入 Scope 泛型的位置都会继承：
+ *
+ * declare module '@formvk/schema' {
+ *   interface IScopeContext {
+ *     $myApi: MyApi
+ *   }
+ * }
+ */
+export interface IScopeContext {}
+
+/**
+ * 组合内置 scope、全局扩展与自定义 scope
+ */
+export type TScope<
+  Scope extends object = {},
+  Field extends GeneralField = GeneralField,
+  IRecord extends object = any,
+  IValues extends object = any,
+> = IScopeBase<Field, IRecord, IValues> & IScopeContext & Scope
 
 export interface IFieldStateSetterOptions {
   field: GeneralField
   target?: FormPathPattern
   request: ISchemaFieldUpdateRequest
   runner?: string
-  scope?: IScopeContext
+  scope?: Record<string, any>
 }
 
-export interface ISchemaTransformerOptions {
-  scope?: IScopeContext
+/**
+ * scope 输入：运行时允许传入任意自定义字段。
+ * 需要类型推断时请使用 createFragment 的 Scope 泛型或 TScope。
+ */
+export interface ISchemaTransformerOptions<Scope extends object = Record<string, any>> {
+  scope?: Scope
 }
 
 export type Slot = {

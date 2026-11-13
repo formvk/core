@@ -3,6 +3,12 @@ import { describe, expect, test } from 'vitest'
 import { createFragment } from '../fragment'
 import type { ISchema } from '../types'
 
+type LooseComponents = {
+  field: Record<string, any>
+  void: Record<string, any>
+  array: Record<string, any>
+}
+
 describe('createFragment', () => {
   test('field', () => {
     const f = createFragment()
@@ -22,6 +28,19 @@ describe('createFragment', () => {
       component: 'Input',
     })
     expect(f.Field({ title: '姓名', component: 'Input' })()).not.toHaveProperty('decorator')
+  })
+
+  test('accepts component references', () => {
+    const f = createFragment()
+    const Input = { name: 'Input' }
+    const FormItem = { name: 'FormItem' }
+    const ArrayItems = { name: 'ArrayItems' }
+    const schema = f.Field({ component: Input, decorator: FormItem })()
+    expect(schema.component).toBe(Input)
+    expect(schema.decorator).toBe(FormItem)
+    expect(f.Object({}, { component: Input, decorator: FormItem })().decorator).toBe(FormItem)
+    expect(f.Void({}, { component: Input, decorator: FormItem })().decorator).toBe(FormItem)
+    expect(f.Array(f.Field(), { component: ArrayItems, decorator: FormItem })().decorator).toBe(FormItem)
   })
 
   test('object', () => {
@@ -131,7 +150,7 @@ describe('createFragment', () => {
   })
 
   test('dynamic components', () => {
-    const f = createFragment()
+    const f = createFragment<LooseComponents>()
     expect(f.Input({ title: '姓名' })()).toEqual({
       type: 'string',
       title: '姓名',
@@ -140,7 +159,7 @@ describe('createFragment', () => {
   })
 
   test('dynamic void and array components', () => {
-    const f = createFragment({
+    const f = createFragment<LooseComponents>({
       voidComponents: ['FormLayout', 'Submit'],
       arrayComponents: ['ArrayItems'],
     })

@@ -5,6 +5,9 @@ import type { Component } from 'vue'
 
 export type VueComponent = Component
 
+/** 提取 Vue 组件定义的 props 类型。 */
+export type ComponentProps<T> = T extends abstract new (...args: any) => { $props: infer Props } ? Props : never
+
 export type SchemaVueComponents = Record<string, VueComponent>
 
 export interface IProviderProps {
