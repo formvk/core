@@ -4,7 +4,7 @@ import { describe, expectTypeOf, test } from 'vitest'
 import { createSchema } from '../create-schema'
 import { createFragment } from '../fragment'
 import type { SchemaCreator } from '../fragment-types'
-import type { ISchema, SchemaExpression, SchemaReaction, Stringify, TScope } from '../types'
+import type { ExpressionProps, ISchema, SchemaExpression, SchemaReaction, Stringify, TScope } from '../types'
 
 declare module '../types' {
   interface IScopeContext {
@@ -45,6 +45,60 @@ describe('fragment types', () => {
     f.Field({ component: 'Input', componentProps: { maxLength: '10' } })
     // @ts-expect-error field 的 type 固定为 string
     f.Field({ type: 'number' })
+  })
+
+  test('componentProps / decoratorProps accept expressions', () => {
+    // 叶子表达式：仅 {{...}} 模板字符串放行，普通字符串仍由严格 props 拒收
+    f.Input({ componentProps: { maxLength: '{{$values.limit}}' } })
+    f.Field({ component: 'Input', componentProps: { maxLength: '{{$values.limit}}' } })
+    // 嵌套对象/数组内的字符串叶子
+    f.Field({
+      component: 'Select',
+      componentProps: { options: [{ label: '{{$values.optionLabel}}', value: 1 }] },
+    })
+    // 整个 props 直接传表达式
+    f.Input({ componentProps: '{{$values.inputProps}}' })
+    // decoratorProps 同理
+    f.Field({ decorator: 'FormItem', decoratorProps: { label: '{{$values.title}}' } })
+    f.Input({ decorator: 'FormItem', decoratorProps: '{{$values.itemProps}}' })
+    // 组件/装饰器引用本身也支持表达式
+    f.Field({ component: '{{$values.widget}}' })
+    f.Field({ decorator: '{{$values.decorator}}' })
+    // void / object / array 通道一致
+    f.FormLayout({ componentProps: { colon: '{{$values.colon}}' } })
+    f.Object({}, { componentProps: { colon: '{{$values.colon}}' } })
+    f.ArrayItems(f.Field(), { componentProps: { maxItems: '{{$values.max}}' } })
+  })
+
+  test('state and validator keys accept expressions', () => {
+    f.Field({
+      readOnly: '{{x}}',
+      writeOnly: '{{x}}',
+      multipleOf: '{{x}}',
+      maximum: '{{x}}',
+      exclusiveMaximum: '{{x}}',
+      minimum: '{{x}}',
+      exclusiveMinimum: '{{x}}',
+      maxLength: '{{x}}',
+      minLength: '{{x}}',
+      maxItems: '{{x}}',
+      minItems: '{{x}}',
+      uniqueItems: '{{x}}',
+      maxProperties: '{{x}}',
+      minProperties: '{{x}}',
+      format: '{{x}}',
+    })
+    // validator：整体表达式、规则对象叶子表达式、数组混合形态
+    f.Field({ validator: '{{x}}' })
+    f.Field({ validator: { required: '{{x}}' } })
+    f.Field({ validator: ['{{x}}', { format: 'email' }] })
+    // 普通字符串/错误类型不匹配表达式模板，仍然拒收
+    // @ts-expect-error readOnly 只接受 boolean 或 {{...}} 表达式
+    f.Field({ readOnly: 'yes' })
+    // @ts-expect-error maxLength 只接受 number 或 {{...}} 表达式
+    f.Field({ maxLength: '10' })
+    // @ts-expect-error format 只接受 string 或 {{...}} 表达式
+    f.Field({ format: 1 })
   })
 
   test('default decorator option', () => {
@@ -510,5 +564,13 @@ describe('fragment types', () => {
     expectTypeOf<Stringify<{ visible: boolean }>>().toEqualTypeOf<{
       visible?: boolean | SchemaExpression
     }>()
+  })
+
+  test('ExpressionProps', () => {
+    // 保留原 key 的必填/可选修饰符，叶子与整体均允许表达式
+    expectTypeOf<ExpressionProps<{ a: string; b?: number }>>().toEqualTypeOf<
+      SchemaExpression | { a: string | SchemaExpression; b?: number | SchemaExpression }
+    >()
+    expectTypeOf<ExpressionProps<number>>().toEqualTypeOf<number | SchemaExpression>()
   })
 })

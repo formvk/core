@@ -23,26 +23,26 @@ export class Schema implements ISchema {
   title?: ISchema['title']
   description?: ISchema['description']
   default?: any
-  readOnly?: boolean
-  writeOnly?: boolean
+  readOnly?: ISchema['readOnly']
+  writeOnly?: ISchema['writeOnly']
   type?: SchemaTypes
   enum?: SchemaEnum
   const?: any
-  multipleOf?: number
-  exclusiveMaximum?: number
-  maximum?: number
-  exclusiveMinimum?: number
-  minimum?: number
-  maxLength?: number
-  minLength?: number
+  multipleOf?: ISchema['multipleOf']
+  exclusiveMaximum?: ISchema['exclusiveMaximum']
+  maximum?: ISchema['maximum']
+  exclusiveMinimum?: ISchema['exclusiveMinimum']
+  minimum?: ISchema['minimum']
+  maxLength?: ISchema['maxLength']
+  minLength?: ISchema['minLength']
   pattern?: ISchema['pattern']
-  maxItems?: number
-  minItems?: number
-  uniqueItems?: boolean
-  maxProperties?: number
-  minProperties?: number
+  maxItems?: ISchema['maxItems']
+  minItems?: ISchema['minItems']
+  uniqueItems?: ISchema['uniqueItems']
+  maxProperties?: ISchema['maxProperties']
+  minProperties?: ISchema['minProperties']
   required?: ISchema['required']
-  format?: string
+  format?: ISchema['format']
   $ref?: string
   $namespace?: string
 

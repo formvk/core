@@ -191,6 +191,19 @@ export type Stringify<P> = P extends (...args: any[]) => any
       : SchemaExpression | P
 
 /**
+ * 组件/装饰器 props 的表达式类型：递归地把每个叶子扩展为「原类型 | 表达式」，整体也允许直接传表达式。
+ * 运行时 compiler 会编译 componentProps / decoratorProps 内任意层级的 `{{...}}` 字符串叶子。
+ *
+ * 与 Stringify 的区别：对象分支采用同态映射，保留原 key 的可选/必填修饰符
+ * （Stringify 会把所有 key 变可选），避免含必填 props 的组件接口被意外放宽。
+ */
+export type ExpressionProps<P> = P extends (...args: any[]) => any
+  ? SchemaExpression | P
+  : P extends object
+    ? SchemaExpression | { [K in keyof P]: ExpressionProps<P[K]> }
+    : SchemaExpression | P
+
+/**
  * 所有 schema 节点共享的基础字段。
  * 业务可通过 `interface MySchema extends ISchemaBase` 或声明合并扩展字段。
  */
@@ -223,26 +236,26 @@ export interface ISchema extends ISchemaBase {
   version?: string
   name?: SchemaKey
   default?: any
-  readOnly?: boolean
-  writeOnly?: boolean
+  readOnly?: Stringify<boolean>
+  writeOnly?: Stringify<boolean>
   type?: SchemaTypes
   enum?: Stringify<SchemaEnum>
   const?: any
-  multipleOf?: number
-  maximum?: number
-  exclusiveMaximum?: number
-  minimum?: number
-  exclusiveMinimum?: number
-  maxLength?: number
-  minLength?: number
+  multipleOf?: Stringify<number>
+  maximum?: Stringify<number>
+  exclusiveMaximum?: Stringify<number>
+  minimum?: Stringify<number>
+  exclusiveMinimum?: Stringify<number>
+  maxLength?: Stringify<number>
+  minLength?: Stringify<number>
   pattern?: Stringify<string>
-  maxItems?: number
-  minItems?: number
-  uniqueItems?: boolean
-  maxProperties?: number
-  minProperties?: number
+  maxItems?: Stringify<number>
+  minItems?: Stringify<number>
+  uniqueItems?: Stringify<boolean>
+  maxProperties?: Stringify<number>
+  minProperties?: Stringify<number>
   required?: Stringify<string[] | boolean | string>
-  format?: string
+  format?: Stringify<string>
   $ref?: string
   $namespace?: string
 
@@ -256,15 +269,21 @@ export interface ISchema extends ISchemaBase {
 
   /** 字段值 */
   value?: any
-  /** 校验器 */
-  validator?: FieldValidator
-  /** 装饰器 */
+  /** 校验器，叶子规则同样支持 `{{...}}` 表达式 */
+  validator?: Stringify<FieldValidator>
+  /**
+   * 装饰器引用，支持组件名字符串 / 组件引用 / `{{...}}` 表达式（求值结果为组件名或组件引用）。
+   * 结构化创建请使用 createFragment 获得按组件 map 收窄的严格类型。
+   */
   decorator?: any
-  /** 装饰器属性 */
+  /** 装饰器属性，任意层级的字符串叶子支持 `{{...}}` 表达式 */
   decoratorProps?: any
-  /** 组件 */
+  /**
+   * 组件引用，支持组件名字符串 / 组件引用 / `{{...}}` 表达式（求值结果为组件名或组件引用）。
+   * 结构化创建请使用 createFragment 获得按组件 map 收窄的严格类型。
+   */
   component?: any
-  /** 组件属性 */
+  /** 组件属性，任意层级的字符串叶子支持 `{{...}}` 表达式 */
   componentProps?: any
   /** 组件响应器 */
   reactions?: SchemaReactions

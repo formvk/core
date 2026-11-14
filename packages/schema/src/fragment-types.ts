@@ -1,6 +1,6 @@
 import type { ArrayField, Field, ObjectField, VoidField } from '@formvk/core'
 
-import type { ISchema, SchemaPatch, SchemaReactions } from './types'
+import type { ExpressionProps, ISchema, SchemaExpression, SchemaPatch, SchemaReactions } from './types'
 
 /**
  * 三个独立的组件 props map，泛型顺序与运行时分类通道一致：
@@ -148,10 +148,10 @@ export type FieldSchema<
   Scope extends object = {},
   IValues extends object = any,
 > = Omit<ISchema, SchemaOverrideKeys> & {
-  component?: Component
-  componentProps?: TComponentProps<F, Component>
-  decorator?: Decorator
-  decoratorProps?: TComponentProps<V, Decorator>
+  component?: Component | SchemaExpression
+  componentProps?: ExpressionProps<TComponentProps<F, Component>>
+  decorator?: Decorator | SchemaExpression
+  decoratorProps?: ExpressionProps<TComponentProps<V, Decorator>>
   reactions?: SchemaReactions<
     Field<Value, TComponentProps<F, Component>, TComponentProps<V, Decorator>, IRecord>,
     Scope,
@@ -169,10 +169,10 @@ export type ObjectSchema<
   Scope extends object = {},
   IValues extends object = any,
 > = Omit<ISchema, SchemaOverrideKeys | 'properties'> & {
-  component?: Component
-  componentProps?: TComponentProps<V, Component>
-  decorator?: Decorator
-  decoratorProps?: TComponentProps<V, Decorator>
+  component?: Component | SchemaExpression
+  componentProps?: ExpressionProps<TComponentProps<V, Component>>
+  decorator?: Decorator | SchemaExpression
+  decoratorProps?: ExpressionProps<TComponentProps<V, Decorator>>
   properties?: SchemaPropertiesInput
   reactions?: SchemaReactions<
     ObjectField<Value, TComponentProps<V, Component>, TComponentProps<V, Decorator>, IRecord>,
@@ -192,10 +192,10 @@ export type ArraySchema<
   Scope extends object = {},
   IValues extends object = any,
 > = Omit<ISchema, SchemaOverrideKeys | 'items' | 'properties'> & {
-  component?: Component
-  componentProps?: TComponentProps<A, Component>
-  decorator?: Decorator
-  decoratorProps?: TComponentProps<V, Decorator>
+  component?: Component | SchemaExpression
+  componentProps?: ExpressionProps<TComponentProps<A, Component>>
+  decorator?: Decorator | SchemaExpression
+  decoratorProps?: ExpressionProps<TComponentProps<V, Decorator>>
   properties?: SchemaPropertiesInput
   reactions?: SchemaReactions<
     ArrayField<Value, TComponentProps<A, Component>, TComponentProps<V, Decorator>, IRecord>,
@@ -213,10 +213,10 @@ export type VoidSchema<
   Scope extends object = {},
   IValues extends object = any,
 > = Omit<ISchema, SchemaOverrideKeys | 'properties'> & {
-  component?: Component
-  componentProps?: TComponentProps<V, Component>
-  decorator?: Decorator
-  decoratorProps?: TComponentProps<V, Decorator>
+  component?: Component | SchemaExpression
+  componentProps?: ExpressionProps<TComponentProps<V, Component>>
+  decorator?: Decorator | SchemaExpression
+  decoratorProps?: ExpressionProps<TComponentProps<V, Decorator>>
   properties?: SchemaPropertiesInput
   reactions?: SchemaReactions<
     VoidField<TComponentProps<V, Component>, TComponentProps<V, Decorator>, IRecord>,

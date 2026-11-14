@@ -115,7 +115,7 @@ f.ArrayItems(f.Field())
 
 - Names declared in `F` generate field creators; names in `V` and `A` generate void / array creators.
 - A creator that is not declared in the matching map is a type error. Use `f.Field({ component: 'X' })` or declare `X` in the map.
-- `componentProps` is checked against the props type registered for that component.
+- `componentProps` is checked against the props type registered for that component; any leaf (or the whole props object) may be a <code v-pre>{{...}}</code> expression. Ordinary mistyped strings are still rejected — <code v-pre>maxLength: '10'</code> is invalid while <code v-pre>maxLength: '{{$values.limit}}'</code> is allowed.
 - Strictness is intentionally asymmetric: shorthand creators (`f.Input`) only exist for declared names, while the `component` / `decorator` string fields accept any string (via `string & {}`) so components registered only at runtime stay usable. An undeclared string name gets no autocomplete and falls back to a loose `Record<string, unknown>` for `componentProps`; props checking applies only to declared names.
 
 ### Field-level type parameters
@@ -197,19 +197,21 @@ Rules of thumb:
 
 Standard JSON Schema constraints are interpreted by `@formvk/validator`: `required`, `format`, `pattern` (a **regex string**, not the interaction pattern), `maxLength` / `minLength`, `maximum` / `minimum`, `exclusiveMaximum` / `exclusiveMinimum`, `multipleOf`, `maxItems` / `minItems` / `uniqueItems`, `maxProperties` / `minProperties`, `const`, `enum`, plus `validator` for custom rules. See the [Validation reference](/api/validator) for the full rule table.
 
+Every validation key above accepts a <code v-pre>{{...}}</code> expression (including leaves inside a `validator` rule object). At the type level this is represented by `Stringify<T>`: the value is a union of `T` and an expression string, while an ordinary mistyped string (for example `'10'` for a numeric field) is still rejected.
+
 ### Formvk extensions
 
-| Field                          | Description                                                                   |
-| ------------------------------ | ----------------------------------------------------------------------------- |
-| `component`                    | Component name resolved from the `components` map, or a component definition. |
-| `componentProps`               | Props passed to the component. Typed via the fragment's component props maps. |
-| `decorator` / `decoratorProps` | Decorator component (for example a form-item wrapper) and its props.          |
-| `validator`                    | Validator descriptor, rule object or array.                                   |
-| `reactions`                    | One reaction or an array; see [Reactions](#reactions).                        |
-| `slot` / `slotNode`            | Render the node into a named slot of its parent component.                    |
-| `compileOmitted`               | Field paths that must not be compiled as expressions.                         |
+| Field                          | Description                                                                                                                                                                                              |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `component`                    | Component name resolved from the `components` map, a component definition, or an expression evaluating to a component name / definition.                                                                 |
+| `componentProps`               | Props passed to the component. Typed via the fragment's component props maps; any nested string leaf (or the whole props object) accepts an expression, with strict typing carried by `ExpressionProps`. |
+| `decorator` / `decoratorProps` | Decorator component (for example a form-item wrapper) and its props; the same expression rules as `component` / `componentProps` apply.                                                                  |
+| `validator`                    | Validator descriptor, rule object or array; accepts a whole-value expression or leaf expressions inside rule objects.                                                                                    |
+| `reactions`                    | One reaction or an array; see [Reactions](#reactions).                                                                                                                                                   |
+| `slot` / `slotNode`            | Render the node into a named slot of its parent component.                                                                                                                                               |
+| `compileOmitted`               | Field paths that must not be compiled as expressions.                                                                                                                                                    |
 
-Any field marked as expression-capable accepts a <code v-pre>{{ ... }}</code> string compiled against the field scope.
+Any field marked as expression-capable accepts a <code v-pre>{{ ... }}</code> string compiled against the field scope. The full set covers interaction / presentation fields (`title`, `visible`, ...), every validation key, the `component` / `decorator` references, any nested leaf of `componentProps` / `decoratorProps`, plus `enum` / `pattern` / `required`.
 
 ## Reactions
 

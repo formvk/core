@@ -104,6 +104,37 @@ test('standard readOnly maps to field readOnly', () => {
   expect(field1.readOnly).toBe(true)
 })
 
+test('baseReaction compiles expressions in componentProps / decoratorProps / validator keys', () => {
+  const { field1 } = getFormAndFields(
+    {
+      component: 'Input',
+      componentProps: {
+        placeholder: '{{placeholder}}',
+        nested: { deep: '{{deepValue}}' },
+      },
+      decorator: 'FormItem',
+      decoratorProps: { label: '{{label}}' },
+      maxLength: '{{maxLength}}',
+    },
+    {},
+    {
+      scope: {
+        placeholder: '请输入',
+        deepValue: 'deep',
+        label: '姓名',
+        maxLength: 6,
+      },
+    }
+  )
+
+  expect(field1.componentProps).toEqual({
+    placeholder: '请输入',
+    nested: { deep: 'deep' },
+  })
+  expect(field1.decoratorProps).toEqual({ label: '姓名' })
+  expect(field1.validator).toContainEqual({ maxLength: 6 })
+})
+
 test('baseReaction maps index to field order', () => {
   const schema = new Schema({
     type: 'object',

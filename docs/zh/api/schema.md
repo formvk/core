@@ -115,7 +115,7 @@ f.ArrayItems(f.Field())
 
 - 声明在 `F` 中的组件名生成字段构造器；`V` / `A` 中的分别生成 void / array 构造器。
 - 使用未在对应 map 中声明的构造器会直接报类型错误；请改用 `f.Field({ component: 'X' })` 或在 map 中声明 `X`。
-- `componentProps` 会按该组件注册的 props 类型做校验。
+- `componentProps` 会按该组件注册的 props 类型做校验；其中任意叶子（或整个 props）都可以写 <code v-pre>{{...}}</code> 表达式，普通错误类型字符串仍会报错，例如 <code v-pre>maxLength: '10'</code> 不合法而 <code v-pre>maxLength: '{{$values.limit}}'</code> 合法。
 - 严格性刻意不对称：简写构造器（`f.Input`）只对已声明的名字存在，而 `component` / `decorator` 字符串字段接受任意字符串（经 `string & {}`），以兼容仅在运行时注册的组件。未声明的字符串名没有补全，`componentProps` 退化为宽松的 `Record<string, unknown>`；props 校验只对已声明名字生效。
 
 ### 字段级类型参数
@@ -197,19 +197,21 @@ f.Object<{ name: string; age: number }>({
 
 标准 JSON Schema 约束由 `@formvk/validator` 解释：`required`、`format`、`pattern`（**正则字符串**，不是交互模式）、`maxLength` / `minLength`、`maximum` / `minimum`、`exclusiveMaximum` / `exclusiveMinimum`、`multipleOf`、`maxItems` / `minItems` / `uniqueItems`、`maxProperties` / `minProperties`、`const`、`enum`，以及用于自定义规则的 `validator`。完整规则表见[校验参考](/zh/api/validator)。
 
+上述每个校验键都支持 <code v-pre>{{...}}</code> 表达式（包括 `validator` 规则对象内部的叶子），类型上体现为 `Stringify<T>`：取值是 `T` 与表达式字符串的联合，普通错误类型字符串（例如数字字段传 `'10'`）仍然报类型错误。
+
 ### Formvk 扩展字段
 
-| 字段                           | 说明                                                       |
-| ------------------------------ | ---------------------------------------------------------- |
-| `component`                    | 组件名，从 `components` 映射中解析；也可以是组件定义本身。 |
-| `componentProps`               | 传给组件的 props，类型由 fragment 的组件 props map 约束。  |
-| `decorator` / `decoratorProps` | 装饰器组件（例如表单项包装器）及其 props。                 |
-| `validator`                    | 校验描述符、规则对象或数组。                               |
-| `reactions`                    | 单个联动或联动数组，见[联动](#联动)。                      |
-| `slot` / `slotNode`            | 把节点渲染到父组件的具名插槽中。                           |
-| `compileOmitted`               | 指定不做表达式编译的字段路径。                             |
+| 字段                           | 说明                                                                                                                                           |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `component`                    | 组件名，从 `components` 映射中解析；也可以是组件定义本身，或求值结果为组件名/组件引用的表达式。                                                |
+| `componentProps`               | 传给组件的 props，类型由 fragment 的组件 props map 约束；任意层级的字符串叶子（或整个 props）都支持表达式，严格类型由 `ExpressionProps` 承载。 |
+| `decorator` / `decoratorProps` | 装饰器组件（例如表单项包装器）及其 props；表达式规则与 `component` / `componentProps` 一致。                                                   |
+| `validator`                    | 校验描述符、规则对象或数组；支持整体表达式，也支持规则对象内的叶子表达式。                                                                     |
+| `reactions`                    | 单个联动或联动数组，见[联动](#联动)。                                                                                                          |
+| `slot` / `slotNode`            | 把节点渲染到父组件的具名插槽中。                                                                                                               |
+| `compileOmitted`               | 指定不做表达式编译的字段路径。                                                                                                                 |
 
-所有支持表达式的字段都可以填写 <code v-pre>{{ ... }}</code> 字符串，编译时按字段作用域求值。
+所有支持表达式的字段都可以填写 <code v-pre>{{ ... }}</code> 字符串，编译时按字段作用域求值。完整的表达式能力字段包括：交互展示字段（`title`、`visible` 等）、全部校验键、`component` / `decorator` 引用、`componentProps` / `decoratorProps` 的任意层级叶子，以及 `enum` / `pattern` / `required`。
 
 ## 联动
 
