@@ -241,6 +241,52 @@ importers:
 
   packages/path: {}
 
+  packages/react:
+    dependencies:
+      '@formvk/core':
+        specifier: workspace:^
+        version: link:../core
+      '@formvk/reactive':
+        specifier: workspace:^
+        version: link:../reactive
+      '@formvk/reactive-react':
+        specifier: workspace:^
+        version: link:../reactive-react
+      '@formvk/schema':
+        specifier: workspace:^
+        version: link:../schema
+      '@formvk/shared':
+        specifier: workspace:^
+        version: link:../shared
+      hoist-non-react-statics:
+        specifier: ^3.3.2
+        version: 3.3.2
+    devDependencies:
+      '@testing-library/react':
+        specifier: ^16.3.3
+        version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@types/hoist-non-react-statics':
+        specifier: ^3.3.7
+        version: 3.3.7(@types/react@19.3.0)
+      '@types/react':
+        specifier: ^19.3.0
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: ^19.3.0
+        version: 19.3.0(@types/react@19.3.0)
+      '@vitejs/plugin-react':
+        specifier: ^6.3.0
+        version: 6.3.0(vite@8.3.8(@types/node@26.6.6)(yaml@2.9.1))
+      happy-dom:
+        specifier: ^21.0.4
+        version: 21.0.4
+      react:
+        specifier: ^19.3.1
+        version: 19.3.1
+      react-dom:
+        specifier: ^19.3.1
+        version: 19.3.1(react@19.3.1)
+
   packages/reactive:
     dependencies:
       '@vue/reactivity':
