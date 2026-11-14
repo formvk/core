@@ -1,10 +1,16 @@
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vitepress'
 
+// GitHub Pages 项目站点部署在 /core/ 子路径下，CI 通过 DOCS_BASE 注入；
+// 本地开发与预览未设置该变量时回退到根路径，无需改动访问方式
+const docsBase =
+  (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env?.DOCS_BASE ?? '/'
+
 export default defineConfig({
   title: 'Formvk',
   description: 'Schema-first reactive form engine for Vue 3 and React',
   lang: 'en',
+  base: docsBase,
   cleanUrls: true,
   head: [['meta', { name: 'theme-color', content: '#2563eb' }]],
   locales: {
