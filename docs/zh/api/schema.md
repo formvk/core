@@ -52,24 +52,13 @@ function createFragment<
 
 `defaultDecorator` 对齐 formily-pro 的 `defaultDecoratorPatch`，但保持 opt-in —— formvk 本身不内置 `FormItem` 组件：
 
-```ts
-const f = createFragment<FieldComponents, VoidComponents, ArrayComponents>({ defaultDecorator: 'FormItem' })
-
-f.Field({ title: '姓名', component: 'Input' })()
-// { type: 'string', title: '姓名', component: 'Input', decorator: 'FormItem' }
-```
+<<< @/snippets/schema/decorator.ts#basic
 
 装饰器名同样需要注册到传给 `SchemaField` 的 `components` 映射中。
 
 TypeScript 不支持部分类型参数推断：显式传入组件 map 后，`DefaultDecorator` 不会从选项值推断，而是走默认值。需要收窄 `decoratorProps` 时，把它作为第五个类型参数传入：
 
-```ts
-const f = createFragment<FieldComponents, VoidComponents, ArrayComponents, {}, 'FormItem'>({
-  defaultDecorator: 'FormItem',
-})
-
-f.Field({ title: '姓名', decoratorProps: { label: '姓名' } }) // 按 FormItem 的 props 校验
-```
+<<< @/snippets/schema/decorator.ts#fifth-arg
 
 ### 基础构造器
 
@@ -87,31 +76,11 @@ f.Field({ title: '姓名', decoratorProps: { label: '姓名' } }) // 按 FormIte
 
 三个 map 都是普通的 `name → props` 对象，每个分类一个：
 
-```ts
-interface FieldComponents {
-  Input: { placeholder?: string }
-}
-interface VoidComponents {
-  Card: { title?: string }
-}
-interface ArrayComponents {
-  ArrayItems: { maxItems?: number }
-}
-```
+<<< @/snippets/schema/dynamic-creators.ts#maps
 
 把它们传给 `createFragment` 后，会为每个声明的组件生成一个快捷构造器：
 
-```ts
-const f = createFragment<FieldComponents, VoidComponents, ArrayComponents>({
-  arrayComponentNames: ['ArrayItems'],
-})
-
-f.Input({ componentProps: { placeholder: 'Name' } })
-// 等价于 f.Field({ component: 'Input', componentProps: { placeholder: 'Name' } })
-
-f.ArrayItems(f.Field())
-// type: 'array'，且 component 为 'ArrayItems'
-```
+<<< @/snippets/schema/dynamic-creators.ts#creators
 
 - 声明在 `F` 中的组件名生成字段构造器；`V` / `A` 中的分别生成 void / array 构造器。
 - 使用未在对应 map 中声明的构造器会直接报类型错误；请改用 `f.Field({ component: 'X' })` 或在 map 中声明 `X`。
@@ -131,29 +100,7 @@ f.ArrayItems(f.Field())
 
 父级声明的类型会自动传递给 `properties` / `items` 中创建的子级：
 
-```ts
-interface MyScope {
-  $moment: (value: string) => string
-}
-
-const f = createFragment<MyFieldComponents, MyVoidComponents, MyArrayComponents, MyScope>()
-
-f.Object<{ name: string; age: number }>({
-  name: f.Field({
-    required: true,
-    reactions: (field, scope) => {
-      field.value // string
-      scope.$record // { name: string; age: number } & { $lookup: any; $index: number }
-      scope.$moment // (value: string) => string
-    },
-  }),
-  // 无需泛型：值类型由父级 record 的 `age: number` 收敛
-  age: f.Field({ required: true }),
-  layout: f.FormLayout(),
-  // @ts-expect-error 未在父级 record 中声明的 key 只允许 void 子节点
-  extra: f.Field(),
-})
-```
+<<< @/snippets/schema/field-generics.ts
 
 要点：
 
@@ -217,14 +164,7 @@ f.Object<{ name: string; age: number }>({
 
 联动会监听 `dependencies`、求值 `when`，并执行 `fulfill` 或 `otherwise` 分支：
 
-```ts
-{
-  dependencies: ['subscribe'],
-  when: exp.subscribe.eq(true),
-  fulfill: { state: { visible: true, required: true } },
-  otherwise: { state: { visible: false, required: false } },
-}
-```
+<<< @/snippets/schema/reactions.ts#reaction-object
 
 | 键                                    | 说明                                                                              |
 | ------------------------------------- | --------------------------------------------------------------------------------- |
@@ -246,13 +186,7 @@ function createExpression<T extends object>(expression: string): Expression<T>
 
 构建带类型提示的表达式字符串。把作用域对象的形状作为泛型传入；不传时 `T` 默认为 `object`，没有任何属性补全。
 
-```ts
-const exp = createExpression<{ plan: string; subscribe: boolean }>('$values')
-
-exp.plan.eq('enterprise') // '{{$values.plan === "enterprise"}}'
-exp.subscribe.not() // '{{!$values.subscribe}}'
-exp.plan.ter('pro', 'free') // '{{$values.plan ? "pro" : "free"}}'
-```
+<<< @/snippets/schema/expression.ts#api-expression
 
 ### 操作符
 

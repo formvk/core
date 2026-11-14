@@ -169,9 +169,18 @@ importers:
 
   .:
     devDependencies:
+      '@formvk/core':
+        specifier: workspace:^
+        version: link:packages/core
+      '@formvk/react':
+        specifier: workspace:^
+        version: link:packages/react
       '@formvk/reactive':
         specifier: workspace:^
         version: link:packages/reactive
+      '@formvk/reactive-react':
+        specifier: workspace:^
+        version: link:packages/reactive-react
       '@formvk/schema':
         specifier: workspace:^
         version: link:packages/schema
@@ -187,6 +196,15 @@ importers:
       '@swc/core':
         specifier: ^1.16.22
         version: 1.16.22(@swc/helpers@0.5.24)
+      '@types/react':
+        specifier: ^19.3.0
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: ^19.3.0
+        version: 19.3.0(@types/react@19.3.0)
+      '@vitejs/plugin-react':
+        specifier: ^6.3.0
+        version: 6.3.0(vite@8.3.8(@types/node@26.6.6)(yaml@2.9.1))
       '@vitest/coverage-v8':
         specifier: ^5.1.0
         version: 5.1.0(vitest@5.1.0)
@@ -205,6 +223,12 @@ importers:
       oxlint:
         specifier: ^1.93.0
         version: 1.93.0
+      react:
+        specifier: ^19.3.1
+        version: 19.3.1
+      react-dom:
+        specifier: ^19.3.1
+        version: 19.3.1(react@19.3.1)
       typescript:
         specifier: ^6.0.0
         version: 6.0.3

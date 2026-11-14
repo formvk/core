@@ -4,13 +4,7 @@
 
 ## Observable state
 
-```ts
-import { observable } from '@formvk/reactive'
-
-const state = observable({ count: 0, step: 1 })
-
-state.count += state.step
-```
+<<< @/snippets/reactive/observable.ts
 
 `observable` returns a deeply reactive proxy. Mutating any nested property triggers the effects that read it.
 
@@ -28,36 +22,46 @@ state.count += state.step
 
 Try it — the log below is produced by `autorun`:
 
+### Vue 3
+
 <ReactivityDemo />
 
 The demo is a single Vue component:
 
 <<< @/demos/reactivity.vue
 
+### React (TSX)
+
+<ReactMount :component="ReactReactivityDemo" />
+
+`autorun` is framework-agnostic: start it inside `useEffect` and return its dispose function as the cleanup. The component itself is wrapped with `observer` so reading `state.count` and the `computed` re-renders it:
+
+<<< @/demos/react/reactivity.tsx
+
 <script setup lang="ts">
 import ReactivityDemo from '../demos/reactivity.vue'
+import ReactReactivityDemo from '../demos/react/reactivity'
 </script>
 
 ## Working with Vue components
 
 Formvk models are built from observable objects, so Vue templates track them like any other reactive source. The form packages never call `forceUpdate` — a field component re-renders only when the field state it reads changes.
 
-```ts
-const form = createForm({ values: { name: 'alice' } })
+<<< @/snippets/core/model-mutation.ts
 
-// Any component can read and mutate the model
-form.values.name = 'bob'
-```
+## Working with React components
+
+React has no automatic dependency tracking, so the React binding renders observable state through `observer` (from `@formvk/reactive-react`, built on `useSyncExternalStore`). Wrap any component that reads a form model, a field or an `observable` directly; hooks such as `useField()` return bare values, and reactivity starts when the wrapped component reads them:
+
+<<< @/snippets/react/name-preview.tsx
+
+Side-effect primitives stay framework-free — `autorun`, `reaction` and `effect` are started and disposed with ordinary React effect hooks.
 
 ## Snapshots
 
 `toJS` walks an observable tree and returns plain objects and arrays. It is used internally when submitting a form:
 
-```ts
-import { toJS } from '@formvk/reactive'
-
-const values = toJS(form.values) // plain object, safe to serialize
-```
+<<< @/snippets/reactive/snapshots.ts
 
 ## Next steps
 

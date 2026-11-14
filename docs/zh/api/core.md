@@ -137,20 +137,7 @@ pattern 控制交互，display 控制布局与值树中的存在性。
 
 effect 注册在 `createForm({ effects })` 中；Vue 场景也可以通过 `@formvk/vue` 的 `useFormEffects` 注册。字段类钩子接收路径模式与 `(field, form)` 回调。
 
-```ts
-const form = createForm({
-  effects() {
-    onFieldValueChange('address.city', (field, form) => {
-      form.setFieldState('address.zip', state => {
-        state.value = ''
-      })
-    })
-    onFormSubmit(() => {
-      // 提交校验开始前
-    })
-  },
-})
-```
+<<< @/snippets/core/effects.ts
 
 ### 表单钩子
 
@@ -178,11 +165,7 @@ const form = createForm({
 | `get(key)` / `getIn(pattern)` | 首个匹配字段的状态键或嵌套值。                    |
 | `value()` / `initialValue()`  | `get('value')` / `get('initialValue')` 的语法糖。 |
 
-```ts
-form.query('members.*.name').forEach(field => {
-  field.selfErrors = []
-})
-```
+<<< @/snippets/core/query.ts#query
 
 ## 类型守卫
 

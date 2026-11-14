@@ -83,33 +83,7 @@ function createForm<T extends object = any>(options?: IFormProps<T>): Form<T>
 
 `components` 是扁平的 `name → component` 映射，未声明分类的名字按 field 组件处理。`voidComponents` / `arrayComponents` 是归类布局组件与数组组件的**组件 map**，工厂会自动把它们合并进运行时组件映射，无需重复注册。所有类型都从 options 推断，无需传任何类型参数，也不用手写组件 props map：
 
-```ts
-const components = {
-  Input,
-  Select,
-}
-
-const { SchemaField, fragment: f } = createSchemaField({
-  components,
-  voidComponents: { FormLayout },
-  arrayComponents: { ArrayItems },
-  scope: { $moment: (value: string) => value },
-})
-
-const schema = createSchema({
-  name: f.Input({
-    title: '姓名',
-    // componentProps 按 Input 组件自身的 props 校验
-    componentProps: { placeholder: 'Alice' },
-    reactions: (field, scope) => {
-      field.value // string
-      scope.$moment // (value: string) => string，由 scope 选项推断
-    },
-  }),
-  profile: f.Object({}),
-  members: f.ArrayItems(f.Object({})),
-})
-```
+<<< @/snippets/vue/schema-field.ts#full
 
 用预绑定的组件渲染，无需再传 `components` prop：
 
@@ -130,14 +104,7 @@ const schema = createSchema({
 
 返回的构造器与 [Schema DSL](/zh/api/schema#字段级类型参数) 中的 fragment API 完全一致，同样支持父级声明、子级推断：
 
-```ts
-const { fragment: f } = createSchemaField({ components: { Input } })
-
-const schema = createSchema({
-  // Field 无需泛型：值类型由父级 record 驱动
-  age: f.Field({ required: true }),
-})
-```
+<<< @/snippets/vue/schema-field.ts#inference
 
 `createFragment` 仍然保留，适用于不依赖 Vue 组件映射的、与框架无关的 schema 代码。
 
@@ -175,21 +142,7 @@ const schema = createSchema({
 
 直接读取字段的自定义输入组件：
 
-```vue
-<script setup lang="ts">
-import { useField } from '@formvk/vue'
-
-const field = useField()
-</script>
-
-<template>
-  <div>
-    <label>{{ field?.title }}</label>
-    <input :value="field?.value" @input="field?.onInput($event)" />
-    <span v-if="field?.selfErrors?.length">{{ field.selfErrors[0] }}</span>
-  </div>
-</template>
-```
+<<< @/snippets/vue/custom-input.vue
 
 ## 组件工具
 
@@ -197,14 +150,7 @@ const field = useField()
 
 把字段状态映射到组件 props：
 
-```ts
-import { mapProps } from '@formvk/vue'
-
-const ConnectedInput = mapProps(
-  { visible: 'v-show' },
-  { value: true, disabled: 'disabled', readOnly: 'readonly' }
-)(Input)
-```
+<<< @/snippets/vue/component-helpers.ts#map-props
 
 对象的键是字段上的读取路径，字符串值是目标 prop；值为 `true` 时保持同名。
 
@@ -212,14 +158,10 @@ const ConnectedInput = mapProps(
 
 当字段 pattern 为 `readPretty` 时切换到只读组件：
 
-```ts
-const Input = mapReadPretty(PreviewText)(BaseInput)
-```
+<<< @/snippets/vue/component-helpers.ts#read-pretty
 
 ### `connect`
 
 组合上述工具：
 
-```ts
-const Input = connect(BaseInput, mapProps({ value: true }), mapReadPretty(PreviewText))
-```
+<<< @/snippets/vue/component-helpers.ts#connect

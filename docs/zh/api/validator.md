@@ -18,21 +18,17 @@ type Validator =
   | Array<上述三种>
 ```
 
-```ts
-// 格式字符串
-{ validator: 'email' }
+格式字符串描述符：
 
-// 自定义函数
-{ validator: (value, rule, ctx, render) => value > 0 || '必须为正数' }
+<<< @/snippets/validator/descriptors.ts#format
 
-// 规则对象，或规则对象数组
-{
-  validator: [
-    { required: true, message: '请输入名称' },
-    { minLength: 3, maxLength: 20, message: '长度需在 3–20 个字符之间' },
-  ],
-}
-```
+自定义函数描述符：
+
+<<< @/snippets/validator/descriptors.ts#fn
+
+规则对象，或规则对象数组：
+
+<<< @/snippets/validator/descriptors.ts#rules
 
 描述符会被统一归一化为规则对象：字符串转成 `{ format: value }`，函数转成 `{ validator: fn }`。
 

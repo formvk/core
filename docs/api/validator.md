@@ -18,21 +18,17 @@ type Validator =
   | Array<the three above>
 ```
 
-```ts
-// format string
-{ validator: 'email' }
+A format string descriptor:
 
-// custom function
-{ validator: (value, rule, ctx, render) => value > 0 || 'must be positive' }
+<<< @/snippets/validator/descriptors.ts#format
 
-// rule object, or an array of them
-{
-  validator: [
-    { required: true, message: 'Name is required' },
-    { minLength: 3, maxLength: 20, message: 'Use 3–20 characters' },
-  ],
-}
-```
+A custom function descriptor:
+
+<<< @/snippets/validator/descriptors.ts#fn
+
+A rule object, or an array of them:
+
+<<< @/snippets/validator/descriptors.ts#rules
 
 Each descriptor is normalized into a rule object: a string becomes `{ format: value }`, a function becomes `{ validator: fn }`.
 

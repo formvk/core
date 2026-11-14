@@ -1,6 +1,8 @@
 # 基础表单
 
-一个包含初始值、校验规则、提交与重置的完整表单，schema 由 `createSchemaField` 返回的 fragment 构建，组件 props 类型从扁平组件映射自动推断。
+一个包含初始值、校验规则、提交与重置的完整表单，schema 由 `createSchemaField` 返回的 fragment 构建，组件 props 类型从扁平组件映射自动推断。同一套 schema 工厂在两个框架下通用，只有渲染层不同。
+
+## Vue 3
 
 <BasicFormDemo />
 
@@ -8,8 +10,17 @@
 
 <<< @/demos/zh/basic-form.vue
 
+## React（TSX）
+
+<ReactMount :component="ReactBasicFormDemo" />
+
+下面是同一个演示的 React TSX 版本。凡是直接读取表单状态的组件（本例提交按钮读取了 `form.submitting`），都需要用 `@formvk/reactive-react` 的 `observer` 包裹，响应式变化才会触发重渲染：
+
+<<< @/demos/react/zh/basic-form.tsx
+
 <script setup lang="ts">
 import BasicFormDemo from '../../demos/zh/basic-form.vue'
+import ReactBasicFormDemo from '../../demos/react/zh/basic-form'
 </script>
 
 ## 实现说明

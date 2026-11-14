@@ -1,8 +1,9 @@
+import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vitepress'
 
 export default defineConfig({
   title: 'Formvk',
-  description: 'Schema-first reactive form engine for Vue 3',
+  description: 'Schema-first reactive form engine for Vue 3 and React',
   lang: 'en',
   cleanUrls: true,
   head: [['meta', { name: 'theme-color', content: '#2563eb' }]],
@@ -52,6 +53,7 @@ export default defineConfig({
           text: 'API',
           items: [
             { text: 'Vue Bindings', link: '/api/vue' },
+            { text: 'React Bindings', link: '/api/react' },
             { text: 'Schema DSL', link: '/api/schema' },
             { text: 'Form Model & Effects', link: '/api/core' },
             { text: 'Validation', link: '/api/validator' },
@@ -86,6 +88,7 @@ export default defineConfig({
           text: 'API',
           items: [
             { text: 'Vue 绑定', link: '/zh/api/vue' },
+            { text: 'React 绑定', link: '/zh/api/react' },
             { text: 'Schema DSL', link: '/zh/api/schema' },
             { text: '表单模型与 Effects', link: '/zh/api/core' },
             { text: '校验', link: '/zh/api/validator' },
@@ -109,14 +112,18 @@ export default defineConfig({
     },
   },
   vite: {
+    // 文档站同时承载 Vue SFC demo 与 React TSX demo：
+    // plugin-react 只接管 .tsx/.jsx，不影响 VitePress 内部的 Vue 编译管线
+    plugins: [react({ include: /\.[jt]sx$/ })],
     resolve: {
-      dedupe: ['vue', '@vue/reactivity'],
+      dedupe: ['vue', '@vue/reactivity', 'react', 'react-dom'],
     },
     optimizeDeps: {
       // 让 @vue/reactivity 也参与预构建，与 `vue` 的预构建产物共享同一份
       // 运行时（Vite 默认只预构建 vue，导致 `@formvk/reactive` 拿到第二份实例，
       // observable 写入无法触发 Vue 渲染 effect）。
-      include: ['@vue/reactivity'],
+      // react / react-dom 同理需要单实例，供文档站内嵌的 React demo 使用。
+      include: ['@vue/reactivity', 'react', 'react-dom'],
     },
   },
 })

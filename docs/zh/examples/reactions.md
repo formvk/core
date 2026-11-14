@@ -1,6 +1,8 @@
 # 动态联动
 
-reactions 会在其他值变化时更新字段：显示或隐藏、切换必填、改写状态，甚至替换字段 schema。
+reactions 会在其他值变化时更新字段：显示或隐藏、切换必填、改写状态，甚至替换字段 schema。reactions 定义在 schema 中，因此两个框架版本的字段定义完全一致。
+
+## Vue 3
 
 <ReactionsDemo />
 
@@ -8,31 +10,22 @@ reactions 会在其他值变化时更新字段：显示或隐藏、切换必填�
 
 <<< @/demos/zh/reactions.vue
 
+## React（TSX）
+
+<ReactMount :component="ReactReactionsDemo" />
+
+React 版本原样使用 `createExpression` / `reactions` API，只有组件包裹方式与 JSX 语法不同：
+
+<<< @/demos/react/zh/reactions.tsx
+
 <script setup lang="ts">
 import ReactionsDemo from '../../demos/zh/reactions.vue'
+import ReactReactionsDemo from '../../demos/react/zh/reactions'
 </script>
 
 ## reaction 的工作方式
 
-```ts
-import { createExpression, createFragment } from '@formvk/schema'
-
-const f = createFragment()
-const exp = createExpression<{ plan: string; subscribe: boolean }>('$values')
-
-const email = f.Input({
-  title: '邮箱',
-  validator: [{ required: true, message: '请输入邮箱' }],
-  reactions: [
-    {
-      dependencies: ['subscribe'],
-      when: exp.subscribe.eq(true),
-      fulfill: { state: { visible: true, required: true } },
-      otherwise: { state: { visible: false, required: false } },
-    },
-  ],
-})
-```
+<<< @/snippets/schema/example-reactions.ts
 
 - `dependencies` 列出 reaction 监听的表单路径（相对表单根）。
 - `when` 是表达式（或普通布尔值），`createExpression` 提供类型提示并产出 <code v-pre>{{ ... }}</code> 字符串。

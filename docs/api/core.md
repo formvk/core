@@ -137,20 +137,7 @@ Fields inherit `pattern` and `display` from their parent and the form, unless th
 
 Effects are registered inside `createForm({ effects })` or, in Vue, through `useFormEffects` from `@formvk/vue`. Field hooks take a path pattern and a `(field, form)` callback.
 
-```ts
-const form = createForm({
-  effects() {
-    onFieldValueChange('address.city', (field, form) => {
-      form.setFieldState('address.zip', state => {
-        state.value = ''
-      })
-    })
-    onFormSubmit(() => {
-      // before submit validation runs
-    })
-  },
-})
-```
+<<< @/snippets/core/effects.ts
 
 ### Form hooks
 
@@ -178,11 +165,7 @@ Two reactive helpers complement the event hooks:
 | `get(key)` / `getIn(pattern)` | State key or nested value of the first match.     |
 | `value()` / `initialValue()`  | Sugar for `get('value')` / `get('initialValue')`. |
 
-```ts
-form.query('members.*.name').forEach(field => {
-  field.selfErrors = []
-})
-```
+<<< @/snippets/core/query.ts#query
 
 ## Type guards
 

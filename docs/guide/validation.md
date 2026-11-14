@@ -6,22 +6,7 @@ This guide shows the common validation tasks: declaring rules on a schema, contr
 
 Validation rules live on the field's `validator` field. The most common form is an array of rule objects, each with its own `message`:
 
-```ts
-const schema = createSchema({
-  username: f.Input({
-    title: 'Username',
-    required: true,
-    validator: [
-      { required: true, message: 'Username is required' },
-      { minLength: 3, maxLength: 20, message: 'Use 3–20 characters' },
-    ],
-  }),
-  website: f.Input({
-    title: 'Website',
-    validator: [{ format: 'url', message: 'Enter a valid URL' }],
-  }),
-})
-```
+<<< @/snippets/validator/rules-on-schema.ts
 
 `required: true` on the field is sugar that injects the required rule and also drives the required marker in your components. Empty values skip every other rule, so an optional `url` field stays valid while blank.
 
@@ -47,24 +32,11 @@ The field's `onInput` / `onFocus` / `onBlur` methods dispatch the matching rules
 
 Pass a function as the `validator` key. Return `true` / nothing to pass, `false` to use the rule's `message`, or a string / `{ type, message }` object to fail with explicit feedback. Async functions are supported.
 
-```ts
-const reservedNames = new Set(['admin', 'root'])
-
-validator: [
-  {
-    validator: value => !reservedNames.has(value) || 'This name is reserved',
-    message: 'Validation failed',
-  },
-]
-```
+<<< @/snippets/validator/custom-rules.ts#reserved
 
 The function receives `(value, rule, ctx, render)`, where `ctx` contains the surrounding `field` and `form`, so rules can read sibling values:
 
-```ts
-{
-  validator: (value, _rule, { form }) => value === form.values.password || 'Passwords do not match',
-}
-```
+<<< @/snippets/validator/custom-rules.ts#sibling
 
 ## Display errors
 
@@ -77,20 +49,15 @@ Validation feedback is written back onto the field model:
 | `field.validateStatus`                       | `'validating' \| 'error' \| 'warning' \| 'success'`.        |
 | `field.selfWarnings` / `field.selfSuccesses` | Non-blocking feedback of other types.                       |
 
-Custom components typically render `selfErrors[0]` under the control, as shown in [How to build custom components](/guide/custom-components).
+Custom components typically render `selfErrors[0]` under the control, as shown in [How to build custom components](/guide/custom-components). In React, remember the `observer` wrapper so the message appears as soon as validation writes it back:
+
+<<< @/snippets/react/error-text.tsx
 
 ## Submit and reset
 
 `form.submit()` validates the whole form first:
 
-```ts
-try {
-  const values = await form.submit()
-  // all fields valid; values are ready to send
-} catch (errors) {
-  // validation failed; field.selfErrors are already populated
-}
-```
+<<< @/snippets/validator/submit.ts#submit
 
 - `form.validate(pattern?)` runs validation without submitting and rejects on failure.
 - `form.reset(pattern?)` restores initial values; pass `{ forceClear: true }` to clear them instead, or `{ validate: true }` to re-validate afterwards.
@@ -100,19 +67,7 @@ try {
 
 Built-in rule and format messages ship in English and Chinese. Switch language or override messages at application startup:
 
-```ts
-import { setValidateLanguage, registerValidateLocale, registerValidateFormats } from '@formvk/core'
-
-setValidateLanguage('zh')
-
-registerValidateLocale({
-  en: { required: 'Please fill in this field' },
-})
-
-registerValidateFormats({
-  slug: /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
-})
-```
+<<< @/snippets/validator/registry.ts
 
 After registering `slug`, any field can use `{ format: 'slug' }`. Register reusable rule functions with `registerValidateRules`, and customize `{{key}}` message rendering with `registerValidateMessageTemplateEngine`.
 

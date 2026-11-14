@@ -6,46 +6,17 @@ A schema is a plain object. `@formvk/schema` defines its shape, compiles express
 
 Schemas are camel-cased: Formily's `x-component` becomes `component`, `x-component-props` becomes `componentProps`. Custom extensions use the `x` prefix:
 
-```ts
-import { Schema } from '@formvk/schema'
-
-const schema = new Schema({
-  type: 'object',
-  properties: {
-    username: {
-      type: 'string',
-      title: 'Username',
-      component: 'Input',
-      xCustomThing: true,
-    },
-  },
-})
-```
+<<< @/snippets/schema/schema-instance.ts#instance
 
 `ISchema` is an interface, so business code can extend it by declaration merging:
 
-```ts
-declare module '@formvk/schema' {
-  interface ISchema {
-    myWidget?: string
-  }
-}
-```
+<<< @/snippets/schema/schema-instance.ts#declaration-merging
 
 ## The typed DSL: `createFragment`
 
 `createFragment` builds schemas with a small, typed builder. Creators return a function; call it with no arguments to get a plain `ISchema`.
 
-```ts
-import { createFragment, createSchema } from '@formvk/schema'
-
-const f = createFragment()
-
-const schema = createSchema({
-  username: f.Field({ title: 'Username', component: 'Input' }),
-  tags: f.Array(f.Field({ component: 'Input' })),
-})
-```
+<<< @/snippets/schema/fragment-basics.ts
 
 | Creator                         | Produces                                                        |
 | ------------------------------- | --------------------------------------------------------------- |
@@ -56,53 +27,38 @@ const schema = createSchema({
 
 A live example with nested objects:
 
+### Vue 3
+
 <SchemaObjectDemo />
 
 The demo is a single Vue component:
 
 <<< @/demos/schema-object.vue
 
+### React (TSX)
+
+<ReactMount :component="ReactSchemaObjectDemo" />
+
+The schema and fragment builders are imported from `@formvk/react` unchanged — only the rendering wrapper differs:
+
+<<< @/demos/react/schema-object.tsx
+
 <script setup lang="ts">
 import SchemaObjectDemo from '../demos/schema-object.vue'
+import ReactSchemaObjectDemo from '../demos/react/schema-object'
 </script>
 
 ### Value inference
 
 Each creator carries its value type. `f.Field<number>()` yields `number | undefined`, `f.Field({ required: true })` yields `string`, and `f.Array(f.Field())` yields `string[]`. `createSchema` collects these into one object type:
 
-```ts
-import { createSchema } from '@formvk/schema'
-
-const schema = createSchema({
-  name: f.Field({ required: true }), // string
-  age: f.Field<number>(), // number | undefined
-  tags: f.Array(f.Field()), // string[]
-})
-```
+<<< @/snippets/schema/value-inference.ts
 
 ### Component props typing
 
 Pass component props maps to `createFragment` to type `componentProps` and get dynamic creators. The first three type arguments are independent maps — `F` for field components, `V` for void / layout components and `A` for array components:
 
-```ts
-interface MyFieldComponents {
-  Input: { placeholder?: string; maxLength?: number }
-  NumberPicker: { min?: number; max?: number }
-}
-interface MyVoidComponents {
-  Card: { title?: string }
-}
-interface MyArrayComponents {
-  ArrayTable: { columns?: string[] }
-}
-
-const f = createFragment<MyFieldComponents, MyVoidComponents, MyArrayComponents>()
-
-f.Field({ component: 'Input', componentProps: { placeholder: 'Name' } })
-f.Input({ componentProps: { maxLength: 10 } })
-f.Void({}, { component: 'Card' })
-f.Array(f.Field(), { component: 'ArrayTable' })
-```
+<<< @/snippets/schema/component-maps.ts#creators
 
 `f.Input(...)` is a shorthand that sets `component: 'Input'`. Components declared in `V` or `A` are treated as `void` / `array` nodes; everything else is a field.
 
@@ -110,12 +66,7 @@ Dynamic creators only exist for declared components. Without a map, `f.Input` is
 
 The component category is type-level information: at runtime the fragment is a Proxy that cannot inspect the maps. Void and array creators therefore also need the matching runtime options, otherwise they fall back to `type: 'string'`:
 
-```ts
-const f = createFragment<MyFieldComponents, MyVoidComponents, MyArrayComponents>({
-  voidComponentNames: ['Card'],
-  arrayComponentNames: ['ArrayTable'],
-})
-```
+<<< @/snippets/schema/component-maps.ts#runtime-names
 
 See the [Schema DSL reference](/api/schema#createfragment) for the full option list.
 
@@ -123,14 +74,7 @@ See the [Schema DSL reference](/api/schema#createfragment) for the full option l
 
 `patches` transform the produced schema. A patch marked with `pre` runs before the others:
 
-```ts
-const f = createFragment({
-  patches: [
-    schema => ({ ...schema, 'x-region': 'cn' }),
-    { pre: true, patch: schema => ({ ...schema, 'x-source': 'formvk' }) },
-  ],
-})
-```
+<<< @/snippets/schema/patches.ts
 
 `f.transform(rawSchema)` converts a raw `ISchema` into expanded form, applying the same patches to nested `properties` and `items`.
 
@@ -140,16 +84,7 @@ Any schema value that supports expressions can contain a <code v-pre>{{ ... }}</
 
 `createExpression` builds these strings with type completion:
 
-```ts
-import { createExpression } from '@formvk/schema'
-
-// Pass the scope shape as the generic parameter; without it T defaults to object and no property completion is available.
-const exp = createExpression<{ role: string; age: number; subscribe: boolean; email: string }>('$values')
-
-exp.role.eq('admin') // '{{$values.role === "admin"}}'
-exp.age.gte(18) // '{{$values.age >= 18}}'
-exp.subscribe.and(exp.email) // '{{$values.subscribe && $values.email}}'
-```
+<<< @/snippets/schema/expression.ts#guide-expression
 
 | Method                      | Result            |
 | --------------------------- | ----------------- |
@@ -162,26 +97,11 @@ exp.subscribe.and(exp.email) // '{{$values.subscribe && $values.email}}'
 
 Reactions connect fields. They listen to `dependencies`, evaluate `when` and apply `fulfill` / `otherwise`:
 
-```ts
-const exp = createExpression<{ subscribe: boolean }>('$values')
-
-const email = f.Field({
-  title: 'Email',
-  component: 'Input',
-  reactions: [
-    {
-      dependencies: ['subscribe'],
-      when: exp.subscribe.eq(true),
-      fulfill: { state: { visible: true, required: true } },
-      otherwise: { state: { visible: false, required: false } },
-    },
-  ],
-})
-```
+<<< @/snippets/schema/reactions.ts#field-reaction
 
 See [Dynamic Reactions](/examples/reactions) for a running example.
 
 ## Next steps
 
-- [Vue Bindings](/api/vue) — components and hooks exported by `@formvk/vue`.
+- [Vue Bindings](/api/vue) / [React Bindings](/api/react) — components and hooks exported by the framework bindings.
 - [Array List](/examples/array-list) — custom array components with `RecursionField`.

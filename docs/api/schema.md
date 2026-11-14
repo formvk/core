@@ -52,24 +52,13 @@ In development builds, two misconfigurations emit a one-time `console.warn` (the
 
 `defaultDecorator` mirrors formily-pro's `defaultDecoratorPatch`, but stays opt-in because formvk does not ship a `FormItem` component:
 
-```ts
-const f = createFragment<FieldComponents, VoidComponents, ArrayComponents>({ defaultDecorator: 'FormItem' })
-
-f.Field({ title: 'Name', component: 'Input' })()
-// { type: 'string', title: 'Name', component: 'Input', decorator: 'FormItem' }
-```
+<<< @/snippets/schema/decorator.ts#basic
 
 The decorator name must also be registered in the `components` map passed to `SchemaField`.
 
 TypeScript does not support partial type argument inference: once the component maps are passed explicitly, `DefaultDecorator` falls back to its default instead of being inferred from the option. Pass it as the fifth type argument to narrow `decoratorProps`:
 
-```ts
-const f = createFragment<FieldComponents, VoidComponents, ArrayComponents, {}, 'FormItem'>({
-  defaultDecorator: 'FormItem',
-})
-
-f.Field({ title: 'Name', decoratorProps: { label: 'Name' } }) // checked against FormItem's props
-```
+<<< @/snippets/schema/decorator.ts#fifth-arg
 
 ### Base creators
 
@@ -87,31 +76,11 @@ Creators return a function. Calling it with no arguments yields the plain `ISche
 
 The three maps are plain `name → props` objects, one per category:
 
-```ts
-interface FieldComponents {
-  Input: { placeholder?: string }
-}
-interface VoidComponents {
-  Card: { title?: string }
-}
-interface ArrayComponents {
-  ArrayItems: { maxItems?: number }
-}
-```
+<<< @/snippets/schema/dynamic-creators.ts#maps
 
 Passing them to `createFragment` generates one shorthand creator per declared component:
 
-```ts
-const f = createFragment<FieldComponents, VoidComponents, ArrayComponents>({
-  arrayComponentNames: ['ArrayItems'],
-})
-
-f.Input({ componentProps: { placeholder: 'Name' } })
-// equivalent to f.Field({ component: 'Input', componentProps: { placeholder: 'Name' } })
-
-f.ArrayItems(f.Field())
-// type: 'array' with component: 'ArrayItems'
-```
+<<< @/snippets/schema/dynamic-creators.ts#creators
 
 - Names declared in `F` generate field creators; names in `V` and `A` generate void / array creators.
 - A creator that is not declared in the matching map is a type error. Use `f.Field({ component: 'X' })` or declare `X` in the map.
@@ -131,29 +100,7 @@ f.ArrayItems(f.Field())
 
 Types declared on a parent flow into the children created inside `properties` / `items`:
 
-```ts
-interface MyScope {
-  $moment: (value: string) => string
-}
-
-const f = createFragment<MyFieldComponents, MyVoidComponents, MyArrayComponents, MyScope>()
-
-f.Object<{ name: string; age: number }>({
-  name: f.Field({
-    required: true,
-    reactions: (field, scope) => {
-      field.value // string
-      scope.$record // { name: string; age: number } & { $lookup: any; $index: number }
-      scope.$moment // (value: string) => string
-    },
-  }),
-  // No generic needed: the value type comes from the parent record
-  age: f.Field({ required: true }),
-  layout: f.FormLayout(),
-  // @ts-expect-error keys not declared on the parent record only accept void nodes
-  extra: f.Field(),
-})
-```
+<<< @/snippets/schema/field-generics.ts
 
 Rules of thumb:
 
@@ -217,14 +164,7 @@ Any field marked as expression-capable accepts a <code v-pre>{{ ... }}</code> st
 
 A reaction observes `dependencies`, evaluates `when`, and applies `fulfill` or `otherwise`:
 
-```ts
-{
-  dependencies: ['subscribe'],
-  when: exp.subscribe.eq(true),
-  fulfill: { state: { visible: true, required: true } },
-  otherwise: { state: { visible: false, required: false } },
-}
-```
+<<< @/snippets/schema/reactions.ts#reaction-object
 
 | Key                                   | Description                                                                                 |
 | ------------------------------------- | ------------------------------------------------------------------------------------------- |
@@ -246,13 +186,7 @@ function createExpression<T extends object>(expression: string): Expression<T>
 
 Builds type-checked expression strings. Pass the scope object's shape as the generic parameter; without it, `T` defaults to `object` and no property completion is available.
 
-```ts
-const exp = createExpression<{ plan: string; subscribe: boolean }>('$values')
-
-exp.plan.eq('enterprise') // '{{$values.plan === "enterprise"}}'
-exp.subscribe.not() // '{{!$values.subscribe}}'
-exp.plan.ter('pro', 'free') // '{{$values.plan ? "pro" : "free"}}'
-```
+<<< @/snippets/schema/expression.ts#api-expression
 
 ### Operators
 

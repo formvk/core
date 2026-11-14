@@ -83,33 +83,7 @@ Renders a schema tree. `components` is a flat `name → component` map. The `Sch
 
 `components` is a flat `name → component` map; names not listed in a category are treated as field components. `voidComponents` / `arrayComponents` are component maps that classify layout and array components; the factory merges them into the runtime component map automatically, so no duplicate registration is needed. All types are inferred from the options — no type arguments and no hand-written component props maps:
 
-```ts
-const components = {
-  Input,
-  Select,
-}
-
-const { SchemaField, fragment: f } = createSchemaField({
-  components,
-  voidComponents: { FormLayout },
-  arrayComponents: { ArrayItems },
-  scope: { $moment: (value: string) => value },
-})
-
-const schema = createSchema({
-  name: f.Input({
-    title: 'Name',
-    // componentProps is checked against the Input component's props
-    componentProps: { placeholder: 'Alice' },
-    reactions: (field, scope) => {
-      field.value // string
-      scope.$moment // (value: string) => string, inferred from the scope option
-    },
-  }),
-  profile: f.Object({}),
-  members: f.ArrayItems(f.Object({})),
-})
-```
+<<< @/snippets/vue/schema-field.ts#full
 
 Render with the pre-bound component — no `components` prop is needed:
 
@@ -130,14 +104,7 @@ Render with the pre-bound component — no `components` prop is needed:
 
 The returned creators are the same fragment API documented in [Schema DSL](/api/schema#field-level-type-parameters), including parent-to-child type inference:
 
-```ts
-const { fragment: f } = createSchemaField({ components: { Input } })
-
-const schema = createSchema({
-  // Field needs no generic: its value type comes from the parent record
-  age: f.Field({ required: true }),
-})
-```
+<<< @/snippets/vue/schema-field.ts#inference
 
 `createFragment` remains available for framework-agnostic schema code that is not tied to a Vue component map.
 
@@ -175,21 +142,7 @@ Adds values to the scope used by <code v-pre>{{ ... }}</code> expressions for it
 
 A custom input that reads the field directly:
 
-```vue
-<script setup lang="ts">
-import { useField } from '@formvk/vue'
-
-const field = useField()
-</script>
-
-<template>
-  <div>
-    <label>{{ field?.title }}</label>
-    <input :value="field?.value" @input="field?.onInput($event)" />
-    <span v-if="field?.selfErrors?.length">{{ field.selfErrors[0] }}</span>
-  </div>
-</template>
-```
+<<< @/snippets/vue/custom-input.vue
 
 ## Component helpers
 
@@ -197,14 +150,7 @@ const field = useField()
 
 Maps field state onto component props:
 
-```ts
-import { mapProps } from '@formvk/vue'
-
-const ConnectedInput = mapProps(
-  { visible: 'v-show' },
-  { value: true, disabled: 'disabled', readOnly: 'readonly' }
-)(Input)
-```
+<<< @/snippets/vue/component-helpers.ts#map-props
 
 Object keys are read paths on the field, string values are the target props. A `true` value keeps the same prop name.
 
@@ -212,14 +158,10 @@ Object keys are read paths on the field, string values are the target props. A `
 
 Switches to a read-only component when the field pattern is `readPretty`:
 
-```ts
-const Input = mapReadPretty(PreviewText)(BaseInput)
-```
+<<< @/snippets/vue/component-helpers.ts#read-pretty
 
 ### `connect`
 
 Composes both helpers:
 
-```ts
-const Input = connect(BaseInput, mapProps({ value: true }), mapReadPretty(PreviewText))
-```
+<<< @/snippets/vue/component-helpers.ts#connect

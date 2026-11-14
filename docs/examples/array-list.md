@@ -2,36 +2,34 @@
 
 Repeatable field groups are regular `type: 'array'` nodes. The array component owns the layout and uses `RecursionField` to render each item with its own schema.
 
+## Vue 3
+
 <ArrayListDemo />
 
 The demo is a single Vue component:
 
 <<< @/demos/array-list.vue
 
+## React (TSX)
+
+<ReactMount :component="ReactArrayListDemo" />
+
+In React the array component reads the field and its schema through `useField<ArrayField>()` and `useFieldSchema()`, then renders each item with `<RecursionField schema={itemSchema} name={index} />`:
+
+<<< @/demos/react/array-list.tsx
+
 <script setup lang="ts">
 import ArrayListDemo from '../demos/array-list.vue'
+import ReactArrayListDemo from '../demos/react/array-list'
 </script>
 
 ## The array component
 
-```vue
-<script setup lang="ts">
-import { RecursionField, useField, useFieldSchema } from '@formvk/vue'
+<<< @/snippets/vue/array-list.vue
 
-const field = useField<any>()
-const schema = useFieldSchema()
-</script>
+The React (TSX) equivalent — note the `observer` wrapper, which is required because the component renders `field.value` reactively:
 
-<template>
-  <div>
-    <div v-for="(item, index) in field.value" :key="index">
-      <RecursionField :schema="schema.items" :name="index" />
-      <button @click="field.remove(index)">Remove</button>
-    </div>
-    <button @click="field.push({})">Add item</button>
-  </div>
-</template>
-```
+<<< @/snippets/react/array-list.tsx
 
 - `field.value` is the array value; `schema.items` is the item schema.
 - `<RecursionField :schema="schema.items" :name="index" />` creates a child field at the item path (for example `members.0.name`).
@@ -56,5 +54,5 @@ produces `Array<{ name?: string; email?: string }>` for the `members` property. 
 
 ## Next steps
 
-- [Vue API](/api/vue) — every component and hook at a glance.
+- [Vue API](/api/vue) / [React API](/api/react) — every component and hook at a glance.
 - [Schema](/guide/schema) — reactions, patches and expressions.

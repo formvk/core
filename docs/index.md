@@ -3,8 +3,8 @@ layout: home
 
 hero:
   name: Formvk
-  text: Schema-first forms for Vue 3
-  tagline: A typed schema DSL, a fine-grained reactive core and ready-to-use Vue bindings — all in one engine.
+  text: Schema-first forms for Vue 3 and React
+  tagline: A typed schema DSL, a fine-grained reactive core and ready-to-use Vue and React bindings — all in one engine.
   actions:
     - theme: brand
       text: Get Started
@@ -24,9 +24,9 @@ features:
   - title: Typed schema DSL
     details: createFragment infers field values, array items and component props from the schema you write.
   - title: Composable packages
-    details: Reactive core, form models, schema tools and Vue bindings live in separate packages you can mix and match.
+    details: Reactive core, form models, schema tools and isomorphic Vue / React bindings live in separate packages you can mix and match.
   - title: Validation built in
     details: Declarative rules, async validators and localized messages through a small registry.
   - title: Framework-agnostic core
-    details: The schema layer has no Vue dependency, so the same schema can power other framework bindings.
+    details: The schema layer has no framework dependency — the same schema powers the Vue and React bindings unchanged.
 ---

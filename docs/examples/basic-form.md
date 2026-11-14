@@ -1,6 +1,8 @@
 # Basic Form
 
-A complete form with initial values, validation rules, submit and reset — the schema is built with the fragment returned by `createSchemaField`, which infers every component prop type from the flat component map.
+A complete form with initial values, validation rules, submit and reset — the schema is built with the fragment returned by `createSchemaField`, which infers every component prop type from the flat component map. The same schema factory works in both frameworks; only the rendering layer changes.
+
+## Vue 3
 
 <BasicFormDemo />
 
@@ -8,8 +10,17 @@ The demo is a single Vue component:
 
 <<< @/demos/basic-form.vue
 
+## React (TSX)
+
+<ReactMount :component="ReactBasicFormDemo" />
+
+The same demo as a React TSX component. Any component that reads form state directly (here the submit button reads `form.submitting`) must be wrapped with `observer` from `@formvk/reactive-react` so reactive changes trigger a re-render:
+
+<<< @/demos/react/basic-form.tsx
+
 <script setup lang="ts">
 import BasicFormDemo from '../demos/basic-form.vue'
+import ReactBasicFormDemo from '../demos/react/basic-form'
 </script>
 
 ## How it works

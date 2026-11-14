@@ -1,6 +1,8 @@
 # Dynamic Reactions
 
-Reactions update a field when other values change: show or hide it, toggle `required`, rewrite state or even swap the field schema.
+Reactions update a field when other values change: show or hide it, toggle `required`, rewrite state or even swap the field schema. Reactions live in the schema, so the two framework versions share the exact same field definitions.
+
+## Vue 3
 
 <ReactionsDemo />
 
@@ -8,31 +10,22 @@ The demo is a single Vue component:
 
 <<< @/demos/reactions.vue
 
+## React (TSX)
+
+<ReactMount :component="ReactReactionsDemo" />
+
+The React version uses the same `createExpression` / `reactions` API unchanged — only the component wrapper and JSX differ:
+
+<<< @/demos/react/reactions.tsx
+
 <script setup lang="ts">
 import ReactionsDemo from '../demos/reactions.vue'
+import ReactReactionsDemo from '../demos/react/reactions'
 </script>
 
 ## How a reaction works
 
-```ts
-import { createExpression, createFragment } from '@formvk/schema'
-
-const f = createFragment()
-const exp = createExpression<{ plan: string; subscribe: boolean }>('$values')
-
-const email = f.Input({
-  title: 'Email',
-  validator: [{ required: true, message: 'Email is required' }],
-  reactions: [
-    {
-      dependencies: ['subscribe'],
-      when: exp.subscribe.eq(true),
-      fulfill: { state: { visible: true, required: true } },
-      otherwise: { state: { visible: false, required: false } },
-    },
-  ],
-})
-```
+<<< @/snippets/schema/example-reactions.ts
 
 - `dependencies` lists the form paths the reaction listens to, relative to the form root.
 - `when` is an expression (or a plain boolean). `createExpression` keeps it typed and produces the <code v-pre>{{ ... }}</code> string.

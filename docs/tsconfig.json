@@ -3,9 +3,20 @@
   "compilerOptions": {
     "noEmit": true,
     "declaration": false,
+    "jsx": "react-jsx",
     "types": ["vite/client"],
     "paths": {}
   },
-  "include": ["./env.d.ts", "./.vitepress/**/*.ts", "./.vitepress/**/*.mts", "./demos/**/*.vue"],
+  "include": [
+    "./env.d.ts",
+    "./.vitepress/**/*.ts",
+    "./.vitepress/**/*.mts",
+    "./.vitepress/**/*.vue",
+    "./demos/**/*.vue",
+    "./demos/**/*.ts",
+    "./demos/**/*.tsx",
+    "./snippets/**/*.ts",
+    "./snippets/**/*.tsx"
+  ],
   "exclude": ["./.vitepress/cache", "./.vitepress/dist"]
 }
