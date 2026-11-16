@@ -1,3 +1,14 @@
+# Change Log
+
+All notable changes to this project will be documented in this file.
+See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
+
+# [1.1.0](https://github.com/formvk/core/compare/v1.0.0...v1.1.0) (2026-11-16)
+
+### Features
+
+- 为所有包添加中英双语 README 文件并导出 reactive-react 包 ([22f7b77](https://github.com/formvk/core/commit/22f7b7751e636d4aa8fbc844ec9b286414d4a14f))
+
 # @formvk/reactive
 
 ## 1.0.0
