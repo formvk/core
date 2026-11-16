@@ -1,5 +1,7 @@
 # @formvk/shared
 
+[English](./README.md) | [简体中文](./README.zh-CN.md)
+
 Low-level utilities shared by the Formvk packages: type checkers, array/object iteration, cloning, deep merge, defaults, `Subscribable`, middleware and uid generation. It is installed transitively by the other packages; use it directly only when building Formvk-compatible tooling.
 
 ## Install

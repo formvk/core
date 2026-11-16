@@ -1,5 +1,7 @@
 # @formvk/vue
 
+[English](./README.md) | [简体中文](./README.zh-CN.md)
+
 Vue 3 bindings for Formvk. It connects the `@formvk/core` form model and `@formvk/schema` to Vue components through reactive renderers and composables.
 
 ## Install

@@ -1,5 +1,7 @@
 # @formvk/react
 
+[English](./README.md) | [简体中文](./README.zh-CN.md)
+
 React bindings for Formvk. It connects the `@formvk/core` form model and `@formvk/schema` to React components, with field updates powered by `@formvk/reactive-react`.
 
 ## Install
@@ -47,8 +49,9 @@ export default function App() {
 - **Hooks** — `useForm`, `useField`, `useFieldSchema`, `useAttach`, `useFormEffects`, `useParentForm`.
 - **Helpers** — `createForm`, `connect`, `mapProps`, `mapReadPretty`.
 - **Schema** — re-exports `@formvk/schema` (`createFragment`, `createSchema`, `ISchema`, expression types, ...).
+- **Reactivity** — re-exports `@formvk/reactive-react` (`observer`, `Observer`, `useObserver`, `useForceUpdate`).
 
-Components that read observable state directly should be wrapped with `observer` from `@formvk/reactive-react`. `FormConsumer` exposes form state through a render prop.
+Components that read observable state directly should be wrapped with `observer`, re-exported here from `@formvk/reactive-react`. `FormConsumer` exposes form state through a render prop.
 
 ## Documentation
 

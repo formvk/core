@@ -1,5 +1,7 @@
 # @formvk/reactive
 
+[English](./README.md) | [简体中文](./README.zh-CN.md)
+
 Reactive runtime built on `@vue/reactivity`. On top of Vue reactivity it adds observable change tracking with paths (`observe`), scheduling (`batch` / `action`), and standard-decorator support (`@observable`, `@computed`, `@shallowRef`).
 
 ## Install

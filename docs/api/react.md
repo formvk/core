@@ -25,7 +25,7 @@ import {
 
 ## Reactivity contract: `observer`
 
-React does not track reactive reads automatically. A component that renders form or field state outside of the built-in components must be wrapped with `observer` from `@formvk/reactive-react` — this package powers every reactive component in `@formvk/react`:
+React does not track reactive reads automatically. A component that renders form or field state outside of the built-in components must be wrapped with `observer` (`@formvk/react` re-exports it from `@formvk/reactive-react`) — it powers every reactive component here:
 
 <<< @/snippets/react/observer-preview.tsx
 

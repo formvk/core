@@ -1,4 +1,5 @@
 export * from '@formvk/schema'
+export * from '@formvk/reactive-react'
 export * from './components'
 export * from './hooks'
 export * from './shared'

@@ -1,5 +1,7 @@
 # @formvk/schema
 
+[English](./README.md) | [简体中文](./README.zh-CN.md)
+
 Schema-first layer for Formvk. `createFragment` turns registered components into typed schema constructors, `createSchema` assembles a typed object schema, and `{{ ... }}` expressions are compiled into reactive field state when the schema is rendered by `@formvk/react` or `@formvk/vue`.
 
 ## Install

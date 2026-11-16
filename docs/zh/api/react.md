@@ -25,7 +25,7 @@ import {
 
 ## 响应式约定：`observer`
 
-React 不会自动追踪响应式读取。凡是在内置组件之外渲染表单或字段状态的组件，都必须用 `@formvk/reactive-react` 的 `observer` 包裹——`@formvk/react` 内部所有响应式组件都基于它：
+React 不会自动追踪响应式读取。凡是在内置组件之外渲染表单或字段状态的组件，都必须用 `observer` 包裹（`@formvk/react` 已从 `@formvk/reactive-react` 重新导出）——`@formvk/react` 内部所有响应式组件都基于它：
 
 <<< @/snippets/react/observer-preview.tsx
 

@@ -1,5 +1,7 @@
 # @formvk/core
 
+[English](./README.md) | [简体中文](./README.zh-CN.md)
+
 Framework-agnostic form engine behind Formvk. It owns the form model — `Form`, `Field`, `ArrayField`, `ObjectField` and `VoidField` — with reactive values, field queries, lifecycle effects and the validation/submit pipeline. It has no dependency on Vue or React.
 
 ## Install

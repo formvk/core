@@ -1,5 +1,4 @@
-import { useForm } from '@formvk/react'
-import { observer } from '@formvk/reactive-react'
+import { observer, useForm } from '@formvk/react'
 
 export const ValuesPreview = observer(() => {
   const form = useForm()

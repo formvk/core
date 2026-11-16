@@ -1,5 +1,7 @@
 # @formvk/validator
 
+[English](./README.md) | [简体中文](./README.zh-CN.md)
+
 Standalone validation engine used by Formvk, with a rule registry, format validators, localized messages and validator description parsing.
 
 ## Install

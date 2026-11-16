@@ -1,5 +1,7 @@
 # @formvk/reactive-react
 
+[English](./README.md) | [简体中文](./README.zh-CN.md)
+
 React bindings for `@formvk/reactive`. Wrap a component with `observer` and it re-renders whenever observable data read during render changes.
 
 ## Install
