@@ -10,6 +10,10 @@
   ],
   "license": "MIT",
   "author": "yiyunwan",
+  "files": [
+    "dist",
+    "CHANGELOG.md"
+  ],
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -19,11 +23,11 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@formvk/core": "workspace:^",
-    "@formvk/reactive": "workspace:^",
-    "@formvk/reactive-react": "workspace:^",
-    "@formvk/schema": "workspace:^",
-    "@formvk/shared": "workspace:^",
+    "@formvk/core": "workspace:~",
+    "@formvk/reactive": "workspace:~",
+    "@formvk/reactive-react": "workspace:~",
+    "@formvk/schema": "workspace:~",
+    "@formvk/shared": "workspace:~",
     "hoist-non-react-statics": "^3.3.2"
   },
   "devDependencies": {

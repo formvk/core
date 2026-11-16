@@ -26,6 +26,7 @@ export default defineConfig({
         '@formvk/shared',
         '@formvk/reactive',
         '@formvk/reactive-react',
+        'hoist-non-react-statics',
       ],
     },
   },

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@4.0.1/schema.json",
+  "changelog": "@changesets/cli/changelog",
+  "commit": false,
+  "fixed": [
+    [
+      "@formvk/core",
+      "@formvk/path",
+      "@formvk/react",
+      "@formvk/reactive",
+      "@formvk/reactive-react",
+      "@formvk/schema",
+      "@formvk/shared",
+      "@formvk/validator",
+      "@formvk/vue"
+    ]
+  ],
+  "linked": [],
+  "access": "public",
+  "baseBranch": "main",
+  "updateInternalDependencies": "patch",
+  "bumpVersionsWithWorkspaceProtocolOnly": true,
+  "format": "oxfmt",
+  "ignore": []
+}

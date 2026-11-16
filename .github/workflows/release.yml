@@ -117,9 +117,18 @@ jobs:
           echo "scope @formvk members:"
           echo "$members"
 
-      # 工作区协议 workspace:^ 会在打包时替换为实际版本号，
-      # CI 为 detached HEAD，需要 --no-git-checks 跳过分支校验
+      # 工作区协议 workspace:~ 会在打包时替换为实际版本号，
+      # CI 为 detached HEAD，需要 --no-git-checks 跳过分支校验。
+      # 预发布版本（alpha/beta/rc）使用对应 dist-tag，避免顶掉 latest
       - name: Publish packages
-        run: pnpm -r publish --access public --no-git-checks
+        run: |
+          version="$(node -p "require('./packages/core/package.json').version")"
+          tag=latest
+          if [[ "$version" == *-* ]]; then
+            tag="${version#*-}"
+            tag="${tag%%.*}"
+          fi
+          echo "publishing $version (dist-tag: $tag)"
+          pnpm -r publish --access public --no-git-checks --tag "$tag"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.FORMVK }}

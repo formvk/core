@@ -10,6 +10,10 @@
   ],
   "license": "MIT",
   "author": "yiyunwan",
+  "files": [
+    "dist",
+    "CHANGELOG.md"
+  ],
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -19,10 +23,10 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@formvk/core": "workspace:^",
-    "@formvk/reactive": "workspace:^",
-    "@formvk/schema": "workspace:^",
-    "@formvk/shared": "workspace:^"
+    "@formvk/core": "workspace:~",
+    "@formvk/reactive": "workspace:~",
+    "@formvk/schema": "workspace:~",
+    "@formvk/shared": "workspace:~"
   },
   "devDependencies": {
     "@vitejs/plugin-vue-jsx": "^5.1.6",

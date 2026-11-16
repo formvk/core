@@ -10,6 +10,10 @@
   ],
   "license": "MIT",
   "author": "yiyunwan",
+  "files": [
+    "dist",
+    "CHANGELOG.md"
+  ],
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -18,9 +22,9 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@formvk/reactive": "workspace:^",
-    "@formvk/shared": "workspace:^",
-    "@formvk/validator": "workspace:^",
+    "@formvk/reactive": "workspace:~",
+    "@formvk/shared": "workspace:~",
+    "@formvk/validator": "workspace:~",
     "@swc/helpers": "^0.5.24"
   }
 }
