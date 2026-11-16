@@ -37,19 +37,19 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.3.0",
     "@vitest/coverage-v8": "^5.1.0",
-    "@vue/reactivity": "3.6.0-rc.12",
+    "@vue/reactivity": "^3.6.0-rc.15",
     "husky": "^9.1.7",
     "lint-staged": "^17.6.0",
     "oxfmt": "^0.78.0",
     "oxlint": "^1.93.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
-    "typescript": "^6.0.0",
+    "typescript": "^6.0.3",
     "vite": "^8.3.8",
     "vite-plugin-dts": "^5.1.2",
-    "vitepress": "2.0.0-alpha.21",
+    "vitepress": "^2.0.0-alpha.21",
     "vitest": "^5.1.0",
-    "vue": "3.6.0-rc.12"
+    "vue": "^3.6.0-rc.15"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,mjs,cjs,mts,cts}": [
