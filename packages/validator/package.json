@@ -1,7 +1,6 @@
 {
   "name": "@formvk/validator",
-  "version": "2.3.1",
-  "gitHead": "ac79c196ae9324889aca5e0501146f9b37b04283",
+  "version": "0.1.0",
   "license": "MIT",
   "type": "module",
   "main": "dist/index.js",
