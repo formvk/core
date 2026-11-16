@@ -1,6 +1,6 @@
-import { action, batch, define, observable } from '@formvk/reactive'
 import type { FormPathPattern } from '@formvk/shared'
 import { toArr } from '@formvk/shared'
+
 import {
   createReactions,
   createStateGetter,
@@ -12,20 +12,15 @@ import type { IModelGetter, IModelSetter, IVoidFieldProps, IVoidFieldState } fro
 import { BaseField } from './BaseField'
 import type { Form } from './Form'
 
-export class VoidField<Decorator = any, Component = any, TextType = any> extends BaseField<
-  Decorator,
-  Component,
-  TextType
+export class VoidField<ComponentProps = any, DecoratorProps = any, IRecord extends object = any> extends BaseField<
+  ComponentProps,
+  DecoratorProps,
+  IRecord
 > {
   displayName = 'VoidField' as const
-  props: IVoidFieldProps<Decorator, Component>
+  props: IVoidFieldProps
 
-  constructor(
-    address: FormPathPattern,
-    props: IVoidFieldProps<Decorator, Component>,
-    form: Form,
-    designable?: boolean
-  ) {
+  constructor(address: FormPathPattern, props: IVoidFieldProps, form: Form, designable?: boolean) {
     super()
     this.form = form
     this.props = props
@@ -33,7 +28,6 @@ export class VoidField<Decorator = any, Component = any, TextType = any> extends
     initializeStart()
     this.locate(address)
     this.initialize()
-    this.makeObservable()
     this.makeReactive()
     this.onInit()
     initializeEnd()
@@ -57,50 +51,6 @@ export class VoidField<Decorator = any, Component = any, TextType = any> extends
     this.data = this.props.data
     this.decorator = toArr(this.props.decorator)
     this.component = toArr(this.props.component)
-  }
-
-  protected makeObservable() {
-    if (this.designable) return
-    define(this, {
-      path: observable.ref,
-      title: observable.ref,
-      description: observable.ref,
-      selfDisplay: observable.ref,
-      selfPattern: observable.ref,
-      initialized: observable.ref,
-      mounted: observable.ref,
-      unmounted: observable.ref,
-      decoratorType: observable.ref,
-      componentType: observable.ref,
-      content: observable.ref,
-      data: observable.shallow,
-      decoratorProps: observable,
-      componentProps: observable,
-      display: observable.computed,
-      pattern: observable.computed,
-      hidden: observable.computed,
-      visible: observable.computed,
-      disabled: observable.computed,
-      readOnly: observable.computed,
-      readPretty: observable.computed,
-      editable: observable.computed,
-      component: observable.computed,
-      decorator: observable.computed,
-      indexes: observable.computed,
-      setTitle: action,
-      setDescription: action,
-      setDisplay: action,
-      setPattern: action,
-      setComponent: action,
-      setComponentProps: action,
-      setDecorator: action,
-      setDecoratorProps: action,
-      setData: action,
-      setContent: action,
-      onInit: batch,
-      onMount: batch,
-      onUnmount: batch,
-    })
   }
 
   protected makeReactive() {

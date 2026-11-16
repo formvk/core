@@ -1,5 +1,5 @@
-import * as Types from './types'
 import * as Models from './models'
+import * as Types from './types'
 
 declare global {
   namespace Formily.Core {

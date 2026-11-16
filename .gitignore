@@ -3,3 +3,5 @@ node_modules
 esm
 dist
 .temp_cache
+coverage
+docs/.vitepress/cache

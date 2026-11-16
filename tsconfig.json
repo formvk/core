@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "esModuleInterop": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "jsx": "preserve",
     "module": "ESNext",
     "target": "ES2022",
@@ -14,9 +14,8 @@
     "declaration": true,
     "noImplicitThis": true,
     "strictNullChecks": true,
-    "baseUrl": ".",
     "paths": {
-      "@formvk/*": ["packages/*/src"]
+      "@formvk/*": ["./packages/*/src"]
     },
     "resolveJsonModule": true
   }

@@ -12,7 +12,9 @@ function globalSelf() {
     }
   } catch (e) {}
   try {
+    // @ts-expect-error
     if (typeof global !== 'undefined') {
+      // @ts-expect-error
       return global
     }
   } catch (e) {}

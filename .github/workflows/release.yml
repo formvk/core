@@ -1,0 +1,106 @@
+name: Release Packages
+
+# 仅在主干推送且提交标题以 chore(release) 开头时发布，
+# 特性分支的发布提交不会误发到 npm
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'packages/**'
+      - '.github/workflows/release.yml'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    name: Detect release commit
+    runs-on: ubuntu-latest
+    outputs:
+      is_release: ${{ steps.detect.outputs.is_release }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Detect chore(release) commit
+        id: detect
+        run: |
+          subject="$(git log -1 --pretty=%s)"
+          echo "HEAD commit: $subject"
+          if printf '%s' "$subject" | grep -qE '^chore\(release\)'; then
+            echo "is_release=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_release=false" >> "$GITHUB_OUTPUT"
+            echo "Not a release commit, publishing is skipped."
+          fi
+
+  publish:
+    name: Build and publish
+    needs: prepare
+    # 手动触发视为强制发布，仍会经过发布计划检查拦截重复版本
+    if: github.event_name == 'workflow_dispatch' || needs.prepare.outputs.is_release == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.18.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build workspace packages
+        run: pnpm -r build
+
+      - name: Run tests
+        run: pnpm exec vitest run
+        env:
+          LC_ALL: en_US.UTF-8
+
+      # 发布前确认本次 release 提交确实改过版本号，
+      # 否则 pnpm 会静默跳过已存在的版本、任务假成功
+      - name: Check publish plan
+        id: plan
+        run: |
+          pending=0
+          for manifest in packages/*/package.json; do
+            name="$(node -p "require('./${manifest}').name")"
+            version="$(node -p "require('./${manifest}').version")"
+            if npm view "${name}@${version}" version >/dev/null 2>&1; then
+              echo "skip ${name}@${version} (already on registry)"
+            else
+              echo "publish ${name}@${version}"
+              pending=$((pending + 1))
+            fi
+          done
+          echo "pending=$pending" >> "$GITHUB_OUTPUT"
+          if [ "$pending" -eq 0 ]; then
+            echo "::error::No unpublished version found. Bump package versions in the chore(release) commit."
+            exit 1
+          fi
+
+      # 工作区协议 workspace:^ 会在打包时替换为实际版本号，
+      # CI 为 detached HEAD，需要 --no-git-checks 跳过分支校验
+      - name: Publish packages
+        run: pnpm -r publish --access public --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

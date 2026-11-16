@@ -16,11 +16,13 @@ import {
 } from '@formvk/shared'
 import type { ValidatorTriggerType } from '@formvk/validator'
 import { parseValidatorDescriptions, validate } from '@formvk/validator'
+
 import type { ArrayField, Field, Form, ObjectField } from '../models'
 import type { BaseField } from '../models/BaseField'
 import type {
   FieldFeedbackTypes,
   FieldMatchPattern,
+  FieldValidatorContext,
   GeneralField,
   IExchangeArrayStateProps,
   IFieldFeedback,
@@ -43,7 +45,7 @@ import { isArrayField, isDataField, isForm, isGeneralField, isObjectField, isQue
 
 const hasOwnProperty = Object.prototype.hasOwnProperty
 
-const notify = (target: Form | Field, formType: LifeCycleTypes, fieldType: LifeCycleTypes) => {
+function notify(target: Form | Field, formType: LifeCycleTypes, fieldType: LifeCycleTypes) {
   if (isForm(target)) {
     target.notify(formType)
   } else {
@@ -51,7 +53,7 @@ const notify = (target: Form | Field, formType: LifeCycleTypes, fieldType: LifeC
   }
 }
 
-export const isHTMLInputEvent = (event: any, stopPropagation = true) => {
+export function isHTMLInputEvent(event: any, stopPropagation = true) {
   if (event?.target) {
     if (typeof event.target === 'object' && ('value' in event.target || 'checked' in event.target)) return true
     if (stopPropagation) event.stopPropagation?.()
@@ -59,7 +61,7 @@ export const isHTMLInputEvent = (event: any, stopPropagation = true) => {
   return false
 }
 
-export const getValuesFromEvent = (args: any[]) => {
+export function getValuesFromEvent(args: any[]) {
   return args.map(event => {
     if (event?.target) {
       if (isValid(event.target.value)) return event.target.value
@@ -70,20 +72,20 @@ export const getValuesFromEvent = (args: any[]) => {
   })
 }
 
-export const getTypedDefaultValue = (field: Field) => {
+export function getTypedDefaultValue(field: Field) {
   if (isArrayField(field)) return []
   if (isObjectField(field)) return {}
 }
 
-export const buildFieldPath = (field: GeneralField) => {
+export function buildFieldPath(field: GeneralField) {
   return buildDataPath(field.form.fields, field.address)
 }
 
-export const buildDataPath = (fields: Record<string, GeneralField>, pattern: FormPath) => {
+export function buildDataPath(fields: Record<string, GeneralField>, pattern: FormPath) {
   let prevArray = false
   const segments = pattern.segments
-  const path = segments.reduce((path: string[], key: string, index: number) => {
-    const currentPath = path.concat(key)
+  const path = segments.reduce<string[]>((path, key, index) => {
+    const currentPath = path.concat(String(key))
     const currentAddress = segments.slice(0, index + 1)
     const current = fields[currentAddress.join('.')]
     if (prevArray) {
@@ -111,14 +113,14 @@ export const buildDataPath = (fields: Record<string, GeneralField>, pattern: For
   return new FormPath(path)
 }
 
-export const locateNode = (field: GeneralField, address: FormPathPattern) => {
+export function locateNode(field: GeneralField, address: FormPathPattern) {
   field.address = FormPath.parse(address)
   field.path = buildFieldPath(field)
   field.form.indexes[field.path.toString()] = field.address.toString()
   return field
 }
 
-export const patchFieldStates = (target: Record<string, GeneralField>, patches: INodePatch<GeneralField>[]) => {
+export function patchFieldStates(target: Record<string, GeneralField>, patches: INodePatch<GeneralField>[]) {
   patches.forEach(({ type, address, oldAddress, payload }) => {
     if (type === 'remove') {
       destroy(target, address, false)
@@ -136,7 +138,7 @@ export const patchFieldStates = (target: Record<string, GeneralField>, patches: 
   })
 }
 
-export const destroy = (target: Record<string, GeneralField>, address: string, forceClear = true) => {
+export function destroy(target: Record<string, GeneralField>, address: string, forceClear = true) {
   const field = target[address]
   field?.dispose()
   if (isDataField(field) && forceClear) {
@@ -148,8 +150,8 @@ export const destroy = (target: Record<string, GeneralField>, address: string, f
   delete target[address]
 }
 
-export const patchFormValues = (form: Form, path: Array<string | number>, source: any) => {
-  const update = (path: Array<string | number>, source: any) => {
+export function patchFormValues(form: Form, path: Array<string | number>, source: any) {
+  function update(path: Array<string | number>, source: any) {
     if (path.length) {
       form.setValuesIn(path, clone(source))
     } else {
@@ -157,7 +159,7 @@ export const patchFormValues = (form: Form, path: Array<string | number>, source
     }
   }
 
-  const patch = (source: any, path: Array<string | number> = []) => {
+  function patch(source: any, path: Array<string | number> = []) {
     const targetValue = form.getValuesIn(path)
     const targetField = form.query(path).take()
     const isUnVoidField = targetField && !isVoidField(targetField)
@@ -190,7 +192,7 @@ export const patchFormValues = (form: Form, path: Array<string | number>, source
   patch(source, path)
 }
 
-export const matchFeedback = (search?: ISearchFeedback, feedback?: IFormFeedback) => {
+export function matchFeedback(search?: ISearchFeedback, feedback?: IFormFeedback) {
   if (!search || !feedback) return false
   if (search.type && search.type !== feedback.type) return false
   if (search.code && search.code !== feedback.code) return false
@@ -204,7 +206,7 @@ export const matchFeedback = (search?: ISearchFeedback, feedback?: IFormFeedback
   return true
 }
 
-export const queryFeedbacks = (field: Field, search?: ISearchFeedback) => {
+export function queryFeedbacks(field: Field, search?: ISearchFeedback) {
   return field.feedbacks.filter(feedback => {
     if (!feedback.messages?.length) return false
     return matchFeedback(search, {
@@ -215,7 +217,7 @@ export const queryFeedbacks = (field: Field, search?: ISearchFeedback) => {
   })
 }
 
-export const queryFeedbackMessages = (field: Field, search: ISearchFeedback) => {
+export function queryFeedbackMessages(field: Field, search: ISearchFeedback) {
   if (!field.feedbacks.length) return []
   return queryFeedbacks(field, search).reduce<any[]>(
     (buf, info) => (isEmpty(info.messages) ? buf : buf.concat(info.messages)),
@@ -223,7 +225,7 @@ export const queryFeedbackMessages = (field: Field, search: ISearchFeedback) => 
   )
 }
 
-export const updateFeedback = (field: Field, feedback?: IFieldFeedback) => {
+export function updateFeedback(field: Field, feedback?: IFieldFeedback) {
   if (!feedback) return
   return batch(() => {
     if (!field.feedbacks.length) {
@@ -254,18 +256,18 @@ export const updateFeedback = (field: Field, feedback?: IFieldFeedback) => {
   })
 }
 
-export const validateToFeedbacks = async (field: Field, triggerType: ValidatorTriggerType = 'onInput') => {
-  const results = await validate(field.value, field.validator, {
+export async function validateToFeedbacks(field: Field, triggerType: ValidatorTriggerType = 'onInput') {
+  const results = await validate<FieldValidatorContext>(field.value, field.validator, {
     triggerType,
     validateFirst: field.props.validateFirst ?? field.form.props.validateFirst,
     context: { field, form: field.form },
   })
 
   batch(() => {
-    each(results, (messages, type: FieldFeedbackTypes) => {
+    each(results, (messages, type) => {
       field.setFeedback({
         triggerType,
-        type,
+        type: type as FieldFeedbackTypes,
         code: pascalCase(`validate-${type}`),
         messages: messages,
       })
@@ -274,7 +276,7 @@ export const validateToFeedbacks = async (field: Field, triggerType: ValidatorTr
   return results
 }
 
-export const setValidatorRule = (field: Field, name: string, value: any) => {
+export function setValidatorRule(field: Field, name: string, value: any) {
   if (!isValid(value)) return
   const validators = parseValidatorDescriptions(field.validator)
   const hasRule = validators.some(desc => name in desc)
@@ -284,7 +286,7 @@ export const setValidatorRule = (field: Field, name: string, value: any) => {
   if (hasRule) {
     field.validator = validators.map((desc: any) => {
       if (isPlainObj(desc) && hasOwnProperty.call(desc, name)) {
-        desc[name] = value
+        ;(desc as Record<string, any>)[name] = value
         return desc
       }
       return desc
@@ -298,7 +300,7 @@ export const setValidatorRule = (field: Field, name: string, value: any) => {
   }
 }
 
-export const spliceArrayState = (field: ArrayField, props?: ISpliceArrayStateProps) => {
+export function spliceArrayState(field: ArrayField<any>, props?: ISpliceArrayStateProps) {
   const { startIndex, deleteCount, insertCount } = {
     startIndex: 0,
     deleteCount: 0,
@@ -311,24 +313,24 @@ export const spliceArrayState = (field: ArrayField, props?: ISpliceArrayStatePro
   const fields = form.fields
   const fieldPatches: INodePatch<GeneralField>[] = []
   const offset = insertCount - deleteCount
-  const isArrayChildren = (identifier: string) => {
+  function isArrayChildren(identifier: string) {
     return identifier.indexOf(address) === 0 && identifier.length > addrLength
   }
-  const isAfterNode = (identifier: string) => {
+  function isAfterNode(identifier: string) {
     const afterStr = identifier.substring(addrLength)
     const number = afterStr.match(NumberIndexReg)?.[1]
     if (number === undefined) return false
     const index = Number(number)
     return index > startIndex + deleteCount - 1
   }
-  const isInsertNode = (identifier: string) => {
+  function isInsertNode(identifier: string) {
     const afterStr = identifier.substring(addrLength)
     const number = afterStr.match(NumberIndexReg)?.[1]
     if (number === undefined) return false
     const index = Number(number)
     return index >= startIndex && index < startIndex + insertCount
   }
-  const isDeleteNode = (identifier: string) => {
+  function isDeleteNode(identifier: string) {
     const preStr = identifier.substring(0, addrLength)
     const afterStr = identifier.substring(addrLength)
     const number = afterStr.match(NumberIndexReg)?.[1]
@@ -339,7 +341,7 @@ export const spliceArrayState = (field: ArrayField, props?: ISpliceArrayStatePro
       index === startIndex
     )
   }
-  const moveIndex = (identifier: string) => {
+  function moveIndex(identifier: string) {
     if (offset === 0) return identifier
     const preStr = identifier.substring(0, addrLength)
     const afterStr = identifier.substring(addrLength)
@@ -371,7 +373,7 @@ export const spliceArrayState = (field: ArrayField, props?: ISpliceArrayStatePro
   field.form.notify(LifeCycleTypes.ON_FORM_GRAPH_CHANGE)
 }
 
-export const exchangeArrayState = (field: ArrayField, props: IExchangeArrayStateProps) => {
+export function exchangeArrayState(field: ArrayField<any>, props: IExchangeArrayStateProps) {
   const { fromIndex, toIndex } = {
     fromIndex: 0,
     toIndex: 0,
@@ -381,13 +383,13 @@ export const exchangeArrayState = (field: ArrayField, props: IExchangeArrayState
   const fields = field.form.fields
   const addrLength = address.length
   const fieldPatches: INodePatch<GeneralField>[] = []
-  const isArrayChildren = (identifier: string) => {
+  function isArrayChildren(identifier: string) {
     return identifier.indexOf(address) === 0 && identifier.length > addrLength
   }
 
   const isDown = fromIndex < toIndex
 
-  const isMoveNode = (identifier: string) => {
+  function isMoveNode(identifier: string) {
     const afterStr = identifier.slice(address.length)
     const number = afterStr.match(NumberIndexReg)?.[1]
     if (number === undefined) return false
@@ -395,7 +397,7 @@ export const exchangeArrayState = (field: ArrayField, props: IExchangeArrayState
     return isDown ? index > fromIndex && index <= toIndex : index < fromIndex && index >= toIndex
   }
 
-  const isFromNode = (identifier: string) => {
+  function isFromNode(identifier: string) {
     const afterStr = identifier.substring(addrLength)
     const number = afterStr.match(NumberIndexReg)?.[1]
     if (number === undefined) return false
@@ -403,7 +405,7 @@ export const exchangeArrayState = (field: ArrayField, props: IExchangeArrayState
     return index === fromIndex
   }
 
-  const moveIndex = (identifier: string) => {
+  function moveIndex(identifier: string) {
     const preStr = identifier.substring(0, addrLength)
     const afterStr = identifier.substring(addrLength)
     const number = afterStr.match(NumberIndexReg)?.[1]
@@ -443,15 +445,15 @@ export const exchangeArrayState = (field: ArrayField, props: IExchangeArrayState
   field.form.notify(LifeCycleTypes.ON_FORM_GRAPH_CHANGE)
 }
 
-export const cleanupArrayChildren = (field: ArrayField, start: number) => {
+export function cleanupArrayChildren(field: ArrayField<any>, start: number) {
   const address = field.address.toString()
   const fields = field.form.fields
 
-  const isArrayChildren = (identifier: string) => {
+  function isArrayChildren(identifier: string) {
     return identifier.indexOf(address) === 0 && identifier.length > address.length
   }
 
-  const isNeedCleanup = (identifier: string) => {
+  function isNeedCleanup(identifier: string) {
     const afterStr = identifier.slice(address.length)
     const numStr = afterStr.match(NumberIndexReg)?.[1]
     if (numStr === undefined) return false
@@ -468,16 +470,16 @@ export const cleanupArrayChildren = (field: ArrayField, start: number) => {
   })
 }
 
-export const cleanupObjectChildren = (field: ObjectField, keys: string[]) => {
+export function cleanupObjectChildren(field: ObjectField<any>, keys: string[]) {
   if (keys.length === 0) return
   const address = field.address.toString()
   const fields = field.form.fields
 
-  const isObjectChildren = (identifier: string) => {
+  function isObjectChildren(identifier: string) {
     return identifier.indexOf(address) === 0 && identifier.length > address.length
   }
 
-  const isNeedCleanup = (identifier: string) => {
+  function isNeedCleanup(identifier: string) {
     const afterStr = identifier.slice(address.length)
     const key = afterStr.match(/^\.([^.]+)/)?.[1]
     if (key === undefined) return false
@@ -501,7 +503,7 @@ export const initFieldUpdate = batch.scope.bound((field: GeneralField) => {
     const { pattern, callbacks } = updates[index]
     let removed = false
     if (field.match(pattern)) {
-      callbacks.forEach(callback => {
+      callbacks.forEach((callback: any) => {
         field.setState(callback)
       })
       if (!pattern.isWildMatchPattern && !pattern.isMatchPattern) {
@@ -517,7 +519,7 @@ export const initFieldUpdate = batch.scope.bound((field: GeneralField) => {
   }
 })
 
-export const subscribeUpdate = (form: Form, pattern: FormPath, callback: (...args: any[]) => void) => {
+export function subscribeUpdate(form: Form, pattern: FormPath, callback: (...args: any[]) => void) {
   const updates = FormPath.ensureIn(form, 'requests.updates', [])
   const indexes = FormPath.ensureIn(form, 'requests.updateIndexes', {})
   const id = pattern.toString()
@@ -538,7 +540,7 @@ export const subscribeUpdate = (form: Form, pattern: FormPath, callback: (...arg
   }
 }
 
-export const deserialize = (model: any, setter: any) => {
+export function deserialize(model: any, setter: any) {
   if (!model) return
   if (isFn(setter)) {
     setter(model)
@@ -561,13 +563,29 @@ export const deserialize = (model: any, setter: any) => {
   return model
 }
 
-export const serialize = (model: any, getter?: any) => {
+/** 收集实例自身属性与原型链上的访问器属性（装饰器生成的 accessor 不在实例自身上） */
+function getSerializableKeys(model: any) {
+  const keys = Object.keys(model)
+  for (
+    let proto = Object.getPrototypeOf(model);
+    proto && proto !== Object.prototype;
+    proto = Object.getPrototypeOf(proto)
+  ) {
+    for (const key of Object.getOwnPropertyNames(proto)) {
+      if (keys.indexOf(key) > -1) continue
+      const descriptor = Object.getOwnPropertyDescriptor(proto, key)
+      if (descriptor && (descriptor.get || descriptor.set)) keys.push(key)
+    }
+  }
+  return keys
+}
+
+export function serialize(model: any, getter?: any) {
   if (isFn(getter)) {
     return getter(model)
   } else {
-    const results = {}
-    for (const key in model) {
-      if (!hasOwnProperty.call(model, key)) continue
+    const results: Record<string, any> = {}
+    for (const key of getSerializableKeys(model)) {
       if (ReservedProperties[key]) continue
       if (key === 'address' || key === 'path') {
         results[key] = model[key].toString()
@@ -581,7 +599,7 @@ export const serialize = (model: any, getter?: any) => {
   }
 }
 
-export const createChildrenFeedbackFilter = (field: Field) => {
+export function createChildrenFeedbackFilter(field: Field) {
   const identifier = field.address?.toString()
   return ({ address }: IFormFeedback) => {
     if (!address) return false
@@ -589,15 +607,15 @@ export const createChildrenFeedbackFilter = (field: Field) => {
   }
 }
 
-export const createStateSetter = (model: any) => {
+export function createStateSetter(model: any) {
   return batch.bound((setter?: any) => deserialize(model, setter))
 }
 
-export const createStateGetter = (model: any) => {
+export function createStateGetter(model: any) {
   return (getter?: any) => serialize(model, getter)
 }
 
-export const createBatchStateSetter = (form: Form) => {
+export function createBatchStateSetter(form: Form) {
   return batch.bound((pattern: FieldMatchPattern, payload?: any) => {
     if (isQuery(pattern)) {
       pattern.forEach(field => {
@@ -620,7 +638,7 @@ export const createBatchStateSetter = (form: Form) => {
   })
 }
 
-export const createBatchStateGetter = (form: Form) => {
+export function createBatchStateGetter(form: Form) {
   return (pattern: FieldMatchPattern, payload?: any) => {
     if (isQuery(pattern)) {
       return pattern.take(payload)
@@ -634,11 +652,12 @@ export const createBatchStateGetter = (form: Form) => {
   }
 }
 
-export const triggerFormInitialValuesChange = (form: Form, change: DataChange) => {
-  if (Array.isArray(change.object) && change.key === 'length') return
-  if (contains(form.initialValues, change.object) || form.initialValues === change.value) {
+export function triggerFormInitialValuesChange(form: Form, change: DataChange) {
+  if (Array.isArray(change.target) && change.key === 'length') return
+  if (contains(form.initialValues, change.target) || form.initialValues === change.value) {
     if (change.type === 'add' || change.type === 'set') {
-      patchFormValues(form, change.path.slice(1), change.value)
+      // 直接观察 initialValues 根对象，path 不含变更键，需要拼上 key 才是完整数据路径
+      patchFormValues(form, [...change.path, change.key] as (string | number)[], change.value)
     }
     if (form.initialized) {
       form.notify(LifeCycleTypes.ON_FORM_INITIAL_VALUES_CHANGE)
@@ -646,14 +665,14 @@ export const triggerFormInitialValuesChange = (form: Form, change: DataChange) =
   }
 }
 
-export const triggerFormValuesChange = (form: Form, change: DataChange) => {
-  if (Array.isArray(change.object) && change.key === 'length') return
-  if ((contains(form.values, change.object) || form.values === change.value) && form.initialized) {
+export function triggerFormValuesChange(form: Form, change: DataChange) {
+  if (Array.isArray(change.target) && change.key === 'length') return
+  if ((contains(form.values, change.target) || form.values === change.value) && form.initialized) {
     form.notify(LifeCycleTypes.ON_FORM_VALUES_CHANGE)
   }
 }
 
-export const setValidating = (target: Form | Field, validating?: boolean) => {
+export function setValidating(target: Form | Field, validating?: boolean) {
   clearTimeout(target.requests.validate)
   if (validating) {
     target.requests.validate = setTimeout(() => {
@@ -671,7 +690,7 @@ export const setValidating = (target: Form | Field, validating?: boolean) => {
   }
 }
 
-export const setSubmitting = (target: Form | Field, submitting?: boolean) => {
+export function setSubmitting(target: Form | Field, submitting?: boolean) {
   clearTimeout(target.requests.submit)
   if (submitting) {
     target.requests.submit = setTimeout(() => {
@@ -689,7 +708,7 @@ export const setSubmitting = (target: Form | Field, submitting?: boolean) => {
   }
 }
 
-export const setLoading = (target: Form | Field, loading?: boolean) => {
+export function setLoading(target: Form | Field, loading?: boolean) {
   clearTimeout(target.requests.loading)
   if (loading) {
     target.requests.loading = setTimeout(() => {
@@ -703,11 +722,8 @@ export const setLoading = (target: Form | Field, loading?: boolean) => {
   }
 }
 
-export const batchSubmit = async <T>(
-  target: Form | Field,
-  onSubmit?: (values: any) => Promise<T> | void
-): Promise<T> => {
-  const getValues = (target: Form | Field) => {
+export async function batchSubmit<T>(target: Form | Field, onSubmit?: (values: any) => Promise<T> | void): Promise<T> {
+  function getValues(target: Form | Field) {
     if (isForm(target)) {
       return toJS(target.values)
     }
@@ -744,14 +760,20 @@ export const batchSubmit = async <T>(
   return results
 }
 
-export const batchValidate = async (
+function shouldValidate(field: Field) {
+  const validatePattern = field.props.validatePattern ?? field.form.props.validatePattern ?? ['editable']
+  const validateDisplay = field.props.validateDisplay ?? field.form.props.validateDisplay ?? ['visible']
+  return validatePattern.includes(field.pattern) && validateDisplay.includes(field.display)
+}
+
+export async function batchValidate(
   target: Form | Field,
   pattern: FormPathPattern,
   triggerType?: ValidatorTriggerType
-) => {
+) {
   if (isForm(target)) target.setValidating(true)
   else {
-    if (target.pattern !== 'editable' || target.display !== 'visible') return
+    if (!shouldValidate(target)) return
   }
   const tasks: any[] = []
   target.query(pattern).forEach(field => {
@@ -768,8 +790,8 @@ export const batchValidate = async (
   notify(target, LifeCycleTypes.ON_FORM_VALIDATE_SUCCESS, LifeCycleTypes.ON_FIELD_VALIDATE_SUCCESS)
 }
 
-export const batchReset = async (target: Form | Field, pattern: FormPathPattern, options?: IFieldResetOptions) => {
-  const tasks = []
+export async function batchReset(target: Form | Field, pattern: FormPathPattern, options?: IFieldResetOptions) {
+  const tasks: Promise<any>[] = []
   target.query(pattern).forEach(field => {
     if (!isVoidField(field)) {
       tasks.push(resetSelf(field, options, target === field))
@@ -783,10 +805,10 @@ export const batchReset = async (target: Form | Field, pattern: FormPathPattern,
 }
 
 export const validateSelf = batch.bound(async (target: Field, triggerType?: ValidatorTriggerType, noEmit = false) => {
-  const start = () => {
+  function start() {
     setValidating(target, true)
   }
-  const end = () => {
+  function end() {
     setValidating(target, false)
     if (noEmit) return
     if (target.selfValid) {
@@ -796,14 +818,14 @@ export const validateSelf = batch.bound(async (target: Field, triggerType?: Vali
     }
   }
 
-  if (target.pattern !== 'editable' || target.display !== 'visible') return {}
+  if (!shouldValidate(target)) return {}
   start()
   if (!triggerType) {
     const allTriggerTypes = parseValidatorDescriptions(target.validator).reduce(
       (types, desc) => (types.indexOf(desc.triggerType) > -1 ? types : types.concat(desc.triggerType)),
       []
     )
-    const results = {}
+    const results: Record<string, any> = {}
     for (let i = 0; i < allTriggerTypes.length; i++) {
       const payload = await validateToFeedbacks(target, allTriggerTypes[i])
       each(payload, (result, key) => {
@@ -844,7 +866,7 @@ export const resetSelf = batch.bound(async (target: Field, options?: IFieldReset
   }
 })
 
-export const modifySelf = (target: Field) => {
+export function modifySelf(target: Field) {
   if (target.selfModified) return
   target.selfModified = true
   target.modified = true
@@ -859,17 +881,17 @@ export const modifySelf = (target: Field) => {
   target.form.modified = true
 }
 
-export const getValidFormValues = (values: any) => {
+export function getValidFormValues(values: any) {
   if (isObservable(values)) return values
   return clone(values || {})
 }
 
-export const getValidFieldDefaultValue = (value: any, initialValue: any) => {
+export function getValidFieldDefaultValue(value: any, initialValue: any) {
   if (allowAssignDefaultValue(value, initialValue)) return clone(initialValue)
   return value
 }
 
-export const allowAssignDefaultValue = (target: any, source: any) => {
+export function allowAssignDefaultValue(target: any, source: any) {
   const isValidTarget = !isUndef(target)
   const isValidSource = !isUndef(source)
   if (!isValidTarget) {
@@ -889,7 +911,7 @@ export const allowAssignDefaultValue = (target: any, source: any) => {
   return false
 }
 
-export const createReactions = (field: GeneralField) => {
+export function createReactions(field: GeneralField) {
   const reactions = toArr(field.props.reactions)
   field.form.addEffects(field, () => {
     reactions.forEach(reaction => {
@@ -907,21 +929,21 @@ export const createReactions = (field: GeneralField) => {
   })
 }
 
-export const createReaction = <T>(tracker: () => T, scheduler?: (value: T) => void) => {
+export function createReaction<T>(tracker: () => T, scheduler?: (value: T) => void) {
   return reaction(tracker, untracked.bound(scheduler))
 }
 
-export const initializeStart = () => {
+export function initializeStart() {
   GlobalState.initializing = true
 }
 
-export const initializeEnd = () => {
+export function initializeEnd() {
   batch.endpoint(() => {
     GlobalState.initializing = false
   })
 }
 
-export const getArrayParent = (field: BaseField): ArrayField | undefined => {
+export function getArrayParent(field: BaseField): ArrayField | undefined {
   const index = field.index
   if (index === -1) return
   let parent: any = field.parent
@@ -932,7 +954,7 @@ export const getArrayParent = (field: BaseField): ArrayField | undefined => {
   }
 }
 
-export const getObjectParent = (field: BaseField): ObjectField | undefined => {
+export function getObjectParent(field: BaseField): ObjectField | undefined {
   let parent: any = field.parent
   while (parent) {
     if (isArrayField(parent)) return

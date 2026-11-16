@@ -1,12 +1,12 @@
 {
-  "name": "@formvk/vue",
-  "version": "1.0.0",
-  "description": "Formvk Shared",
+  "name": "@formvk/schema",
+  "version": "0.1.0",
+  "description": "Formvk Schema",
   "keywords": [
+    "form",
     "formvk",
-    "shared",
-    "formvk-shared",
-    "form"
+    "formvk-schema",
+    "schema"
   ],
   "license": "MIT",
   "author": "yiyunwan",
@@ -15,7 +15,12 @@
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "vite build"
+    "build": "tsc --noEmit && vite build"
+  },
+  "dependencies": {
+    "@formvk/core": "workspace:^",
+    "@formvk/reactive": "workspace:^",
+    "@formvk/shared": "workspace:^"
   },
   "devDependencies": {}
 }

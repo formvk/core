@@ -23,22 +23,17 @@ export default {
     maximum: 'The field value cannot be greater than {{maximum}}',
     exclusiveMaximum: 'The field value must be less than {{exclusiveMaximum}}',
     minimum: 'The field value cannot be less than {{minimum}}',
-    exclusiveMinimum:
-      'The field value must be greater than {{exclusiveMinimum}}',
+    exclusiveMinimum: 'The field value must be greater than {{exclusiveMinimum}}',
     max: 'The field length or number of entries must be at most {{max}}',
-    maxLength:
-      'The field length or number of entries must be at most {{maxLength}}',
-    maxItems:
-      'The field length or number of entries must be at most {{maxItems}}',
+    maxLength: 'The field length or number of entries must be at most {{maxLength}}',
+    maxItems: 'The field length or number of entries must be at most {{maxItems}}',
     whitespace: 'This field value cannot be blank string.',
     enum: 'The field value must be one of {{enum}}',
 
     const: 'The field value must be equal to {{const}}',
     multipleOf: 'The field value must be divisible by {{multipleOf}}',
-    maxProperties:
-      'The number of field properties cannot be greater than {{maxProperties}}',
-    minProperties:
-      'The number of field properties cannot be less than {{maxProperties}}',
+    maxProperties: 'The number of field properties cannot be greater than {{maxProperties}}',
+    minProperties: 'The number of field properties cannot be less than {{maxProperties}}',
     uniqueItems: 'Array elements are not unique',
   },
   zh: {
@@ -101,21 +96,16 @@ export default {
     maximum: 'The field value cannot be greater than {{maximum}}',
     exclusiveMaximum: 'The field value must be less than {{exclusiveMaximum}}',
     minimum: 'The field value cannot be less than {{minimum}}',
-    exclusiveMinimum:
-      'The field value must be greater than {{exclusiveMinimum}}',
+    exclusiveMinimum: 'The field value must be greater than {{exclusiveMinimum}}',
     max: 'The field length or number of entries must be at most {{max}}',
-    maxLength:
-      'The field length or number of entries must be at most {{maxLength}}',
-    maxItems:
-      'The field length or number of entries must be at most {{maxItems}}',
+    maxLength: 'The field length or number of entries must be at most {{maxLength}}',
+    maxItems: 'The field length or number of entries must be at most {{maxItems}}',
     whitespace: 'This field value cannot be blank string.',
     enum: 'The field value must be one of {{enum}}',
     const: 'The field value must be equal to {{const}}',
     multipleOf: 'The field value must be divisible by {{multipleOf}}',
-    maxProperties:
-      'The number of field properties cannot be greater than {{maxProperties}}',
-    minProperties:
-      'The number of field properties cannot be less than {{maxProperties}}',
+    maxProperties: 'The number of field properties cannot be greater than {{maxProperties}}',
+    minProperties: 'The number of field properties cannot be less than {{maxProperties}}',
     uniqueItems: 'Array elements are not unique',
   },
   'zh-CN': {
@@ -209,10 +199,8 @@ export default {
     maxLength: 'エントリの長さまたは数は最大{{maxLength}}でなければなりません',
     maximum: '値は{{最大}}を超えることはできません',
     min: 'エントリの長さまたは数は、少なくとも{{min}}である必要があります',
-    minItems:
-      'エントリの長さまたは数は、少なくとも{{minItems}}である必要があります',
-    minLength:
-      'エントリの長さまたは数は、少なくとも{{minLength}}である必要があります',
+    minItems: 'エントリの長さまたは数は、少なくとも{{minItems}}である必要があります',
+    minLength: 'エントリの長さまたは数は、少なくとも{{minLength}}である必要があります',
     minimum: '値は{{minimum}}以上にする必要があります',
     money: 'このフィールドは通貨形式ではありません',
     number: 'このフィールドは数値ではありません',
@@ -224,10 +212,8 @@ export default {
     enum: 'フィールド値は{{enum}}のいずれかである必要があります',
     cons: 'フィールド値は{{const}}と等しくなければなりません',
     multipleOf: 'フィールド値を{{multipleOf}}で割り切れない',
-    maxProperties:
-      'フィールドプロパティの数は{{maxProperties}}を超えることはできません',
-    minProperties:
-      'フィールドプロパティの数は{{minProperties}}未満にすることはできません',
+    maxProperties: 'フィールドプロパティの数は{{maxProperties}}を超えることはできません',
+    minProperties: 'フィールドプロパティの数は{{minProperties}}未満にすることはできません',
     uniqueItems: '配列要素は一意ではありません',
   },
 }

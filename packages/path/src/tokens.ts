@@ -18,7 +18,7 @@ export type Token = ITokenProps & {
   flag: string
 }
 
-const TokenType = (flag: string, props?: ITokenProps): Token => {
+function TokenType(flag: string, props?: ITokenProps): Token {
   return {
     flag,
     ...props,

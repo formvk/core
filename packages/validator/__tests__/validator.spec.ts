@@ -1,4 +1,5 @@
 import { expect, test } from 'vitest'
+
 import {
   registerValidateFormats,
   registerValidateMessageTemplateEngine,
@@ -17,14 +18,14 @@ registerValidateFormats({
   custom: /^[\u4e00-\u9fa5]+$/,
 })
 
-const hasError = (results: any, message?: string) => {
+function hasError(results: any, message?: string) {
   if (!message) {
     return expect(results?.error?.[0]).not.toBeUndefined()
   }
   return expect(results?.error?.[0]).toEqual(message)
 }
 
-const noError = (results: any) => {
+function noError(results: any) {
   return expect(results?.error?.[0]).toBeUndefined()
 }
 

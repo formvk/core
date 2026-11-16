@@ -10,7 +10,10 @@ type MemoArrayIterator<T, U> = (previousValue: U, currentValue: T, key: number) 
 type MemoStringIterator<T> = (previousValue: T, currentValue: string, key: number) => T
 type MemoObjectIterator<TValue, TResult> = (previousValue: TResult, currentValue: TValue, key: string) => TResult
 
-export const toArr = (val: any): any[] => (isArr(val) ? val : val ? [val] : [])
+export function toArr<T extends any, R = T extends (infer P)[] ? P[] : T extends any[] ? T : any[]>(val: T): R {
+  return (isArr(val) ? val : val ? [val] : []) as R
+}
+
 export function each(val: string, iterator: EachStringIterator, revert?: boolean): void
 export function each<T>(val: T[], iterator: EachArrayIterator<T>, revert?: boolean): void
 export function each<T extends object, TValue extends T[keyof T]>(
@@ -34,10 +37,11 @@ export function each(val: any, iterator: any, revert?: boolean): void {
       }
     }
   } else if (isObj(val)) {
+    const obj = val as Record<string, any>
     let key: string
-    for (key in val) {
-      if (Object.hasOwnProperty.call(val, key)) {
-        if (iterator(val[key], key) === false) {
+    for (key in obj) {
+      if (Object.hasOwnProperty.call(obj, key)) {
+        if (iterator(obj[key], key) === false) {
           return
         }
       }
@@ -65,7 +69,7 @@ export function map(val: any, iterator: any, revert?: any): any {
       if (isArr(res)) {
         ;(res as any).push(value)
       } else {
-        res[key] = value
+        ;(res as Record<string, any>)[key] = value
       }
     },
     revert

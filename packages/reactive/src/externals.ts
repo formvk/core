@@ -1,84 +1,68 @@
-import { ReactiveEffect, ReactiveFlags, isReactive, toRaw } from '@vue/reactivity'
-import { isArr, isFn, isMap, isPlainObj, isSet, isValid, isWeakMap, isWeakSet } from './checkers'
-import { MakeObModelSymbol } from './environment'
-import { NOOP } from './internals'
-import type { Annotation } from './types'
+import { isReactive, toRaw } from '@vue/reactivity'
 
-export const raw = toRaw
+import { parentMap, reverseCache } from './internals'
 
-export const toJS = toRaw
+/** 判断值是否是 Vue 响应式代理（reactive / shallowReactive 根对象） */
+export { isReactive }
 
-export const markRaw = <T>(target: T): T => {
-  if (!target) return target
-  if (isFn(target)) {
-    if (target.prototype) {
-      target.prototype[ReactiveFlags.SKIP] = true
+/** 外层 proxy 统一还原为内层 Vue proxy，便于匹配父子关系；入参已由 contains 保证为非空对象 */
+function normalize(value: object): object {
+  return reverseCache.get(value) ?? value
+}
+
+/** 判断值是否是 observable（wrap 出的 formvk 代理；纯 Vue reactive 不在此列） */
+export function isObservable(value: any): boolean {
+  if (value === null || typeof value !== 'object') return false
+  return reverseCache.has(value)
+}
+
+/** 把可观察/响应式对象深拷贝为普通对象，其余值原样返回 */
+export function toJS<T>(values: T): T {
+  const visited = new WeakSet<object>()
+
+  function convert(value: any): any {
+    if (value === null || typeof value !== 'object') return value
+    if (!isObservable(value) && !isReactive(value)) return value
+    if (visited.has(value)) return toRaw(value)
+    visited.add(value)
+    if (Array.isArray(value)) {
+      const result = value.map((item: any) => convert(item))
+      visited.delete(value)
+      return result
     }
-  } else {
-    target[ReactiveFlags.SKIP] = true
+    const result: Record<string, any> = {}
+    for (const key in value) {
+      result[key] = convert(value[key])
+    }
+    visited.delete(value)
+    return result
   }
-  return target
+
+  return convert(values)
 }
 
-export const isAnnotation = (target: any): target is Annotation => {
-  return target && !!target[MakeObModelSymbol]
-}
+/** 判断 property 是否就是 target 自身或其后代节点 */
+export function contains(target: any, property: any): boolean {
+  if (target === property) return true
+  if (target === null || typeof target !== 'object') return false
+  if (property === null || typeof property !== 'object') return false
 
-export const markObservable = <T>(target: T): T => {
-  if (!target) return undefined as any
-  if (isFn(target)) {
-    if (target.prototype) {
-      target.prototype[ReactiveFlags.IS_REACTIVE] = true
+  const targetNode = normalize(target)
+  const propertyNode = normalize(property)
+  if (targetNode === propertyNode) return true
+
+  const visited = new Set<object>([propertyNode])
+  const queue: object[] = [propertyNode]
+  while (queue.length) {
+    const node = queue.shift()!
+    const parents = parentMap.get(node)
+    if (!parents) continue
+    for (const parent of parents) {
+      if (parent === targetNode) return true
+      if (visited.has(parent)) continue
+      visited.add(parent)
+      queue.push(parent)
     }
-  } else {
-    target[ReactiveFlags.IS_REACTIVE] = true
   }
-  return target
-}
-
-export const isObservable = (target: any) => {
-  if (!isValid(target)) return false
-  if (target[ReactiveFlags.SKIP]) return false
-  return isReactive(target)
-}
-
-export const isSupportObservable = (target: any) => {
-  if (!isValid(target)) return false
-  if (isArr(target)) return true
-  if (isPlainObj(target)) {
-    if (target[ReactiveFlags.SKIP]) {
-      return false
-    }
-    if ('$$typeof' in target && '_owner' in target) {
-      return false
-    }
-    if (target['_isAMomentObject']) {
-      return false
-    }
-    if (target['_isJSONSchemaObject']) {
-      return false
-    }
-    if (isFn(target['toJS'])) {
-      return false
-    }
-    if (isFn(target['toJSON'])) {
-      return false
-    }
-    return true
-  }
-  if (isMap(target) || isWeakMap(target) || isSet(target) || isWeakSet(target)) return true
-  return false
-}
-
-export const hasCollected = (callback?: () => void) => {
-  if (!isFn(callback)) return false
-  const effect = new ReactiveEffect(callback, NOOP)
-  effect.run()
-  const has = !!effect.deps?.length
-  effect.stop()
-  return has
-}
-
-export const contains = (x: any, y: any) => {
   return false
 }

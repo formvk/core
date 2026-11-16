@@ -11,17 +11,19 @@ type Mutators = {
 
 const DestructorCache = new Map()
 
-const isValid = (val: any) => val !== undefined && val !== null
+function isValid(val: any) {
+  return val !== undefined && val !== null
+}
 
-export const getDestructor = (source: string) => {
+export function getDestructor(source: string) {
   return DestructorCache.get(source)
 }
 
-export const setDestructor = (source: string, rules: DestructorRules) => {
+export function setDestructor(source: string, rules: DestructorRules) {
   DestructorCache.set(source, rules)
 }
 
-export const parseDestructorRules = (node?: Node): DestructorRules => {
+export function parseDestructorRules(node?: Node): DestructorRules {
   const rules: any[] = []
   if (isObjectPattern(node)) {
     let index = 0
@@ -96,13 +98,13 @@ export const parseDestructorRules = (node?: Node): DestructorRules => {
   return rules
 }
 
-export const setInByDestructor = (source: any, rules: DestructorRules, value: any, mutators: Mutators) => {
+export function setInByDestructor(source: any, rules: DestructorRules, value: any, mutators: Mutators) {
   rules.forEach(({ key, path }) => {
     mutators.setIn([key], source, mutators.getIn(path, value))
   })
 }
 
-export const getInByDestructor = (source: any, rules: DestructorRules, mutators: Mutators) => {
+export function getInByDestructor(source: any, rules: DestructorRules, mutators: Mutators) {
   let response = {}
   if (rules.length) {
     if (isNum(rules[0].path[0])) {
@@ -116,13 +118,13 @@ export const getInByDestructor = (source: any, rules: DestructorRules, mutators:
   return response
 }
 
-export const deleteInByDestructor = (source: any, rules: DestructorRules, mutators: Mutators) => {
+export function deleteInByDestructor(source: any, rules: DestructorRules, mutators: Mutators) {
   rules.forEach(({ key }) => {
     mutators.deleteIn?.([key], source)
   })
 }
 
-export const existInByDestructor = (source: any, rules: DestructorRules, start: number, mutators: Mutators) => {
+export function existInByDestructor(source: any, rules: DestructorRules, start: number, mutators: Mutators) {
   return rules.every(({ key }) => {
     return mutators.existIn?.([key], source, start)
   })

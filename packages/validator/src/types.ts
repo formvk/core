@@ -25,7 +25,9 @@ export interface IValidateResults {
   success?: string[]
 }
 
-export const isValidateResult = (obj: any): obj is IValidateResult => !!obj['type'] && !!obj['message']
+export function isValidateResult(obj: any): obj is IValidateResult {
+  return !!obj['type'] && !!obj['message']
+}
 
 export type ValidatorFunctionResponse = string | boolean | IValidateResult | undefined | null
 

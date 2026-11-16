@@ -81,7 +81,7 @@ export type DestructorRule = {
   path: Array<number | string>
 }
 
-export type MatcherFunction = ((path: Segments) => boolean) & {
+export type MatcherFunction = ((path: Pattern) => boolean) & {
   path: Path
 }
 
@@ -91,11 +91,11 @@ export type DestructorRules = DestructorRule[]
 
 export type Segments = Array<string | number>
 
-export const isType =
-  <T>(type: string) =>
-  (obj: any): obj is T => {
+export function isType<T>(type: string) {
+  return (obj: any): obj is T => {
     return obj && obj.type === type
   }
+}
 
 export const isIdentifier = isType<IdentifierNode>('Identifier')
 

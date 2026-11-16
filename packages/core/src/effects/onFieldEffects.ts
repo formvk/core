@@ -1,8 +1,10 @@
 import { autorun, batch, reaction } from '@formvk/reactive'
 import { FormPath, isFn, toArr } from '@formvk/shared'
-import { Form } from '../models'
+
+import type { Form } from '../models'
 import { createEffectHook, useEffectForm } from '../shared/effective'
-import { DataField, FormPathPattern, GeneralField, IFieldState, LifeCycleTypes } from '../types'
+import type { DataField, FormPathPattern, GeneralField, IFieldState } from '../types'
+import { LifeCycleTypes } from '../types'
 
 function createFieldEffect<Result extends GeneralField = GeneralField>(type: LifeCycleTypes) {
   return createEffectHook(
@@ -44,11 +46,11 @@ export const onFieldLoading = createFieldEffect<DataField>(LifeCycleTypes.ON_FIE
 export function onFieldInit(pattern: FormPathPattern, callback?: (field: GeneralField, form: Form) => void) {
   const form = useEffectForm()
   const count = form.query(pattern).reduce((count, field) => {
-    callback(field, form)
+    callback?.(field, form)
     return count + 1
   }, 0)
   if (count === 0) {
-    _onFieldInit(pattern, callback)
+    _onFieldInit(pattern, callback!)
   }
 }
 
@@ -82,8 +84,8 @@ export function onFieldChange(
     if (isFn(callback)) callback(field, form)
     const dispose = reaction(
       () => {
-        return toArr(watches).map(key => {
-          return field[key]
+        return toArr(watches).map((key: keyof IFieldState) => {
+          return (field as unknown as Record<string, any>)[key]
         })
       },
       () => {

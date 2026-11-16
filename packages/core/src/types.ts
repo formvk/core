@@ -1,6 +1,9 @@
-import type { FormPath } from '@formvk/shared'
+import type { FormPath, FormPathPattern } from '@formvk/shared'
 import type { IValidatorRules, Validator, ValidatorTriggerType } from '@formvk/validator'
+
 import type { ArrayField, Field, Form, LifeCycle, ObjectField, Query, VoidField } from './models'
+
+export type { FormPathPattern }
 
 export type NonFunctionPropertyNames<T> = {
   [K in keyof T]: T[K] extends (...args: any) => any ? never : K
@@ -159,16 +162,6 @@ export type FormPatternTypes = 'editable' | 'readOnly' | 'disabled' | 'readPrett
 
 export type FormDisplayTypes = 'none' | 'hidden' | 'visible'
 
-export type FormPathPattern =
-  | string
-  | number
-  | Array<string | number>
-  | FormPath
-  | RegExp
-  | (((address: Array<string | number>) => boolean) & {
-      path: FormPath
-    })
-
 type OmitState<P> = Omit<
   P,
   | 'selfDisplay'
@@ -223,6 +216,8 @@ export interface IFormProps<T extends object = any> {
   readPretty?: boolean
   effects?: (form: Form<T>) => void
   validateFirst?: boolean
+  validatePattern?: FormPatternTypes[]
+  validateDisplay?: FormDisplayTypes[]
   designable?: boolean
 }
 
@@ -238,8 +233,11 @@ export interface IFieldFactoryProps<
   basePath?: FormPathPattern
 }
 
-export interface IVoidFieldFactoryProps<Decorator extends JSXComponent, Component extends JSXComponent, TextType = any>
-  extends IVoidFieldProps<Decorator, Component, TextType> {
+export interface IVoidFieldFactoryProps<
+  Decorator extends JSXComponent,
+  Component extends JSXComponent,
+  TextType = any,
+> extends IVoidFieldProps<Decorator, Component, TextType> {
   name: FormPathPattern
   basePath?: FormPathPattern
 }
@@ -262,9 +260,8 @@ export type FieldDisplayTypes = 'none' | 'hidden' | 'visible' | ({} & string)
 export type FieldPatternTypes = 'editable' | 'readOnly' | 'disabled' | 'readPretty' | ({} & string)
 
 export type FieldValidatorContext = IValidatorRules & {
-  field?: Field
-  form?: Form
-  value?: any
+  field: Field
+  form: Form
 }
 
 export type FieldValidator = Validator<FieldValidatorContext>
@@ -315,6 +312,8 @@ export interface IFieldProps<
   readPretty?: boolean
   dataSource?: FieldDataSource
   validateFirst?: boolean
+  validatePattern?: FieldPatternTypes[]
+  validateDisplay?: FieldDisplayTypes[]
   validator?: FieldValidator
   decorator?: FieldDecorator<Decorator>
   component?: FieldComponent<Component>

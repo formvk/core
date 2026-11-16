@@ -1,3 +1,5 @@
-import { Path as FormPath, Pattern as FormPathPattern } from '@formvk/path'
+import { Path as FormPath } from '@formvk/path'
+import type { Pattern as FormPathPattern } from '@formvk/path'
 
-export { FormPath, FormPathPattern }
+export { FormPath }
+export type { FormPathPattern }

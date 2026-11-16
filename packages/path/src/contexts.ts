@@ -3,7 +3,7 @@ export type Context = {
   [key: string]: any
 }
 
-const ContextType = (flag: string, props?: any): Context => {
+function ContextType(flag: string, props?: any): Context {
   return {
     flag,
     ...props,

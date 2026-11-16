@@ -1,12 +1,12 @@
 {
   "name": "@formvk/core",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Formvk Core",
   "keywords": [
-    "formvk",
     "core",
-    "formvk-core",
-    "form"
+    "form",
+    "formvk",
+    "formvk-core"
   ],
   "license": "MIT",
   "author": "yiyunwan",
@@ -17,5 +17,10 @@
   "scripts": {
     "build": "vite build"
   },
-  "devDependencies": {}
+  "dependencies": {
+    "@formvk/reactive": "workspace:^",
+    "@formvk/shared": "workspace:^",
+    "@formvk/validator": "workspace:^",
+    "@swc/helpers": "^0.5.24"
+  }
 }

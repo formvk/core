@@ -38,24 +38,24 @@ import type {
   WildcardOperatorNode,
 } from './types'
 
-const createTreeBySegments = (segments: Segments = [], afterNode?: Node) => {
+function createTreeBySegments(segments: Segments = [], afterNode?: Node) {
   const segLen = segments.length
-  const build = (start = 0) => {
-    const after = start < segLen - 1 ? build(start + 1) : afterNode
-    const dot = after && {
+  function build(start = 0): Node {
+    const after: Node | undefined = start < segLen - 1 ? build(start + 1) : afterNode
+    const dot: Node | undefined = after && {
       type: 'DotOperator',
       after,
     }
     return {
       type: 'Identifier',
-      value: segments[start],
+      value: segments[start] as string,
       after: dot,
     }
   }
   return build()
 }
 
-const calculate = (a: string | number, b: string | number, operator: string) => {
+function calculate(a: string | number, b: string | number, operator: string) {
   if (isNumberLike(a) && isNumberLike(b)) {
     if (operator === '+') return String(Number(a) + Number(b))
     if (operator === '-') return String(Number(a) - Number(b))
@@ -83,7 +83,7 @@ export class Parser extends Tokenizer {
 
   public relative?: string | number
 
-  public data: {
+  public data!: {
     segments: Segments
     tree?: Node
   }

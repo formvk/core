@@ -1,6 +1,7 @@
 import { autorun, batch } from '@formvk/reactive'
 import { isFn } from '@formvk/shared'
-import { Form } from '../models'
+
+import type { Form } from '../models'
 import { createEffectHook } from '../shared/effective'
 import { LifeCycleTypes } from '../types'
 
@@ -35,13 +36,13 @@ export const onFormValidateEnd = createFormEffect(LifeCycleTypes.ON_FORM_VALIDAT
 export const onFormGraphChange = createFormEffect(LifeCycleTypes.ON_FORM_GRAPH_CHANGE)
 export const onFormLoading = createFormEffect(LifeCycleTypes.ON_FORM_LOADING)
 export function onFormReact(callback?: (form: Form) => void) {
-  let dispose = null
+  let dispose: (() => void) | undefined
   onFormInit(form => {
     dispose = autorun(() => {
       if (isFn(callback)) callback(form)
     })
   })
   onFormUnmount(() => {
-    dispose()
+    dispose?.()
   })
 }

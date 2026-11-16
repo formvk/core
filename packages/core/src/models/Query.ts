@@ -1,9 +1,11 @@
-import { each, FormPath, FormPathPattern, isFn } from '@formvk/shared'
-import { buildDataPath } from '../shared/internals'
-import { GeneralField, IGeneralFieldState, IQueryProps } from '../types'
-import { Form } from './Form'
+import type { FormPathPattern } from '@formvk/shared'
+import { each, FormPath, isFn } from '@formvk/shared'
 
-const output = (field: GeneralField, taker: (field: GeneralField, address: FormPath) => any) => {
+import { buildDataPath } from '../shared/internals'
+import type { GeneralField, IGeneralFieldState, IQueryProps } from '../types'
+import type { Form } from './Form'
+
+function output(field: GeneralField, taker: (field: GeneralField, address: FormPath) => any) {
   if (!field) return
   if (isFn(taker)) {
     return taker(field, field.address)
@@ -11,7 +13,7 @@ const output = (field: GeneralField, taker: (field: GeneralField, address: FormP
   return field
 }
 
-const takeMatchPattern = (form: Form, pattern: FormPath) => {
+function takeMatchPattern(form: Form, pattern: FormPath) {
   const identifier = pattern.toString()
   const indexIdentifier = form.indexes[identifier]
   const absoluteField = form.fields[identifier]
@@ -68,9 +70,9 @@ export class Query {
   }
 
   reduce<Result>(reducer: (value: Result, field: GeneralField, address: FormPath) => Result, initial?: Result): Result {
-    return this.addresses.reduce(
+    return this.addresses.reduce<Result>(
       (value, address) => output(this.form.fields[address], (field, address) => reducer(value, field, address)),
-      initial
+      initial as Result
     )
   }
 
@@ -82,7 +84,7 @@ export class Query {
   }
 
   getIn(pattern?: FormPathPattern) {
-    return FormPath.getIn(this.take(), pattern)
+    return FormPath.getIn(this.take(), pattern!)
   }
 
   value() {

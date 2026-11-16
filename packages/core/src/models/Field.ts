@@ -1,7 +1,9 @@
+import { action, batch, computed, shallow, shallowRef, toJS } from '@formvk/reactive'
 import type { FormPathPattern } from '@formvk/shared'
 import { isArr, isEmpty, isValid, toArr } from '@formvk/shared'
 import type { ValidatorTriggerType } from '@formvk/validator'
 import { parseValidatorDescriptions } from '@formvk/validator'
+
 import {
   allowAssignDefaultValue,
   batchReset,
@@ -41,41 +43,35 @@ import type {
   IModelGetter,
   IModelSetter,
   ISearchFeedback,
-  JSXComponent,
 } from '../types'
 import { LifeCycleTypes } from '../types'
 import { BaseField } from './BaseField'
 import type { Form } from './Form'
 export class Field<
-  Decorator extends JSXComponent = any,
-  Component extends JSXComponent = any,
-  TextType = any,
-  ValueType = any,
-> extends BaseField<Decorator, Component, TextType> {
+  Value = any,
+  ComponentProps = any,
+  DecoratorProps = any,
+  IRecord extends object = any,
+> extends BaseField<ComponentProps, DecoratorProps, IRecord> {
   displayName = 'Field'
 
-  props: IFieldProps<Decorator, Component, TextType, ValueType>
+  props: IFieldProps<any, any, any, Value>
 
-  loading?: boolean
-  validating?: boolean
-  submitting?: boolean
-  active: boolean
-  visited: boolean
-  selfModified: boolean
-  modified: boolean
-  inputValue: ValueType
-  inputValues: any[]
-  dataSource?: FieldDataSource
-  validator?: FieldValidator
-  feedbacks: IFieldFeedback[]
+  @shallowRef accessor loading: boolean | undefined = false
+  @shallowRef accessor validating: boolean | undefined = false
+  @shallowRef accessor submitting: boolean | undefined = false
+  @shallowRef accessor active = false
+  @shallowRef accessor visited = false
+  @shallowRef accessor selfModified = false
+  @shallowRef accessor modified = false
+  @shallowRef accessor inputValue: Value = undefined as any
+  @shallowRef accessor inputValues: any[] = []
+  @shallowRef accessor dataSource: FieldDataSource | undefined = undefined
+  @shallow accessor validator: FieldValidator | undefined = undefined
+  @shallowRef accessor feedbacks: IFieldFeedback[] = []
   caches: IFieldCaches = {}
   requests: IFieldRequests = {}
-  constructor(
-    address: FormPathPattern,
-    props: IFieldProps<Decorator, Component, TextType, ValueType>,
-    form: Form,
-    designable?: boolean
-  ) {
+  constructor(address: FormPathPattern, props: IFieldProps<any, any, any, Value>, form: Form, designable?: boolean) {
     super()
     this.form = form
     this.props = props
@@ -134,7 +130,7 @@ export class Field<
               validateSelf(this)
             }
             if (!isEmpty(value) && this.display === 'none') {
-              // this.caches.value = toJS(value)
+              this.caches.value = toJS(value)
               this.form.deleteValuesIn(this.path)
             }
           }
@@ -156,7 +152,7 @@ export class Field<
               this.caches.value = undefined
             }
           } else {
-            // this.caches.value = toJS(value) ?? toJS(this.initialValue)
+            this.caches.value = toJS(value) ?? toJS(this.initialValue)
             this.form.deleteValuesIn(this.path)
           }
           if (display === 'none' || display === 'hidden') {
@@ -182,65 +178,79 @@ export class Field<
     createReactions(this)
   }
 
+  @computed
   get selfErrors(): FeedbackMessage {
     return queryFeedbackMessages(this, {
       type: 'error',
     })
   }
 
+  @computed
   get errors(): IFormFeedback[] {
     return this.form.errors.filter(createChildrenFeedbackFilter(this))
   }
 
+  @computed
   get selfWarnings(): FeedbackMessage {
     return queryFeedbackMessages(this, {
       type: 'warning',
     })
   }
 
+  @computed
   get warnings(): IFormFeedback[] {
     return this.form.warnings.filter(createChildrenFeedbackFilter(this))
   }
 
+  @computed
   get selfSuccesses(): FeedbackMessage {
     return queryFeedbackMessages(this, {
       type: 'success',
     })
   }
 
+  @computed
   get successes(): IFormFeedback[] {
     return this.form.successes.filter(createChildrenFeedbackFilter(this))
   }
 
+  @computed
   get selfValid() {
     return !this.selfErrors.length
   }
 
+  @computed
   get valid() {
     return !this.errors.length
   }
 
+  @computed
   get selfInvalid() {
     return !this.selfValid
   }
 
+  @computed
   get invalid() {
     return !this.valid
   }
 
-  get value(): ValueType {
+  @computed
+  get value(): Value {
     return this.form.getValuesIn(this.path)
   }
 
-  get initialValue(): ValueType {
+  @computed
+  get initialValue(): Value {
     return this.form.getInitialValuesIn(this.path)
   }
 
+  @computed
   get required() {
     const validators = isArr(this.validator) ? this.validator : parseValidatorDescriptions(this.validator)
-    return validators.some(desc => !!desc?.['required'])
+    return validators.some(desc => !!(desc as Record<string, any>)?.['required'])
   }
 
+  @computed
   get validateStatus() {
     if (this.validating) return 'validating'
     if (this.selfInvalid) return 'error'
@@ -253,11 +263,11 @@ export class Field<
     this.setValidatorRule('required', required)
   }
 
-  set value(value: ValueType) {
+  set value(value: Value | undefined) {
     this.setValue(value)
   }
 
-  set initialValue(initialValue: ValueType) {
+  set initialValue(initialValue: Value) {
     this.setInitialValue(initialValue)
   }
 
@@ -285,39 +295,48 @@ export class Field<
     })
   }
 
+  @action
   setDataSource = (dataSource?: FieldDataSource) => {
     this.dataSource = dataSource
   }
 
+  @action
   setFeedback = (feedback?: IFieldFeedback) => {
     updateFeedback(this, feedback)
   }
 
+  @action
   setSelfErrors = (messages?: FeedbackMessage) => {
     this.selfErrors = messages
   }
 
+  @action
   setSelfWarnings = (messages?: FeedbackMessage) => {
     this.selfWarnings = messages
   }
 
+  @action
   setSelfSuccesses = (messages?: FeedbackMessage) => {
     this.selfSuccesses = messages
   }
 
+  @action
   setValidator = (validator?: FieldValidator) => {
     this.validator = validator
   }
 
+  @action
   setValidatorRule = (name: string, value: any) => {
     setValidatorRule(this, name, value)
   }
 
+  @action
   setRequired = (required?: boolean) => {
     this.required = required
   }
 
-  setValue = (value?: ValueType) => {
+  @action
+  setValue = (value?: Value) => {
     if (this.destroyed) return
     if (!this.initialized) {
       if (this.display === 'none') {
@@ -332,7 +351,8 @@ export class Field<
     this.form.setValuesIn(this.path, value)
   }
 
-  setInitialValue = (initialValue?: ValueType) => {
+  @action
+  setInitialValue = (initialValue?: Value) => {
     if (this.destroyed) return
     if (!this.initialized) {
       if (!allowAssignDefaultValue(this.initialValue, initialValue) && !this.designable) {
@@ -342,14 +362,17 @@ export class Field<
     this.form.setInitialValuesIn(this.path, initialValue)
   }
 
+  @action
   setLoading = (loading?: boolean) => {
     setLoading(this, loading)
   }
 
+  @action
   setValidating = (validating?: boolean) => {
     setValidating(this, validating)
   }
 
+  @action
   setSubmitting = (submitting?: boolean) => {
     setSubmitting(this, submitting)
   }
@@ -358,10 +381,12 @@ export class Field<
 
   getState: IModelGetter<IFieldState> = createStateGetter(this)
 
+  @batch
   onInput = async (...args: any[]) => {
-    const isHTMLInputEventFromSelf = (args: any[]) =>
-      isHTMLInputEvent(args[0]) && 'currentTarget' in args[0] ? args[0]?.target === args[0]?.currentTarget : true
-    const getValues = (args: any[]) => {
+    function isHTMLInputEventFromSelf(args: any[]) {
+      return isHTMLInputEvent(args[0]) && 'currentTarget' in args[0] ? args[0]?.target === args[0]?.currentTarget : true
+    }
+    function getValues(args: any[]) {
       if (args[0]?.target) {
         if (!isHTMLInputEvent(args[0])) return args
       }
@@ -383,6 +408,7 @@ export class Field<
     this.caches.inputting = false
   }
 
+  @batch
   onFocus = async (...args: any[]) => {
     if (args[0]?.target) {
       if (!isHTMLInputEvent(args[0], false)) return
@@ -392,6 +418,7 @@ export class Field<
     await validateSelf(this, 'onFocus')
   }
 
+  @batch
   onBlur = async (...args: any[]) => {
     if (args[0]?.target) {
       if (!isHTMLInputEvent(args[0], false)) return
@@ -400,6 +427,7 @@ export class Field<
     await validateSelf(this, 'onBlur')
   }
 
+  @action
   validate = (triggerType?: ValidatorTriggerType) => {
     return batchValidate(this, `${this.address}.**`, triggerType)
   }
@@ -408,6 +436,7 @@ export class Field<
     return batchSubmit(this, onSubmit)
   }
 
+  @action
   reset = (options?: IFieldResetOptions) => {
     return batchReset(this, `${this.address}.**`, options)
   }
@@ -416,5 +445,6 @@ export class Field<
     return queryFeedbacks(this, search)
   }
 
+  @action
   modify = () => modifySelf(this)
 }

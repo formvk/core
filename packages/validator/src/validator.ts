@@ -11,13 +11,13 @@ registerValidateLocale(locales)
 
 registerValidateFormats(formats)
 
-export const validate = async <Context = any>(
+export async function validate<Context = any>(
   value: any,
   validator?: Validator<Context>,
   options?: IValidatorOptions<Context>
-): Promise<IValidateResults> => {
+): Promise<IValidateResults> {
   const validates = parseValidator(validator, options)
-  const results: IValidateResults = {
+  const results: Record<string, string[]> = {
     error: [],
     success: [],
     warning: [],

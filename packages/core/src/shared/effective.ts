@@ -1,13 +1,12 @@
 import { isFn, isValid } from '@formvk/shared'
-import { Form, LifeCycle } from '../models'
-import { AnyFunction } from '../types'
+
+import type { Form } from '../models'
+import { LifeCycle } from '../models'
+import type { AnyFunction } from '../types'
 import { isForm } from './checkers'
 import { GlobalState } from './constants'
 
-export const createEffectHook = <F extends (payload: any, ...ctxs: any[]) => AnyFunction>(
-  type: string,
-  callback?: F
-) => {
+export function createEffectHook<F extends (payload: any, ...ctxs: any[]) => AnyFunction>(type: string, callback?: F) {
   return (...args: Parameters<ReturnType<F>>) => {
     if (GlobalState.effectStart) {
       GlobalState.lifecycles.push(
@@ -23,7 +22,7 @@ export const createEffectHook = <F extends (payload: any, ...ctxs: any[]) => Any
   }
 }
 
-export const createEffectContext = <T = any>(defaultValue?: T) => {
+export function createEffectContext<T = any>(defaultValue?: T) {
   let index: number
   return {
     provide(value?: T) {
@@ -47,7 +46,10 @@ const FormEffectContext = createEffectContext<Form>()
 
 export const useEffectForm = FormEffectContext.consume
 
-export const runEffects = <Context>(context?: Context, ...args: ((context: Context) => void)[]): LifeCycle[] => {
+export function runEffects<Context>(
+  context?: Context,
+  ...args: (((context: Context) => void) | undefined)[]
+): LifeCycle[] {
   GlobalState.lifecycles = []
   GlobalState.context = []
   GlobalState.effectStart = true
@@ -57,7 +59,7 @@ export const runEffects = <Context>(context?: Context, ...args: ((context: Conte
   }
   args.forEach(effects => {
     if (isFn(effects)) {
-      effects(context)
+      effects(context as Context)
     }
   })
   GlobalState.context = []

@@ -1,5 +1,8 @@
+import { action, autorun, batch, computed, observable, observe, shallow, shallowRef } from '@formvk/reactive'
+import type { Dispose } from '@formvk/reactive'
 import type { FormPathPattern } from '@formvk/shared'
-import { FormPath, globalThisPolyfill, isPlainObj, isValid, merge, uid } from '@formvk/shared'
+import { FormPath, globalThisPolyfill, isArr, isObj, isPlainObj, isValid, merge, uid } from '@formvk/shared'
+
 import { isVoidField } from '../shared/checkers'
 import { runEffects } from '../shared/effective'
 import {
@@ -14,6 +17,8 @@ import {
   setLoading,
   setSubmitting,
   setValidating,
+  triggerFormInitialValuesChange,
+  triggerFormValuesChange,
 } from '../shared/internals'
 import type {
   FormDisplayTypes,
@@ -34,14 +39,13 @@ import type {
   IModelSetter,
   ISearchFeedback,
   IVoidFieldFactoryProps,
-  JSXComponent,
 } from '../types'
 import { LifeCycleTypes } from '../types'
-import type { ArrayField } from './ArrayField'
-import type { Field } from './Field'
+import { ArrayField } from './ArrayField'
+import { Field } from './Field'
 import { Graph } from './Graph'
 import { Heart } from './Heart'
-import type { ObjectField } from './ObjectField'
+import { ObjectField } from './ObjectField'
 import { Query } from './Query'
 import { VoidField } from './VoidField'
 
@@ -49,24 +53,24 @@ const DEV_TOOLS_HOOK = '__FORMILY_DEV_TOOLS_HOOK__'
 
 export class Form<ValueType extends object = any> {
   displayName = 'Form'
-  id: string
-  initialized: boolean
-  validating: boolean
-  submitting: boolean
-  loading: boolean
-  modified: boolean
-  pattern: FormPatternTypes
-  display: FormDisplayTypes
-  values: ValueType
-  initialValues: ValueType
-  mounted: boolean
-  unmounted: boolean
-  props: IFormProps<ValueType>
-  heart: Heart
-  graph: Graph
-  fields: IFormFields = {}
+  id = ''
+  @shallowRef accessor initialized = false
+  @shallowRef accessor validating: boolean | undefined = false
+  @shallowRef accessor submitting: boolean | undefined = false
+  @shallowRef accessor loading: boolean | undefined = false
+  @shallowRef accessor modified = false
+  @shallowRef accessor pattern: FormPatternTypes = 'editable'
+  @shallowRef accessor display: FormDisplayTypes = 'visible'
+  @observable accessor values: ValueType = {} as ValueType
+  @observable accessor initialValues: ValueType = {} as ValueType
+  @shallowRef accessor mounted = false
+  @shallowRef accessor unmounted = false
+  props: IFormProps<ValueType> = {}
+  heart!: Heart
+  graph!: Graph
+  @shallow accessor fields: IFormFields = {}
   requests: IFormRequests = {}
-  indexes: Record<string, string> = {}
+  @shallow accessor indexes: Record<string, string> = {}
   disposers: (() => void)[] = []
 
   constructor(props: IFormProps<ValueType> = {}) {
@@ -107,39 +111,63 @@ export class Form<ValueType extends object = any> {
   }
 
   protected makeReactive() {
-    this.disposers
-      .push
-      // observe(
-      //   this,
-      //   change => {
-      //     triggerFormInitialValuesChange(this, change)
-      //     triggerFormValuesChange(this, change)
-      //   },
-      //   true
-      // )
-      ()
+    // 装饰器架构下 Form 实例本身不是代理，需要分别观察 values / initialValues，
+    // 并用 autorun 跟踪引用变化，overwrite 重新赋值后自动重新订阅
+    let disposeValues: Dispose | undefined
+    let disposeInitialValues: Dispose | undefined
+    this.disposers.push(
+      autorun(() => {
+        disposeValues?.()
+        disposeValues = observe(
+          this.values,
+          change => {
+            triggerFormValuesChange(this, change)
+          },
+          true
+        )
+      }),
+      autorun(() => {
+        disposeInitialValues?.()
+        disposeInitialValues = observe(
+          this.initialValues,
+          change => {
+            triggerFormInitialValuesChange(this, change)
+          },
+          true
+        )
+      }),
+      () => {
+        disposeValues?.()
+        disposeInitialValues?.()
+      }
+    )
   }
 
+  @computed
   get valid() {
     return !this.invalid
   }
 
+  @computed
   get invalid() {
     return this.errors.length > 0
   }
 
+  @computed
   get errors() {
     return this.queryFeedbacks({
       type: 'error',
     })
   }
 
+  @computed
   get warnings() {
     return this.queryFeedbacks({
       type: 'warning',
     })
   }
 
+  @computed
   get successes() {
     return this.queryFeedbacks({
       type: 'success',
@@ -150,10 +178,12 @@ export class Form<ValueType extends object = any> {
     return runEffects(this, this.props.effects)
   }
 
+  @computed
   get hidden() {
     return this.display === 'hidden'
   }
 
+  @computed
   get visible() {
     return this.display === 'visible'
   }
@@ -176,6 +206,7 @@ export class Form<ValueType extends object = any> {
     }
   }
 
+  @computed
   get editable() {
     return this.pattern === 'editable'
   }
@@ -189,6 +220,7 @@ export class Form<ValueType extends object = any> {
     }
   }
 
+  @computed
   get readOnly() {
     return this.pattern === 'readOnly'
   }
@@ -202,6 +234,7 @@ export class Form<ValueType extends object = any> {
     }
   }
 
+  @computed
   get disabled() {
     return this.pattern === 'disabled'
   }
@@ -215,6 +248,7 @@ export class Form<ValueType extends object = any> {
     }
   }
 
+  @computed
   get readPretty() {
     return this.pattern === 'readPretty'
   }
@@ -230,84 +264,77 @@ export class Form<ValueType extends object = any> {
 
   /** 创建字段 **/
 
-  createField<Decorator extends JSXComponent, Component extends JSXComponent>(
-    props: IFieldFactoryProps<Decorator, Component>
-  ): Field<Decorator, Component> | undefined {
+  createField(props: IFieldFactoryProps<any, any>): Field | undefined {
     const address = FormPath.parse(props.basePath).concat(props.name)
     const identifier = address.toString()
     if (!identifier) return
     if (!this.fields[identifier] || this.props.designable) {
-      // batch(() => {
-      //   new Field(address, props, this, this.props.designable)
-      // })
+      batch(() => {
+        new Field(address, props, this, this.props.designable)
+      })
       this.notify(LifeCycleTypes.ON_FORM_GRAPH_CHANGE)
     }
     return this.fields[identifier] as any
   }
 
-  createArrayField<Decorator extends JSXComponent, Component extends JSXComponent>(
-    props: IFieldFactoryProps<Decorator, Component>
-  ) {
+  createArrayField(props: IFieldFactoryProps<any, any>): ArrayField | undefined {
     const address = FormPath.parse(props.basePath).concat(props.name)
     const identifier = address.toString()
     if (!identifier) return
     if (!this.fields[identifier] || this.props.designable) {
-      // batch(() => {
-      //   new ArrayField(
-      //     address,
-      //     {
-      //       ...props,
-      //       value: isArr(props.value) ? props.value : [],
-      //     },
-      //     this,
-      //     this.props.designable
-      //   )
-      // })
+      batch(() => {
+        new ArrayField(
+          address,
+          {
+            ...props,
+            value: isArr(props.value) ? props.value : [],
+          },
+          this,
+          this.props.designable
+        )
+      })
       this.notify(LifeCycleTypes.ON_FORM_GRAPH_CHANGE)
     }
-    return this.fields[identifier] as ArrayField<Decorator, Component>
+    return this.fields[identifier] as ArrayField
   }
 
-  createObjectField<Decorator extends JSXComponent, Component extends JSXComponent>(
-    props: IFieldFactoryProps<Decorator, Component>
-  ) {
+  createObjectField(props: IFieldFactoryProps<any, any>): ObjectField | undefined {
     const address = FormPath.parse(props.basePath).concat(props.name)
     const identifier = address.toString()
     if (!identifier) return
     if (!this.fields[identifier] || this.props.designable) {
-      // batch(() => {
-      //   new ObjectField(
-      //     address,
-      //     {
-      //       ...props,
-      //       value: isObj(props.value) ? props.value : {},
-      //     },
-      //     this,
-      //     this.props.designable
-      //   )
-      // })
+      batch(() => {
+        new ObjectField(
+          address,
+          {
+            ...props,
+            value: isObj(props.value) ? props.value : {},
+          },
+          this,
+          this.props.designable
+        )
+      })
       this.notify(LifeCycleTypes.ON_FORM_GRAPH_CHANGE)
     }
-    return this.fields[identifier] as ObjectField<Decorator, Component>
+    return this.fields[identifier] as ObjectField
   }
 
-  createVoidField<Decorator extends JSXComponent, Component extends JSXComponent>(
-    props: IVoidFieldFactoryProps<Decorator, Component>
-  ) {
+  createVoidField(props: IVoidFieldFactoryProps<any, any>): VoidField | undefined {
     const address = FormPath.parse(props.basePath).concat(props.name)
     const identifier = address.toString()
     if (!identifier) return
     if (!this.fields[identifier] || this.props.designable) {
-      // batch(() => {
-      new VoidField(address, props, this, this.props.designable)
-      // })
+      batch(() => {
+        new VoidField(address, props, this, this.props.designable)
+      })
       this.notify(LifeCycleTypes.ON_FORM_GRAPH_CHANGE)
     }
-    return this.fields[identifier] as VoidField<Decorator, Component>
+    return this.fields[identifier] as VoidField
   }
 
   /** 状态操作模型 **/
 
+  @action
   setValues = (values: any, strategy: IFormMergeStrategy = 'merge') => {
     if (!isPlainObj(values)) return
     if (strategy === 'merge' || strategy === 'deepMerge') {
@@ -323,6 +350,7 @@ export class Form<ValueType extends object = any> {
     }
   }
 
+  @action
   setInitialValues = (initialValues: any, strategy: IFormMergeStrategy = 'merge') => {
     if (!isPlainObj(initialValues)) return
     if (strategy === 'merge' || strategy === 'deepMerge') {
@@ -338,10 +366,12 @@ export class Form<ValueType extends object = any> {
     }
   }
 
+  @action
   setValuesIn = (pattern: FormPathPattern, value: any) => {
     FormPath.setIn(this.values, pattern, value)
   }
 
+  @action
   deleteValuesIn = (pattern: FormPathPattern) => {
     FormPath.deleteIn(this.values, pattern)
   }
@@ -354,10 +384,12 @@ export class Form<ValueType extends object = any> {
     return FormPath.getIn(this.values, pattern)
   }
 
+  @action
   setInitialValuesIn = (pattern: FormPathPattern, initialValue: any) => {
     FormPath.setIn(this.initialValues, pattern, initialValue)
   }
 
+  @action
   deleteInitialValuesIn = (pattern: FormPathPattern) => {
     FormPath.deleteIn(this.initialValues, pattern)
   }
@@ -370,22 +402,27 @@ export class Form<ValueType extends object = any> {
     return FormPath.getIn(this.initialValues, pattern)
   }
 
+  @action
   setLoading = (loading: boolean) => {
     setLoading(this, loading)
   }
 
+  @action
   setSubmitting = (submitting: boolean) => {
     setSubmitting(this, submitting)
   }
 
+  @action
   setValidating = (validating: boolean) => {
     setValidating(this, validating)
   }
 
+  @action
   setDisplay = (display: FormDisplayTypes) => {
     this.display = display
   }
 
+  @action
   setPattern = (pattern: FormPatternTypes) => {
     this.pattern = pattern
   }
@@ -446,7 +483,7 @@ export class Form<ValueType extends object = any> {
   }
 
   queryFeedbacks = (search: ISearchFeedback): IFormFeedback[] => {
-    return this.query(search.address || search.path || '*').reduce((messages, field) => {
+    return this.query(search.address || search.path || '*').reduce<IFormFeedback[]>((messages, field) => {
       if (isVoidField(field)) return messages
       return messages.concat(
         field
@@ -456,7 +493,7 @@ export class Form<ValueType extends object = any> {
             address: field.address.toString(),
             path: field.path.toString(),
           }))
-          .filter(feedback => feedback.messages.length > 0)
+          .filter(feedback => feedback.messages && feedback.messages.length > 0)
       )
     }, [])
   }
@@ -475,19 +512,23 @@ export class Form<ValueType extends object = any> {
 
   /**事件钩子**/
 
+  @batch
   onInit = () => {
     this.initialized = true
     this.notify(LifeCycleTypes.ON_FORM_INIT)
   }
 
+  @batch
   onMount = () => {
     this.mounted = true
     this.notify(LifeCycleTypes.ON_FORM_MOUNT)
-    if (globalThisPolyfill[DEV_TOOLS_HOOK] && !this.props.designable) {
-      globalThisPolyfill[DEV_TOOLS_HOOK].inject(this.id, this)
+    const devTools = (globalThisPolyfill as any)[DEV_TOOLS_HOOK]
+    if (devTools && !this.props.designable) {
+      devTools.inject(this.id, this)
     }
   }
 
+  @batch
   onUnmount = () => {
     this.notify(LifeCycleTypes.ON_FORM_UNMOUNT)
     this.query('*').forEach(field => field.destroy(false))
@@ -495,11 +536,13 @@ export class Form<ValueType extends object = any> {
     this.unmounted = true
     this.indexes = {}
     this.heart.clear()
-    if (globalThisPolyfill[DEV_TOOLS_HOOK] && !this.props.designable) {
-      globalThisPolyfill[DEV_TOOLS_HOOK].unmount(this.id)
+    const devTools = (globalThisPolyfill as any)[DEV_TOOLS_HOOK]
+    if (devTools && !this.props.designable) {
+      devTools.unmount(this.id)
     }
   }
 
+  @action
   setState: IModelSetter<IFormState<ValueType>> = createStateSetter(this)
 
   getState: IModelGetter<IFormState<ValueType>> = createStateGetter(this)
@@ -526,14 +569,17 @@ export class Form<ValueType extends object = any> {
     })
   }
 
+  @action
   validate = (pattern: FormPathPattern = '*') => {
     return batchValidate(this, pattern)
   }
 
+  @action
   submit = <T>(onSubmit?: (values: ValueType) => Promise<T> | void): Promise<T> => {
     return batchSubmit(this, onSubmit)
   }
 
+  @action
   reset = (pattern: FormPathPattern = '*', options?: IFieldResetOptions) => {
     return batchReset(this, pattern, options)
   }

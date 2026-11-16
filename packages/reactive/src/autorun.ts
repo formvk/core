@@ -1,152 +1,57 @@
-import { EffectScope, ReactiveEffect, effect, stop } from '@vue/reactivity'
-import { isFn } from './checkers'
-import { NOOP, createReactionScope, getReactionScope, toArray } from './internals'
-import { batchEnd, batchStart, disposeEffects, hasDepsChange } from './reaction'
+import { effect, pauseTracking, resetTracking, stop } from '@vue/reactivity'
+
+import { scheduleReaction } from './batch'
 import type { Dispose, IReactionOptions } from './types'
 
-const _autorun = (tracker: () => any) => {
-  const scope = createReactionScope()
-  const reaction = () => {
-    if (!isFn(tracker)) return
-    try {
-      batchStart()
-      return tracker()
-    } finally {
-      batchEnd()
-      scope._memos.cursor = 0
-      scope._effects.cursor = 0
-    }
-  }
-  const cleanRefs = () => {
-    scope._memos = {
-      queue: [],
-      cursor: 0
-    }
-    scope._effects = {
-      queue: [],
-      cursor: 0
-    }
-  }
-
-  const runner = effect(() => {
-    if (scope._disposed) return
-    return scope.run(reaction)
+/**
+ * 自动运行：立即执行 tracker，并追踪其中读取的响应式数据，
+ * 任意依赖变化都会整体重跑 tracker。
+ */
+export function autorun(tracker: () => void): Dispose {
+  const runner = effect(tracker, {
+    scheduler: () => scheduleReaction(runner),
   })
-
-  return () => {
-    scope._disposed = true
-    disposeEffects(scope)
-    stop(runner)
-    cleanRefs()
-  }
+  return () => stop(runner)
 }
 
-const memo = <T>(callback: () => T, dependencies?: any[]): T => {
-  if (!isFn(callback)) {
-    throw new Error('autorun.memo first argument must be a function.')
-  }
-  const scope = getReactionScope()
-
-  if (!scope || !scope._memos) {
-    throw new Error('autorun.memo must used in autorun function body.')
-  }
-  const deps = toArray(dependencies || [])
-  const id = scope._memos.cursor++
-  const old = scope._memos.queue[id]
-  if (!old || hasDepsChange(deps, old.deps)) {
-    const value = callback()
-    scope._memos.queue[id] = {
-      value,
-      deps
-    }
-    return value
-  }
-  return old.value
-}
-
-const _effect = (callback: () => Dispose | void, dependencies?: any[]) => {
-  if (!isFn(callback)) {
-    throw new Error('autorun.effect first argument must be a function.')
-  }
-  const scope = getReactionScope()
-  if (!scope || !scope._effects) {
-    throw new Error('autorun.effect must used in autorun function body.')
-  }
-  const effects = scope._effects
-  const deps = toArray(dependencies || [{}])
-  const id = effects.cursor++
-  const old = effects.queue[id]
-  if (!old || hasDepsChange(deps, old.deps)) {
-    Promise.resolve(0).then(() => {
-      if (scope._disposed) return
-      const dispose = callback()
-      if (isFn(dispose)) {
-        effects.queue[id].dispose = dispose
-      }
-    })
-    effects.queue[id] = {
-      deps
-    }
-  }
-}
-export const autorun = Object.assign(_autorun, {
-  memo,
-  effect: _effect
-})
-
-interface IValue {
-  currentValue?: any
-  oldValue?: any
-}
-
-export const reaction = <T>(
+/**
+ * 自定义运行：tracker 只负责求值并收集依赖，
+ * 依赖变化后重新求值，值发生变更才调用 subscriber。
+ */
+export function reaction<T>(
   tracker: () => T,
   subscriber?: (value: T, oldValue: T) => void,
   options?: IReactionOptions<T>
-) => {
-  const value: IValue = {}
-  const scope = new EffectScope()
-
-  const dirtyCheck = () => {
-    if (isFn(options?.equals)) return !options.equals(value.oldValue, value.currentValue)
-    return value.oldValue !== value.currentValue
-  }
-
-  const fireAction = () => {
-    try {
-      if (isFn(subscriber)) {
-        subscriber(value.currentValue, value.oldValue)
+): Dispose {
+  const equals = options?.equals ?? ((oldValue: T, newValue: T) => oldValue === newValue)
+  let oldValue = undefined as T
+  let firstRun = true
+  const runner = effect(
+    () => {
+      const newValue = tracker()
+      if (firstRun) {
+        firstRun = false
+        oldValue = newValue
+        return
       }
-    } finally {
-    }
-  }
-
-  const reaction = () => {
-    return scope.run(() => {
-      const val = tracker()
-      value.currentValue = val
-      return val
-    })
-  }
-
-  const effect = new ReactiveEffect(reaction, NOOP, () => {
-    if (effect.dirty) {
-      effect.run()
-      const result = dirtyCheck()
-      if (result) {
-        fireAction()
+      if (equals(oldValue, newValue)) return
+      const prevValue = oldValue
+      oldValue = newValue
+      if (!subscriber) return
+      // subscriber 中的读取不属于 tracker 依赖
+      pauseTracking()
+      try {
+        subscriber(newValue, prevValue)
+      } finally {
+        resetTracking()
       }
-      value.oldValue = value.currentValue
+    },
+    {
+      scheduler: () => scheduleReaction(runner),
     }
-  })
-
-  effect.run()
-  value.oldValue = value.currentValue
-
+  )
   if (options?.fireImmediately) {
-    fireAction()
+    subscriber?.(oldValue, oldValue)
   }
-  return () => {
-    effect.stop()
-  }
+  return () => stop(runner)
 }
