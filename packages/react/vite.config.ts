@@ -15,8 +15,9 @@ export default defineConfig({
       formats: ['es'],
     },
     sourcemap: true,
+    minify: false,
     target: 'esnext',
-    rollupOptions: {
+    rolldownOptions: {
       external: [
         'react',
         'react-dom',

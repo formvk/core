@@ -6,7 +6,7 @@ import {
   registerValidateRules,
   setValidateLanguage,
   validate,
-} from '../src'
+} from '..'
 
 registerValidateRules({
   custom: value => (value === '123' ? 'custom error' : ''),
@@ -472,8 +472,8 @@ test('language', async () => {
 test('validator template', async () => {
   registerValidateMessageTemplateEngine(message => {
     if (typeof message !== 'string') return message
-    return message.replace(/<<\s*([\w.]+)\s*>>/g, (_, $0) => {
-      return { aa: 123 }[$0]
+    return message.replace(/<<\s*([\w.]+)\s*>>/g, (_, $0: string) => {
+      return String({ aa: 123 }[$0] ?? '')
     })
   })
   hasError(
@@ -487,8 +487,8 @@ test('validator template', async () => {
 test('validator template with format', async () => {
   registerValidateMessageTemplateEngine(message => {
     if (typeof message !== 'string') return message
-    return message.replace(/<<\s*([\w.]+)\s*>>/g, (_, $0) => {
-      return { aa: 123 }[$0]
+    return message.replace(/<<\s*([\w.]+)\s*>>/g, (_, $0: string) => {
+      return String({ aa: 123 }[$0] ?? '')
     })
   })
   hasError(
@@ -502,8 +502,8 @@ test('validator template with format', async () => {
 test('validator template with format and scope', async () => {
   registerValidateMessageTemplateEngine(message => {
     if (typeof message !== 'string') return message
-    return message.replace(/<<\s*([\w.]+)\s*>>/g, (_, $0) => {
-      return { aa: 123 }[$0]
+    return message.replace(/<<\s*([\w.]+)\s*>>/g, (_, $0: string) => {
+      return String({ aa: 123 }[$0] ?? '')
     })
   })
 

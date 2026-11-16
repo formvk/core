@@ -15,8 +15,9 @@ export default defineConfig({
       formats: ['es'],
     },
     sourcemap: true,
+    minify: false,
     target: 'esnext',
-    rollupOptions: {
+    rolldownOptions: {
       external: ['vue', '@formvk/core', '@formvk/schema', '@formvk/shared', '@formvk/reactive'],
     },
   },

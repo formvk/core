@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest'
 
-import { getLocaleByPath, getValidateLocale, getValidateLocaleIOSCode, setValidateLanguage } from '../src'
-import locale from '../src/locale'
+import { getLocaleByPath, getValidateLocale, getValidateLocaleIOSCode, setValidateLanguage } from '..'
+import locale from '../locale'
 
 test('getValidateLocaleIOSCode', () => {
   expect(getValidateLocaleIOSCode('zh-CN')).toEqual('zh-CN')

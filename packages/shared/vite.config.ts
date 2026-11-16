@@ -16,8 +16,9 @@ export default defineConfig({
       formats: ['es'],
     },
     sourcemap: true,
+    minify: false,
     target: 'esnext',
-    rollupOptions: {
+    rolldownOptions: {
       // 运行时依赖必须外部化，内联会产生跨包重复实例
       external: ['@formvk/path'],
     },

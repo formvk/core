@@ -13,6 +13,7 @@ export default defineConfig({
       external: ['@formvk/shared'],
     },
     sourcemap: true,
+    minify: false,
     target: 'esnext',
   },
 })

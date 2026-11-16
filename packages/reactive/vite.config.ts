@@ -29,10 +29,10 @@ export default defineConfig({
       fileName: 'index',
       formats: ['es'],
     },
-    minify: false,
     sourcemap: true,
+    minify: false,
     target: 'esnext',
-    rollupOptions: {
+    rolldownOptions: {
       external: ['@vue/reactivity'],
     },
   },
