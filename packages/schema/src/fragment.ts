@@ -127,7 +127,8 @@ export function createFragment<
     return creator({ ...schema, properties, type: 'object' })
   }
 
-  function FArray(items?: any, schema?: Omit<ArraySchema<A, V>, 'items' | 'type'>) {
+  // properties 的严格上下文类型由对外 ArrayFragment 接口承载，内部转换走宽松 ISchema
+  function FArray(items?: any, schema?: Omit<ArraySchema<A, V>, 'items' | 'type' | 'properties'>) {
     return creator({ ...schema, items, type: 'array' })
   }
 

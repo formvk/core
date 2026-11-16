@@ -49,6 +49,8 @@ Injection also drives each key's value type: a creator placed under a declared k
 
 The `_$types$_` marker carries the form value type (for example `{ name: string; tags: string[] }`). It is type-level metadata only and never appears at runtime.
 
+In inferred mode every aggregated key is required: whether a field can be absent is carried by its value type (a non-`required` field contributes `T | undefined`), not by an optional modifier. This lets an inferred object creator be extracted to a variable and reused under an explicitly typed parent — `f.Object<FormValues>({ address })` accepts it when the value shapes match and rejects mismatches. Object-valued keys are checked on their value slot only, because a container creator's own record is its content type rather than the root record. `f.Void` and inferred `createSchema` follow the same aggregation rule.
+
 > Vue users can skip the hand-written component props maps entirely: `createSchemaField` from `@formvk/vue` takes a flat component map plus optional `voidComponents` / `arrayComponents`, returns `{ SchemaField, fragment }`, and infers the component props, scope and value types with no type arguments. See [Vue bindings](/vue/#schemafield).
 
 ## `createFragment`
@@ -119,12 +121,14 @@ Passing them to `createFragment` generates one shorthand creator per declared co
 
 `f.Field`, `f.Object`, `f.Void` and `f.Array` accept field-level type parameters so reactions and children are checked without casts:
 
-| Creator                          | Type parameters                                      |
-| -------------------------------- | ---------------------------------------------------- |
-| `f.Field<Value>(schema?)`        | Field value type.                                    |
-| `f.Object<Value, Scope, Record>` | Object value type, field-level scope, parent record. |
-| `f.Void<Record, Scope>`          | Record exposed to children, field-level scope.       |
-| `f.Array<Item, Scope, Record>`   | Item type, field-level scope, array's own record.    |
+| Creator                                  | Type parameters                                                                  |
+| ---------------------------------------- | -------------------------------------------------------------------------------- |
+| `f.Field<Value, Scope, Record, Values>`  | Field value type, field-level scope, parent record, child reactions' `$values`.  |
+| `f.Object<Value, Scope, Record, Values>` | Object value type, field-level scope, parent record, child reactions' `$values`. |
+| `f.Void<Record, Scope, Values>`          | Record exposed to children, field-level scope, child reactions' `$values`.       |
+| `f.Array<Item, Scope, Record, Values>`   | Item type, field-level scope, array's own record, child `$values`.               |
+
+All four creators share the same parameter order: value / record → field-level scope → parent record → `$values` → `Component` → `Decorator`. `Component` and `Decorator` always come last — container creators (Object / Array / Void) follow the same rule — and are inferred from the component props maps when omitted.
 
 Types declared on a parent flow into the children created inside `properties` / `items`:
 
@@ -138,6 +142,7 @@ Rules of thumb:
 - `f.Void<Record>` exposes `Record` to children without producing a value of its own.
 - `f.Array<Item>` types `items` as `SchemaCreator<Item>` and the array's own value as `Item[]`. Declare the item creator's value type too (for example `f.Object<Item>`) so its children keep the context.
 - Object and array nodes live inside their parent container, so their own `$record` defaults to `any`. Pass the third type parameter when it matters: `f.Object<Value, Scope, ParentRecord>`, `f.Array<Item, Scope, ParentRecord>`.
+- Pass the `Values` slot to narrow `$values` inside child reactions: `f.Field<Value, Scope, Record, FormValues>`, `f.Object<Value, Scope, Record, FormValues>`, `f.Void<Record, Scope, FormValues>`, `f.Array<Item, Scope, Record, FormValues>`. It defaults to `any`.
 - Declaring a value generic on a field, for example `f.Field<number>`, disables inference for its remaining type parameters (a TypeScript limitation). Leave `Value` off and let the parent record drive it when possible.
 
 ## `ISchema` field reference

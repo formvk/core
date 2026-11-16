@@ -34,6 +34,54 @@ describe('fragment types', () => {
     expectTypeOf(f.Field<number>({ title: '年龄', required: true })).toEqualTypeOf<SchemaCreator<number, {}>>()
   })
 
+  test('field default drives value type', () => {
+    // 无显式泛型时，Value 从 default 推断
+    expectTypeOf(f.Field({ default: 0 })).toEqualTypeOf<SchemaCreator<number | undefined, {}>>()
+    expectTypeOf(f.Field({ default: false })).toEqualTypeOf<SchemaCreator<boolean | undefined, {}>>()
+    expectTypeOf(f.Field({ default: [''] })).toEqualTypeOf<SchemaCreator<string[] | undefined, {}>>()
+    expectTypeOf(f.Field({ default: { name: '' } })).toEqualTypeOf<SchemaCreator<{ name: string } | undefined, {}>>()
+    // required 收掉 undefined
+    expectTypeOf(f.Field({ default: 0, required: true })).toEqualTypeOf<SchemaCreator<number, {}>>()
+    // 表达式 default 放行，且不把 Value 污染成模板字面量类型
+    expectTypeOf(f.Field({ default: '{{$values.x}}' })).toEqualTypeOf<SchemaCreator<string | undefined, {}>>()
+    // default 必须与显式 Value 一致
+    f.Field<string>({
+      // @ts-expect-error default 必须与 Value 一致
+      default: 0,
+    })
+    f.Field<boolean>({
+      // @ts-expect-error default 必须与 Value 一致
+      default: '',
+    })
+  })
+
+  test('object / array default aligns with declared value', () => {
+    interface ObjValues {
+      name: string
+    }
+    // 显式泛型下 Value 不再参与推断，default 被严格校验
+    f.Object<ObjValues>(
+      { name: f.Field({ required: true }) },
+      {
+        default: { name: 'Alice' },
+      }
+    )
+    f.Object<ObjValues>(
+      { name: f.Field({ required: true }) },
+      {
+        // @ts-expect-error default 必须与对象值类型一致
+        default: { name: 1 },
+      }
+    )
+    f.Array<string>(f.Field({ required: true }), {
+      default: [''],
+    })
+    f.Array<string>(f.Field({ required: true }), {
+      // @ts-expect-error default 必须与数组值类型一致
+      default: [0],
+    })
+  })
+
   test('field component props', () => {
     f.Field({ component: 'Input', componentProps: { maxLength: 10 } })
     f.Field({ component: 'Select', componentProps: { options: [{ label: 'a', value: 1 }] } })
@@ -289,14 +337,14 @@ describe('fragment types', () => {
       { name: f.Field({ required: true }) },
       {
         reactions: field => {
-          expectTypeOf(field.value).toEqualTypeOf<{ name?: string } | undefined>()
+          expectTypeOf(field.value).toEqualTypeOf<{ name: string } | undefined>()
         },
       }
     )
     f.Array(f.Object({ name: f.Field({ required: true }) }), {
       reactions: field => {
-        expectTypeOf(field.value).toEqualTypeOf<{ name?: string }[] | undefined>()
-        expectTypeOf(field.record).toEqualTypeOf<{ name?: string }>()
+        expectTypeOf(field.value).toEqualTypeOf<{ name: string }[] | undefined>()
+        expectTypeOf(field.record).toEqualTypeOf<{ name: string }>()
       },
     })
     f.ArrayItems(f.Field<number>({ required: true }), {
@@ -378,8 +426,8 @@ describe('fragment types', () => {
 
     scoped.Array(scoped.Object({ name: scoped.Field({ required: true }) }), {
       reactions: (field, scope) => {
-        expectTypeOf(field.value).toEqualTypeOf<{ name?: string }[] | undefined>()
-        expectTypeOf(field.record).toEqualTypeOf<{ name?: string }>()
+        expectTypeOf(field.value).toEqualTypeOf<{ name: string }[] | undefined>()
+        expectTypeOf(field.record).toEqualTypeOf<{ name: string }>()
         expectTypeOf(scope.$moment).toEqualTypeOf<(value: string) => string>()
       },
     })
@@ -463,9 +511,9 @@ describe('fragment types', () => {
       }
     )
 
-    // 父级声明后子级仍可显式覆盖 record 与 values
+    // 父级声明后子级仍可显式覆盖 record 与 values（Component / Decorator 固定在末尾）
     scoped.Object<{ name: string }, MyScope, { name: string }>({
-      name: scoped.Field<string, 'Input', 'FormItem', MyScope, { name: string }, Values>({
+      name: scoped.Field<string, MyScope, { name: string }, Values, 'Input', 'FormItem'>({
         required: true,
         reactions: (field, scope) => {
           expectTypeOf(field.value).toEqualTypeOf<string | undefined>()
@@ -503,10 +551,58 @@ describe('fragment types', () => {
       name: f.Field({ required: true }),
       age: f.Field<number>(),
     })
+    // 键必填，可缺省语义内嵌在值类型里（age 非 required，值含 undefined）
     expectTypeOf<(typeof result._$types$_)[0]>().toEqualTypeOf<{
-      name?: string
-      age?: number | undefined
+      name: string
+      age: number | undefined
     }>()
+  })
+
+  test('inferred object creator composes into a declared record', () => {
+    // 抽取出的 creator 凭必填键 + undefined 内嵌值的聚合形状回填显式 record
+    const address = f.Object({
+      province: f.Field({ required: true }),
+      city: f.Field(),
+    })
+    expectTypeOf<(typeof address._$types$_)[0]>().toEqualTypeOf<{
+      province: string
+      city: string | undefined
+    }>()
+
+    interface Profile {
+      nickname?: string
+      age?: number
+    }
+    interface FormValues {
+      address: {
+        province: string
+        city?: string
+      }
+      profile: Profile
+    }
+
+    // 完全匹配的必填键形状可直接回填
+    f.Object<FormValues>({
+      address,
+      // 非 required 字段聚合为 `T | undefined`，可赋给可选键目标
+      profile: f.Object({
+        nickname: f.Field(),
+        age: f.Field<number>(),
+      }),
+    })
+
+    f.Object<FormValues>({
+      // @ts-expect-error 值类型与声明 record 不兼容
+      address: f.Object({ province: f.Field<number>({ required: true }) }),
+    })
+
+    // void 节点不产生值，挂在未声明键上时显式声明父级 record 即可回填（与 formily-pro 用法一致）
+    const section = f.Void<FormValues>({
+      address,
+    })
+    f.Object<FormValues>({
+      section,
+    })
   })
 
   test('void creator', () => {
@@ -514,7 +610,7 @@ describe('fragment types', () => {
       name: f.Field({ required: true }),
     })
     expectTypeOf<(typeof result._$types$_)[0]>().toEqualTypeOf<{
-      name?: string
+      name: string
     }>()
     f.FormLayout({ componentProps: { colon: true } })
     // @ts-expect-error componentProps 由分类 props map 推导
@@ -536,14 +632,98 @@ describe('fragment types', () => {
     f.FormItem({ componentProps: { label: '姓名' } })
   })
 
+  test('strict schema properties inherit the declared record context', () => {
+    interface FormValues {
+      name: string
+      age?: number
+    }
+
+    // 组件型 void creator：显式 IRecord 后，properties 子级拿到 record 上下文
+    f.FormItem<FormValues>({
+      properties: {
+        name: f.Field({
+          required: true,
+          reactions: field => {
+            expectTypeOf(field.record).toEqualTypeOf<FormValues>()
+            expectTypeOf(field.value).toEqualTypeOf<string | undefined>()
+          },
+        }),
+        age: f.Field<number>(),
+      },
+    })
+    f.FormItem<FormValues>({
+      properties: {
+        // @ts-expect-error 未在 FormValues 中声明的键
+        missing: f.Field(),
+      },
+    })
+
+    // 基础 Void / Object 的第一个参数已经承担 properties，第二个参数不再接受它
+    f.Void<FormValues>(
+      {
+        name: f.Field({ required: true }),
+        age: f.Field<number>(),
+      },
+      {
+        // @ts-expect-error properties 只能通过第一个参数传入
+        properties: {
+          name: f.Field({ required: true }),
+        },
+      }
+    )
+    f.Object<FormValues>(
+      {
+        name: f.Field({ required: true }),
+      },
+      {
+        // @ts-expect-error properties 只能通过第一个参数传入
+        properties: {
+          name: f.Field({ required: true }),
+        },
+      }
+    )
+  })
+
+  test('container creators accept an explicit values context', () => {
+    interface FormValues {
+      name: string
+      age?: number
+    }
+
+    const object = f.Object<FormValues, {}, {}, FormValues>({
+      name: f.Field({
+        required: true,
+        reactions: (field, scope) => {
+          expectTypeOf(field.record).toEqualTypeOf<FormValues>()
+          expectTypeOf(scope.$values).toEqualTypeOf<FormValues>()
+        },
+      }),
+    })
+    expectTypeOf<(typeof object._$types$_)[3]>().toEqualTypeOf<FormValues>()
+
+    const voidNode = f.Void<FormValues, {}, FormValues>({
+      name: f.Field({
+        required: true,
+        reactions: (_field, scope) => {
+          expectTypeOf(scope.$values).toEqualTypeOf<FormValues>()
+        },
+      }),
+    })
+    expectTypeOf<(typeof voidNode._$types$_)[2]>().toEqualTypeOf<FormValues>()
+
+    const array = f.Array<FormValues, {}, any, FormValues>(f.Object<FormValues>({}))
+    expectTypeOf<(typeof array._$types$_)[0]>().toEqualTypeOf<FormValues[]>()
+    expectTypeOf<(typeof array._$types$_)[3]>().toEqualTypeOf<FormValues>()
+  })
+
   test('createSchema values', () => {
     const schema = createSchema({
       name: f.Field({ required: true }),
       age: f.Field<number>(),
     })
     expectTypeOf<(typeof schema._$types$_)[0]>().toEqualTypeOf<{
-      name?: string
-      age?: number | undefined
+      name: string
+      age: number | undefined
     }>()
   })
 
@@ -585,7 +765,7 @@ describe('fragment types', () => {
       layout: f.FormLayout(),
       plain: { type: 'number' },
     })
-    expectTypeOf<(typeof schema._$types$_)[0]>().toEqualTypeOf<{ name?: string }>()
+    expectTypeOf<(typeof schema._$types$_)[0]>().toEqualTypeOf<{ name: string }>()
   })
 
   test('ISchema can be extended', () => {

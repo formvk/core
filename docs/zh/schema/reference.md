@@ -49,6 +49,8 @@ const schema = createSchema<InviteValues>({
 
 `_$types$_` 标记承载表单值类型（例如 `{ name: string; tags: string[] }`），仅用于类型层面，运行时不存在。
 
+推断模式下聚合出的每个键都是必填的：字段是否可缺省由值类型承载（非 `required` 字段聚合为 `T | undefined`），而不是可选修饰符。这样推断出的对象构造器可以抽到变量里、回填到显式声明类型的父级中 —— 值形状匹配时 `f.Object<FormValues>({ address })` 直接放行，不匹配则报错。对象值键只校验值槽，因为容器构造器自身的 record 是它的内容类型，而非根 record。`f.Void` 与推断式 `createSchema` 遵循同一聚合规则。
+
 > Vue 用户可以完全跳过手写组件 props map：`@formvk/vue` 的 `createSchemaField` 接收扁平组件映射与可选的 `voidComponents` / `arrayComponents`，返回 `{ SchemaField, fragment }`，无需任何类型参数即可自动推断组件 props、scope 与值类型。参见 [Vue 绑定](/zh/vue/#createschemafield)。
 
 ## `createFragment`
@@ -119,12 +121,14 @@ TypeScript 不支持部分类型参数推断：显式传入组件 map 后，`Def
 
 `f.Field`、`f.Object`、`f.Void`、`f.Array` 支持字段级类型参数，无需断言即可校验 reactions 与子级：
 
-| 构造器                           | 类型参数                                    |
-| -------------------------------- | ------------------------------------------- |
-| `f.Field<Value>(schema?)`        | 字段值类型。                                |
-| `f.Object<Value, Scope, Record>` | 对象值类型、字段级 Scope、父级 record。     |
-| `f.Void<Record, Scope>`          | 向子级暴露的 record、字段级 Scope。         |
-| `f.Array<Item, Scope, Record>`   | 数组项类型、字段级 Scope、数组自身 record。 |
+| 构造器                                   | 类型参数                                                             |
+| ---------------------------------------- | -------------------------------------------------------------------- |
+| `f.Field<Value, Scope, Record, Values>`  | 字段值类型、字段级 Scope、父级 record、子级 reactions 的 `$values`。 |
+| `f.Object<Value, Scope, Record, Values>` | 对象值类型、字段级 Scope、父级 record、子级 reactions 的 `$values`。 |
+| `f.Void<Record, Scope, Values>`          | 向子级暴露的 record、字段级 Scope、子级 reactions 的 `$values`。     |
+| `f.Array<Item, Scope, Record, Values>`   | 数组项类型、字段级 Scope、数组自身 record、子级 `$values`。          |
+
+四个构造器的泛型顺序一致：值 / record → 字段级 Scope → 父级 record → `$values` → `Component` → `Decorator`。`Component` / `Decorator` 固定在末尾，容器构造器（Object / Array / Void）同样如此；不传时由组件 props map 推断。
 
 父级声明的类型会自动传递给 `properties` / `items` 中创建的子级：
 
@@ -138,6 +142,7 @@ TypeScript 不支持部分类型参数推断：显式传入组件 map 后，`Def
 - `f.Void<Record>` 向子级暴露 `Record`，自身不产生值。
 - `f.Array<Item>` 把 `items` 约束为 `SchemaCreator<Item>`，数组自身的值类型为 `Item[]`。数组项 creator 也需声明自身值类型（例如 `f.Object<Item>`），其子级才能继续获得上下文。
 - object / array 节点位于各自的父容器中，自身 `$record` 默认为 `any`；需要时传入第三个类型参数：`f.Object<Value, Scope, ParentRecord>`、`f.Array<Item, Scope, ParentRecord>`。
+- 需要收窄子级 reactions 的 `$values` 时传入 `Values` 槽位：`f.Field<Value, Scope, Record, FormValues>`、`f.Object<Value, Scope, Record, FormValues>`、`f.Void<Record, Scope, FormValues>`、`f.Array<Item, Scope, Record, FormValues>`；不传时为 `any`。
 - 为字段显式声明值泛型（例如 `f.Field<number>`）会关闭其余类型参数的推断（TypeScript 限制）。可能时省略 `Value`，交给父级 record 驱动。
 
 ## `ISchema` 字段参考
