@@ -37,7 +37,7 @@ Formvk 是一个面向 Vue 3 与 React 的 Schema 驱动表单引擎。表单被
 
 ## 下一步
 
-- [快速开始](/zh/guide/getting-started) —— 创建第一个表单。
-- [响应式](/zh/guide/reactivity) —— 理解响应式内核。
-- [Schema](/zh/guide/schema) —— 学习 schema DSL 与表达式。
-- [示例](/zh/examples/basic-form) —— 可运行的示例与源码。
+- [快速开始](/zh/guide/getting-started) —— 用 Vue 构建第一个表单。
+- [核心](/zh/core/) —— 表单模型、路径、校验与响应式层。
+- [Schema](/zh/schema/) —— schema 模型与类型安全 DSL。
+- [Vue](/zh/vue/) / [React](/zh/react/) —— 组件、hooks 与完整示例。

@@ -11,7 +11,7 @@ hero:
       link: /guide/getting-started
     - theme: alt
       text: Live Examples
-      link: /examples/basic-form
+      link: /vue/examples/basic-form
     - theme: alt
       text: 简体中文
       link: /zh/

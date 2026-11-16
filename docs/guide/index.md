@@ -37,7 +37,7 @@ Formvk is a schema-first form engine for Vue 3 and React. A form is described as
 
 ## Next steps
 
-- [Getting Started](/guide/getting-started) — build your first form.
-- [Reactivity](/guide/reactivity) — understand the reactive core.
-- [Schema](/guide/schema) — learn the schema DSL and expressions.
-- [Examples](/examples/basic-form) — runnable demos with source.
+- [Getting Started](/guide/getting-started) — build your first form with Vue.
+- [Core](/core/) — form models, paths, validation and the reactive layer.
+- [Schema](/schema/) — the schema model and the typed DSL.
+- [Vue](/vue/) / [React](/react/) — components, hooks and complete examples.

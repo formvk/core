@@ -1,0 +1,49 @@
+import type { ComponentProps } from '@formvk/react'
+import { createFragment, createSchemaField } from '@formvk/react'
+
+function MyInput(props: { placeholder?: string }) {
+  return <input {...props} />
+}
+function MySelect(_props: { placeholder?: string }) {
+  return <select />
+}
+function MyArrayItems(props: { maxItems?: number }) {
+  return <div>{props.maxItems}</div>
+}
+
+// #region props-map
+interface FieldMap {
+  Input: ComponentProps<typeof MyInput>
+  Select: ComponentProps<typeof MySelect>
+}
+
+const f = createFragment<FieldMap>()
+
+f.Input({ componentProps: { placeholder: 'Name' } })
+// typo or unknown prop here is a type error
+// #endregion
+
+// #region void-array
+interface VoidMap {
+  Card: { title?: string }
+}
+interface ArrayMap {
+  ArrayItems: ComponentProps<typeof MyArrayItems>
+}
+
+const f2 = createFragment<FieldMap, VoidMap, ArrayMap>({
+  arrayComponentNames: ['ArrayItems'],
+})
+// #endregion
+
+// #region inference
+const { fragment: g } = createSchemaField({
+  components: { Input: MyInput },
+  arrayComponents: { ArrayItems: MyArrayItems },
+})
+
+g.Input({ componentProps: { placeholder: 'Name' } }) // checked against MyInput's props
+// #endregion
+
+void f
+void f2

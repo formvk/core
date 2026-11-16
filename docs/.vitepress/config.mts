@@ -25,8 +25,10 @@ export default defineConfig({
       themeConfig: {
         nav: [
           { text: '指南', link: '/zh/guide/', activeMatch: '^/zh/guide/' },
-          { text: '示例', link: '/zh/examples/basic-form', activeMatch: '^/zh/examples/' },
-          { text: 'API', link: '/zh/api/vue', activeMatch: '^/zh/api/' },
+          { text: '核心', link: '/zh/core/', activeMatch: '^/zh/core/' },
+          { text: 'Schema', link: '/zh/schema/', activeMatch: '^/zh/schema/' },
+          { text: 'Vue', link: '/zh/vue/', activeMatch: '^/zh/vue/' },
+          { text: 'React', link: '/zh/react/', activeMatch: '^/zh/react/' },
         ],
       },
     },
@@ -34,8 +36,10 @@ export default defineConfig({
   themeConfig: {
     nav: [
       { text: 'Guide', link: '/guide/', activeMatch: '^/guide/' },
-      { text: 'Examples', link: '/examples/basic-form', activeMatch: '^/examples/' },
-      { text: 'API', link: '/api/vue', activeMatch: '^/api/' },
+      { text: 'Core', link: '/core/', activeMatch: '^/core/' },
+      { text: 'Schema', link: '/schema/', activeMatch: '^/schema/' },
+      { text: 'Vue', link: '/vue/', activeMatch: '^/vue/' },
+      { text: 'React', link: '/react/', activeMatch: '^/react/' },
     ],
     sidebar: {
       '/guide/': [
@@ -44,32 +48,70 @@ export default defineConfig({
           items: [
             { text: 'Introduction', link: '/guide/' },
             { text: 'Getting Started', link: '/guide/getting-started' },
-            { text: 'Reactivity', link: '/guide/reactivity' },
-            { text: 'Schema', link: '/guide/schema' },
-            { text: 'Custom Components', link: '/guide/custom-components' },
-            { text: 'Validation', link: '/guide/validation' },
           ],
         },
       ],
-      '/examples/': [
+      '/core/': [
+        {
+          text: 'Core',
+          items: [
+            { text: 'Form Model & Effects', link: '/core/' },
+            { text: 'Path System', link: '/core/paths' },
+            { text: 'Reactivity', link: '/core/reactivity' },
+          ],
+        },
+        {
+          text: 'Validation',
+          items: [
+            { text: 'Configuring Validation', link: '/core/validation' },
+            { text: 'Rule Reference', link: '/core/validation-reference' },
+          ],
+        },
+      ],
+      '/schema/': [
+        {
+          text: 'Schema',
+          items: [
+            { text: 'Overview', link: '/schema/' },
+            { text: 'DSL Reference', link: '/schema/reference' },
+          ],
+        },
+      ],
+      '/vue/': [
+        {
+          text: 'Vue',
+          items: [
+            { text: 'Bindings Overview', link: '/vue/' },
+            { text: 'Hooks & Component Helpers', link: '/vue/hooks' },
+            { text: 'Custom Components', link: '/vue/custom-components' },
+          ],
+        },
         {
           text: 'Examples',
           items: [
-            { text: 'Basic Form', link: '/examples/basic-form' },
-            { text: 'Dynamic Reactions', link: '/examples/reactions' },
-            { text: 'Array List', link: '/examples/array-list' },
+            { text: 'Basic Form', link: '/vue/examples/basic-form' },
+            { text: 'Dynamic Reactions', link: '/vue/examples/reactions' },
+            { text: 'Array List', link: '/vue/examples/array-list' },
+            { text: 'Nested Objects', link: '/vue/examples/schema-object' },
           ],
         },
       ],
-      '/api/': [
+      '/react/': [
         {
-          text: 'API',
+          text: 'React',
           items: [
-            { text: 'Vue Bindings', link: '/api/vue' },
-            { text: 'React Bindings', link: '/api/react' },
-            { text: 'Schema DSL', link: '/api/schema' },
-            { text: 'Form Model & Effects', link: '/api/core' },
-            { text: 'Validation', link: '/api/validator' },
+            { text: 'Bindings Overview', link: '/react/' },
+            { text: 'Hooks & Component Helpers', link: '/react/hooks' },
+            { text: 'Custom Components', link: '/react/custom-components' },
+          ],
+        },
+        {
+          text: 'Examples',
+          items: [
+            { text: 'Basic Form', link: '/react/examples/basic-form' },
+            { text: 'Dynamic Reactions', link: '/react/examples/reactions' },
+            { text: 'Array List', link: '/react/examples/array-list' },
+            { text: 'Nested Objects', link: '/react/examples/schema-object' },
           ],
         },
       ],
@@ -79,32 +121,70 @@ export default defineConfig({
           items: [
             { text: '介绍', link: '/zh/guide/' },
             { text: '快速开始', link: '/zh/guide/getting-started' },
-            { text: '响应式', link: '/zh/guide/reactivity' },
-            { text: 'Schema', link: '/zh/guide/schema' },
-            { text: '自定义组件', link: '/zh/guide/custom-components' },
-            { text: '校验', link: '/zh/guide/validation' },
           ],
         },
       ],
-      '/zh/examples/': [
+      '/zh/core/': [
+        {
+          text: '核心',
+          items: [
+            { text: '表单模型与 Effects', link: '/zh/core/' },
+            { text: '路径系统', link: '/zh/core/paths' },
+            { text: '响应式', link: '/zh/core/reactivity' },
+          ],
+        },
+        {
+          text: '校验',
+          items: [
+            { text: '配置校验', link: '/zh/core/validation' },
+            { text: '规则参考', link: '/zh/core/validation-reference' },
+          ],
+        },
+      ],
+      '/zh/schema/': [
+        {
+          text: 'Schema',
+          items: [
+            { text: '概览', link: '/zh/schema/' },
+            { text: 'DSL 参考', link: '/zh/schema/reference' },
+          ],
+        },
+      ],
+      '/zh/vue/': [
+        {
+          text: 'Vue',
+          items: [
+            { text: '绑定概览', link: '/zh/vue/' },
+            { text: 'Hooks 与组件辅助', link: '/zh/vue/hooks' },
+            { text: '自定义组件', link: '/zh/vue/custom-components' },
+          ],
+        },
         {
           text: '示例',
           items: [
-            { text: '基础表单', link: '/zh/examples/basic-form' },
-            { text: '动态联动', link: '/zh/examples/reactions' },
-            { text: '数组列表', link: '/zh/examples/array-list' },
+            { text: '基础表单', link: '/zh/vue/examples/basic-form' },
+            { text: '动态联动', link: '/zh/vue/examples/reactions' },
+            { text: '数组列表', link: '/zh/vue/examples/array-list' },
+            { text: '嵌套对象', link: '/zh/vue/examples/schema-object' },
           ],
         },
       ],
-      '/zh/api/': [
+      '/zh/react/': [
         {
-          text: 'API',
+          text: 'React',
           items: [
-            { text: 'Vue 绑定', link: '/zh/api/vue' },
-            { text: 'React 绑定', link: '/zh/api/react' },
-            { text: 'Schema DSL', link: '/zh/api/schema' },
-            { text: '表单模型与 Effects', link: '/zh/api/core' },
-            { text: '校验', link: '/zh/api/validator' },
+            { text: '绑定概览', link: '/zh/react/' },
+            { text: 'Hooks 与组件辅助', link: '/zh/react/hooks' },
+            { text: '自定义组件', link: '/zh/react/custom-components' },
+          ],
+        },
+        {
+          text: '示例',
+          items: [
+            { text: '基础表单', link: '/zh/react/examples/basic-form' },
+            { text: '动态联动', link: '/zh/react/examples/reactions' },
+            { text: '数组列表', link: '/zh/react/examples/array-list' },
+            { text: '嵌套对象', link: '/zh/react/examples/schema-object' },
           ],
         },
       ],

@@ -7,13 +7,11 @@
 
 ## 安装
 
-Vue 3：
-
 ```bash
 pnpm add @formvk/vue vue
 ```
 
-React（`observer` 辅助函数位于独立的 `@formvk/reactive-react` 包）：
+使用 React 的读者改为安装 React 绑定与 `observer` 辅助函数：
 
 ```bash
 pnpm add @formvk/react @formvk/reactive-react react react-dom
@@ -23,35 +21,23 @@ pnpm add @formvk/react @formvk/reactive-react react react-dom
 
 下面的例子创建一个表单模型，用 schema DSL 描述一个字段，并用示例中的 `Input` 组件渲染。
 
-### Vue 3
-
 <GettingStartedDemo />
 
-这个演示本身就是一个 Vue 单文件组件：
+这个演示本身就是一个 Vue 组件：
 
 <<< @/demos/zh/getting-started.vue
 
-### React（TSX）
-
-<ReactMount :component="ReactGettingStartedDemo" />
-
-同一个表单的 React 版本。渲染 `form.values` 的组件用 `observer` 包裹，而 schema DSL 与表单模型完全一致：
-
-<<< @/demos/react/zh/getting-started.tsx
-
 <script setup lang="ts">
 import GettingStartedDemo from '../../demos/zh/getting-started.vue'
-import ReactGettingStartedDemo from '../../demos/react/zh/getting-started'
 </script>
 
 ## 刚才发生了什么
 
 - `createForm({ values })` 创建 `Form` 模型，`values` 是表单的初始值。
-- React 演示中的 form 通过 `useState(() => createForm(...))` 在组件内惰性创建，每个组件实例持有独立模型，卸载时由 `FormProvider` 清理。schema 与 `createSchemaField` 工厂是静态的、可安全共享，因此保留在模块级——直接在渲染函数体里写 `createForm()` 会导致每次渲染都重建模型，而模块级单例会让多个实例共享同一份状态。
-- `FormProvider` 把模型提供给所有后代组件——`@formvk/vue` 走 Vue 的 `provide` / `inject`，`@formvk/react` 走 React context。
+- `FormProvider` 通过 Vue 的 `provide` / `inject` 把模型提供给所有后代组件。
 - `createFragment()` 返回类型安全的 schema 构造器，`createSchema({...})` 用来组装根对象 schema。`f.Object({...})` 描述嵌套对象节点，`f.Field(...)` 描述单个字段；调用构造器 `()` 可得到普通的 `ISchema` 对象。
-- `SchemaField` 遍历 schema、创建字段，并用你的组件渲染 `component: 'Input'`。React 中的 JSX 写法是 `<SchemaField schema={schema} components={{ Input }} />`。
-- `form.values` 是可观察对象，所以页面底部的值会随着输入实时更新，无需额外监听。Vue 模板自动追踪；React 组件则必须用 `@formvk/reactive-react` 的 `observer` 包裹才会重渲染。
+- `SchemaField` 遍历 schema、创建字段，并用你的组件渲染 `component: 'Input'`。
+- `form.values` 是可观察对象，所以页面底部的值会随着输入实时更新，无需额外监听：Vue 模板会自动追踪响应式读取。
 
 ## 添加校验
 
@@ -68,7 +54,7 @@ username: f.Input({
 })
 ```
 
-完整示例见 [基础表单](/zh/examples/basic-form)。
+包含校验、提交与重置的完整表单见[基础表单](/zh/vue/examples/basic-form)；使用 React 绑定的同一表单见 [React](/zh/react/)。
 
 ## 在本仓库中开发文档
 
@@ -88,5 +74,6 @@ pnpm docs:dev
 
 ## 下一步
 
-- [响应式](/zh/guide/reactivity) —— 表单引擎背后的可观察层。
-- [Schema](/zh/guide/schema) —— schema DSL、表达式与联动。
+- [核心](/zh/core/) —— schema 背后的表单与字段模型。
+- [Schema](/zh/schema/) —— schema 节点如何映射到核心概念。
+- [Vue](/zh/vue/) —— 组件、hooks 与自定义组件。
