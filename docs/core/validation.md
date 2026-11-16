@@ -111,7 +111,21 @@ Built-in rule and format messages ship in English and Chinese. Switch language o
 
 <<< @/snippets/validator/registry.ts
 
-After registering `slug`, any field can use `{ format: 'slug' }`. Register reusable rule functions with `registerValidateRules`, and customize `{{key}}` message rendering with `registerValidateMessageTemplateEngine`.
+After registering `slug`, any field can use `{ format: 'slug' }`. Register reusable rule functions with `registerValidateRules`, and customize <code v-pre>{{key}}</code> message rendering with `registerValidateMessageTemplateEngine`.
+
+### Message interpolation
+
+Built-in <code v-pre>{{path}}</code> placeholders resolve against the rule object merged with the validator context — `{ ...rule, field, form, value }`. Rule values (<code v-pre>{{minLength}}</code>), the current value (<code v-pre>{{value}}</code>) and anything reachable from the field or form (<code v-pre>{{field.title}}</code>, <code v-pre>{{form.values.plan}}</code>) can all appear in a message:
+
+<<< @/snippets/validator/message-template.ts#scope
+
+A bare <code v-pre>{{title}}</code> is not part of that scope and renders as `undefined`. To share one message between titled and untitled fields — `Email is required` versus `This field is required` — install a template engine that gives `title` a localized fallback:
+
+<<< @/snippets/validator/message-template.ts#title
+
+`registerValidateMessageTemplateEngine(fn)` receives `(message, context)` and runs before the built-in <code v-pre>{{path}}</code> pass, so a custom engine can support any syntax — the example accepts both <code v-pre>{{title}}</code> and `${title}`, and resolves `title` from `field.title`, then from a localized `field` label. It must return a string. Write these messages with plain quotes: inside a template literal JavaScript evaluates `${title}` before the validator sees it.
+
+The locale override in the snippet also replaces the built-in `required` message, so every required rule follows the pattern without a per-field `message`.
 
 ## Next steps
 

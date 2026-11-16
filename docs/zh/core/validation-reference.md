@@ -129,18 +129,18 @@ interface IValidateResults {
 
 注册中心是全局可变的单例，建议在应用启动时统一注册一次。
 
-| 函数                                                                      | 用途                                                         |
-| ------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| `registerValidateRules(rules)`                                            | 注册具名规则，值为 `ValidatorFunction`。                     |
-| `registerValidateFormats(formats)`                                        | 注册具名正则格式（值为 `string` 或 `RegExp`）。              |
-| `registerValidateLocale(messages)`                                        | 深度合并本地化消息映射，例如 `{ zh: { required: '...' } }`。 |
-| `setValidateLanguage(lang)` / `getValidateLanguage()`                     | 切换 / 读取当前语言（默认取浏览器语言）。                    |
-| `registerValidateMessageTemplateEngine(fn)`                               | 替换消息使用的 `{{key}}` 模板渲染器。                        |
-| `getValidateRules()` / `getValidateFormats()` / `getValidateLocale(path)` | 读取注册中心条目。                                           |
+| 函数                                                                      | 用途                                                                                     |
+| ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `registerValidateRules(rules)`                                            | 注册具名规则，值为 `ValidatorFunction`。                                                 |
+| `registerValidateFormats(formats)`                                        | 注册具名正则格式（值为 `string` 或 `RegExp`）。                                          |
+| `registerValidateLocale(messages)`                                        | 深度合并本地化消息映射，例如 `{ zh: { required: '...' } }`。                             |
+| `setValidateLanguage(lang)` / `getValidateLanguage()`                     | 切换 / 读取当前语言（默认取浏览器语言）。                                                |
+| `registerValidateMessageTemplateEngine(fn)`                               | 替换消息渲染器。`fn(message, context)` 在内置 <code v-pre>{{path}}</code> 渲染之前执行。 |
+| `getValidateRules()` / `getValidateFormats()` / `getValidateLocale(path)` | 读取注册中心条目。                                                                       |
 
 ### 消息与模板
 
-包内自带中英文消息，按规则名建索引。消息字符串支持 `{{key}}` 占位符，由规则对象填充，例如 `'长度或条目数不能小于{{minLength}}'`。可以通过规则上的 `message` 逐条覆盖，也可以注册 locale 映射做全局替换。
+包内自带中英文消息，按规则名建索引。消息字符串支持 <code v-pre>{{path}}</code> 占位符，按「规则对象 + 校验上下文」合并后的作用域解析 —— `{ ...rule, field, form, value }` —— 因此 <code v-pre>{{minLength}}</code>、<code v-pre>{{value}}</code>、<code v-pre>{{field.title}}</code>、<code v-pre>{{form.values.plan}}</code> 都可以渲染。可以通过规则上的 `message` 逐条覆盖，也可以注册 locale 映射做全局替换。需要支持 `${title}` 这类其他语法，或想在字段没有标题时回退到本地化通用名，可安装 `registerValidateMessageTemplateEngine(fn)`；引擎接收 `(message, context)`，在内置渲染之前执行。参见[如何配置校验](/zh/core/validation#本地化与扩展引擎)。
 
 ## 与 schema、表单的集成
 

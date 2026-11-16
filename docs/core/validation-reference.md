@@ -129,18 +129,18 @@ Options: `validateFirst` (stop at the first failure), `triggerType` (only run ru
 
 The registry is global and mutable; register once at application startup.
 
-| Function                                                                  | Purpose                                                                    |
-| ------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| `registerValidateRules(rules)`                                            | Add named rules; each value is a `ValidatorFunction`.                      |
-| `registerValidateFormats(formats)`                                        | Add named regex formats (`string` or `RegExp` values).                     |
-| `registerValidateLocale(messages)`                                        | Deep-merge locale message maps, for example `{ zh: { required: '...' } }`. |
-| `setValidateLanguage(lang)` / `getValidateLanguage()`                     | Switch / read the active language (defaults to the browser language).      |
-| `registerValidateMessageTemplateEngine(fn)`                               | Replace the `{{key}}` template renderer used for messages.                 |
-| `getValidateRules()` / `getValidateFormats()` / `getValidateLocale(path)` | Read registry entries.                                                     |
+| Function                                                                  | Purpose                                                                                                         |
+| ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `registerValidateRules(rules)`                                            | Add named rules; each value is a `ValidatorFunction`.                                                           |
+| `registerValidateFormats(formats)`                                        | Add named regex formats (`string` or `RegExp` values).                                                          |
+| `registerValidateLocale(messages)`                                        | Deep-merge locale message maps, for example `{ zh: { required: '...' } }`.                                      |
+| `setValidateLanguage(lang)` / `getValidateLanguage()`                     | Switch / read the active language (defaults to the browser language).                                           |
+| `registerValidateMessageTemplateEngine(fn)`                               | Replace the message renderer. `fn(message, context)` runs before the built-in <code v-pre>{{path}}</code> pass. |
+| `getValidateRules()` / `getValidateFormats()` / `getValidateLocale(path)` | Read registry entries.                                                                                          |
 
 ### Messages and templates
 
-Built-in English and Chinese messages ship with the package, keyed by rule name. Message strings support `{{key}}` placeholders filled from the rule object — for example `'The length or number of entries must be at least {{minLength}}'`. Set a per-rule `message` to override, or register a locale map to replace messages globally.
+Built-in English and Chinese messages ship with the package, keyed by rule name. Message strings support <code v-pre>{{path}}</code> placeholders resolved against the rule object merged with the validator context — `{ ...rule, field, form, value }` — so <code v-pre>{{minLength}}</code>, <code v-pre>{{value}}</code>, <code v-pre>{{field.title}}</code> and <code v-pre>{{form.values.plan}}</code> all render. Set a per-rule `message` to override, or register a locale map to replace messages globally. Install `registerValidateMessageTemplateEngine(fn)` to support other syntaxes such as `${title}`, or to fall back to a localized label when a field has no title; the engine receives `(message, context)` and runs before the built-in pass. See [how to configure validation](/core/validation#localize-messages-and-extend-the-engine).
 
 ## Integration with schemas and forms
 

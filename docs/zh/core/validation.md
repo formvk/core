@@ -111,7 +111,21 @@ validator: [{ required: true, triggerType: 'onBlur', message: '该字段必填' 
 
 <<< @/snippets/validator/registry.ts
 
-注册 `slug` 后，任何字段都可以使用 `{ format: 'slug' }`。可复用的规则函数用 `registerValidateRules` 注册，`{{key}}` 消息渲染则通过 `registerValidateMessageTemplateEngine` 定制。
+注册 `slug` 后，任何字段都可以使用 `{ format: 'slug' }`。可复用的规则函数用 `registerValidateRules` 注册，<code v-pre>{{key}}</code> 消息渲染则通过 `registerValidateMessageTemplateEngine` 定制。
+
+### 消息插值
+
+内置的 <code v-pre>{{path}}</code> 占位符会按「规则对象 + 校验上下文」合并后的作用域解析 —— `{ ...rule, field, form, value }`。规则值（<code v-pre>{{minLength}}</code>）、当前值（<code v-pre>{{value}}</code>）以及字段 / 表单上的任意路径（<code v-pre>{{field.title}}</code>、<code v-pre>{{form.values.plan}}</code>）都可以写在消息里：
+
+<<< @/snippets/validator/message-template.ts#scope
+
+裸 <code v-pre>{{title}}</code> 不在该作用域内，会渲染成 `undefined`。如果想让一行消息同时覆盖有标题和无标题的字段 —— `姓名为必填项` 与 `该字段为必填项` —— 可以替换模板引擎，给 `title` 加一层本地化兜底：
+
+<<< @/snippets/validator/message-template.ts#title
+
+`registerValidateMessageTemplateEngine(fn)` 接收 `(message, context)`，在内置 <code v-pre>{{path}}</code> 渲染之前执行，因此自定义引擎可以使用任意语法 —— 示例同时接受 <code v-pre>{{title}}</code> 与 `${title}`，`title` 依次取 `field.title`、本地化的 `field` 通用名。返回值必须是字符串。这类消息要用普通引号书写：写在模板字符串里时，`${title}` 会在校验器拿到之前就被 JavaScript 求值。
+
+示例中的 locale 覆盖同时替换了内置的 `required` 文案，因此所有必填规则都会套用该模式，无需逐字段写 `message`。
 
 ## 下一步
 
