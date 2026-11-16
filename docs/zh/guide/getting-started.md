@@ -56,22 +56,6 @@ username: f.Input({
 
 包含校验、提交与重置的完整表单见[基础表单](/zh/vue/examples/basic-form)；使用 React 绑定的同一表单见 [React](/zh/react/)。
 
-## 在本仓库中开发文档
-
-文档直接引用构建产物，因此在启动文档服务前先构建一次：
-
-```bash
-pnpm install
-pnpm build
-pnpm docs:dev
-```
-
-| 命令                | 说明               |
-| ------------------- | ------------------ |
-| `pnpm docs:dev`     | 启动文档开发服务器 |
-| `pnpm docs:build`   | 构建静态站点       |
-| `pnpm docs:preview` | 预览构建产物       |
-
 ## 下一步
 
 - [核心](/zh/core/) —— schema 背后的表单与字段模型。

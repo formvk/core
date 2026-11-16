@@ -1,5 +1,28 @@
+import { fileURLToPath, URL } from 'node:url'
+
+import swc from '@rollup/plugin-swc'
 import react from '@vitejs/plugin-react'
+import vueJsx from '@vitejs/plugin-vue-jsx'
+import { withFilter } from 'vite'
 import { defineConfig } from 'vitepress'
+
+// 文档直接消费 workspace 包源码：下面把 @formvk/* 通过 alias 指向 packages/*/src，
+// 因此 docs:dev / docs:build 不依赖预先构建的 dist 产物
+const workspacePackages = [
+  'core',
+  'path',
+  'react',
+  'reactive',
+  'reactive-react',
+  'schema',
+  'shared',
+  'validator',
+  'vue',
+]
+const aliases = workspacePackages.map(name => ({
+  find: `@formvk/${name}`,
+  replacement: fileURLToPath(new URL(`../../packages/${name}/src/index.ts`, import.meta.url)),
+}))
 
 // GitHub Pages 项目站点部署在 /core/ 子路径下，CI 通过 DOCS_BASE 注入；
 // 本地开发与预览未设置该变量时回退到根路径，无需改动访问方式
@@ -205,10 +228,35 @@ export default defineConfig({
     },
   },
   vite: {
-    // 文档站同时承载 Vue SFC demo 与 React TSX demo：
-    // plugin-react 只接管 .tsx/.jsx，不影响 VitePress 内部的 Vue 编译管线
-    plugins: [react({ include: /\.[jt]sx$/ })],
+    // 文档站同时承载 Vue SFC demo 与 React TSX demo，且会编译 packages 里的 TSX 源码：
+    // plugin-react 排除 Vue 包，Vue 包的 .tsx 交给 plugin-vue-jsx，两者互不越界
+    plugins: [
+      // 源码包使用 2023-11 标准装饰器（如 @shallowRef accessor），
+      // 与 packages/*/vite.config.ts 一样交给 SWC 编译，否则客户端与 SSR 产物都会残留装饰器语法。
+      // 仅对 packages/*/src 下含装饰器的 .ts 生效：CSS 里的 @media 等也会命中代码正则，
+      // 若不按 id 收窄会被 SWC 当作 TypeScript 解析而报错
+      withFilter(
+        swc({
+          swc: {
+            jsc: {
+              parser: { syntax: 'typescript', decorators: true },
+              transform: { legacyDecorator: false, decoratorVersion: '2023-11' },
+            },
+          },
+        }),
+        {
+          transform: {
+            id: /\/packages\/[^/]+\/src\/.*\.[cm]?ts$/,
+            code: /^\s*@[\w$.]+/m,
+          },
+        }
+      ),
+      react({ include: /\.[jt]sx$/, exclude: [/packages[\\/]vue[\\/]/] }),
+      vueJsx({ include: [/packages[\\/]vue[\\/]src[\\/].*\.tsx$/] }),
+    ],
     resolve: {
+      // 直接使用 workspace 包源码，docs 无需先执行 pnpm build
+      alias: aliases,
       dedupe: ['vue', '@vue/reactivity', 'react', 'react-dom'],
     },
     optimizeDeps: {
@@ -217,6 +265,12 @@ export default defineConfig({
       // observable 写入无法触发 Vue 渲染 effect）。
       // react / react-dom 同理需要单实例，供文档站内嵌的 React demo 使用。
       include: ['@vue/reactivity', 'react', 'react-dom'],
+    },
+    ssr: {
+      // SSR 阶段同样要把 alias 后的 packages 源码交给 Vite 编译，
+      // 否则 Node 会直接加载 .tsx 源文件并因 JSX 语法报错。
+      // 同时匹配裸包名与解析后的源码路径，覆盖 Vite 在不同阶段的外部化判断
+      noExternal: [/^@formvk\//, /[\\/]packages[\\/][^\\/]+[\\/]src[\\/]/],
     },
   },
 })

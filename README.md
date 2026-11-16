@@ -110,13 +110,16 @@ const form = createForm({ values: { username: '' } })
 
 Node.js 22+ and pnpm 12 are required.
 
+The documentation site resolves the workspace packages from source through Vite aliases, so `docs:dev` and `docs:build` don't require a prior `pnpm build`.
+
 ```bash
 pnpm install
-pnpm build       # build all packages
-pnpm test        # run the test suites
-pnpm lint        # oxlint
+pnpm build        # build all packages
+pnpm test         # run the test suites
+pnpm lint         # oxlint
 pnpm format:check
-pnpm docs:dev    # local documentation site
+pnpm docs:dev     # local documentation site, runs from package source
+pnpm docs:build   # build the static site
 ```
 
 ## Versioning

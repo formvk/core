@@ -110,13 +110,16 @@ const form = createForm({ values: { username: '' } })
 
 需要 Node.js 22+ 与 pnpm 12。
 
+文档站通过 Vite alias 直接解析 workspace 包的源码，`docs:dev` 与 `docs:build` 前无需先执行 `pnpm build`。
+
 ```bash
 pnpm install
-pnpm build       # 构建全部包
-pnpm test        # 运行测试
-pnpm lint        # oxlint
+pnpm build        # 构建全部包
+pnpm test         # 运行测试
+pnpm lint         # oxlint
 pnpm format:check
-pnpm docs:dev    # 本地文档站
+pnpm docs:dev     # 本地文档站，直接使用包源码
+pnpm docs:build   # 构建静态站点
 ```
 
 ## 版本发布

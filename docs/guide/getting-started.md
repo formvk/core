@@ -56,22 +56,6 @@ username: f.Input({
 
 See [Basic Form](/vue/examples/basic-form) for a complete form with validation, submit and reset, and [React](/react/) for the same form with the React binding.
 
-## Working on this repository
-
-The documentation imports the built packages, so build them once before starting the docs server:
-
-```bash
-pnpm install
-pnpm build
-pnpm docs:dev
-```
-
-| Command             | Description                  |
-| ------------------- | ---------------------------- |
-| `pnpm docs:dev`     | Start the docs dev server    |
-| `pnpm docs:build`   | Build the static site        |
-| `pnpm docs:preview` | Preview the production build |
-
 ## Next steps
 
 - [Core](/core/) — the form and field models behind the schema.
