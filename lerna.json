@@ -1,0 +1,13 @@
+{
+  "version": "1.0.0",
+  "npmClient": "pnpm",
+  "packages": ["packages/*"],
+  "command": {
+    "version": {
+      "conventionalCommits": true,
+      "changelogPreset": "angular",
+      "forcePublish": true,
+      "message": "chore(release): 😊 publish %s"
+    }
+  }
+}
