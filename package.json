@@ -1,6 +1,7 @@
 {
   "name": "formvk-core",
   "version": "1.0.0",
+  "private": true,
   "description": "Formvk Core",
   "keywords": [
     "core",
