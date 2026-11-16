@@ -1,27 +1,25 @@
-import { createExpression, createFragment } from '@formvk/schema'
+import { createFragment } from '@formvk/schema'
 
 const f = createFragment()
-const exp = createExpression<{ subscribe: boolean }>('$values')
 
 // #region field-reaction
 const email = f.Field({
   title: 'Email',
   component: 'Input',
-  reactions: [
-    {
-      dependencies: ['subscribe'],
-      when: exp.subscribe.eq(true),
-      fulfill: { state: { visible: true, required: true } },
-      otherwise: { state: { visible: false, required: false } },
-    },
-  ],
+  reactions: field => {
+    const subscribe = field.form.values.subscribe === true
+    field.visible = subscribe
+    field.required = subscribe
+  },
 })
 // #endregion
 
 // #region reaction-object
+// The object form keeps the whole reaction inside the schema definition.
+// Prefer the function form above unless the reaction must stay plain JSON.
 const reaction = {
   dependencies: ['subscribe'],
-  when: exp.subscribe.eq(true),
+  when: '{{ $values.subscribe === true }}',
   fulfill: { state: { visible: true, required: true } },
   otherwise: { state: { visible: false, required: false } },
 }

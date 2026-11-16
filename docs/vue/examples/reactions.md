@@ -16,10 +16,10 @@ import ReactionsDemo from '../../demos/reactions.vue'
 
 <<< @/snippets/schema/example-reactions.ts
 
-- `dependencies` lists the form paths the reaction listens to, relative to the form root.
-- `when` is an expression (or a plain boolean). `createExpression` keeps it typed and produces the <code v-pre>{{ ... }}</code> string.
-- `fulfill` applies when `when` is truthy, `otherwise` when it is falsy.
-- `state` is patched onto the field: `visible`, `required`, `title`, `componentProps` and other field state keys are supported.
+- A reaction is a plain function `(field) => void`. Everything it reads — `field.form.values.plan`, `field.value`, an external store — is tracked automatically, so there is no dependency list to maintain.
+- Write to the field directly: `field.visible`, `field.required`, `field.title`, `field.componentProps` and the other field state keys.
+- Think in the same terms as an effect: read the data you need, then write the state that should change.
+- The object form (`dependencies` / `when` / `fulfill` / `otherwise`) still works, but it only exists for plain JSON schemas that cannot carry functions — see the [schema reference](/schema/reference#reactions).
 
 ## Expressions in schema values
 
@@ -29,7 +29,7 @@ Any expression-capable value can use <code v-pre>{{ ... }}</code> directly, for 
 company: f.Input({
   title: 'Company',
   componentProps: {
-    placeholder: exp.plan.ter('Acme Inc.', 'Your company'),
+    placeholder: '{{ $values.plan === "free" ? "Acme Inc." : "Your company" }}',
   },
 })
 ```

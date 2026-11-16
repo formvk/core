@@ -81,7 +81,51 @@ function createForm<T extends object = any>(options?: IFormProps<T>): Form<T>
 
 ### 通用状态
 
-`value` / `initialValue`、`inputValue` / `inputValues`、`title` / `description`、`pattern` / `display` 及其语法糖标记（`editable`、`disabled`、`readOnly`、`readPretty`、`visible`、`hidden`）、`required`、`valid` / `invalid` / `selfValid` / `selfInvalid`、`selfErrors` / `selfWarnings` / `selfSuccesses`、`errors`（含子字段）、`validateStatus`（`'validating' | 'error' | 'warning' | 'success'`）、`active` / `visited` / `modified` / `selfModified`、`loading` / `validating` / `submitting`、`component` / `componentProps`、`decorator` / `decoratorProps`、`dataSource`、`address` / `path` / `index` / `record` / `records` / `parent`、`mounted` / `initialized` / `destroyed`。
+按“它回答什么问题”分组。大多数自定义组件只需要前两组，后面的状态主要用于编排。
+
+**取值与渲染**
+
+| 状态                           | 说明                                                  | 什么时候用                                            |
+| ------------------------------ | ----------------------------------------------------- | ----------------------------------------------------- |
+| `value` / `initialValue`       | 当前值，以及 `reset()` 会恢复到的初始值               | 需要可重置的默认值用 `initialValue`；控件里读 `value` |
+| `inputValue` / `inputValues`   | 最近一次 `onInput` 的原始值；数组字段用 `inputValues` | 输入文本与解析后的值不同时（数字、标签、日期）        |
+| `title` / `description`        | 标签与帮助文本，可在运行时改写                        | 自定义装饰器、国际化、按上下文改文案                  |
+| `component` / `componentProps` | 渲染组件及其 props                                    | 适配层代码；优先通过 schema 或 reaction 修改          |
+| `decorator` / `decoratorProps` | 包装组件及其 props                                    | 同上                                                  |
+| `dataSource`                   | 选择器、树、级联的选项数据                            | 选项来自接口时                                        |
+
+**交互**
+
+| 状态                                                | 说明                                                | 什么时候用                                       |
+| --------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------ |
+| `pattern`                                           | `editable` / `readOnly` / `disabled` / `readPretty` | 提交后把整块区域切换为评审态                     |
+| `display`                                           | `visible` / `hidden` / `none`                       | 隐藏步骤：`hidden` 保留值，`none` 会从取值中移除 |
+| `editable` / `disabled` / `readOnly` / `readPretty` | `pattern` 的布尔语法糖                              | 组件与 reactions 中的快速判断                    |
+| `visible` / `hidden`                                | `display` 的布尔语法糖                              | 同上                                             |
+| `active` / `visited`                                | 正在聚焦 / 曾经聚焦                                 | 字段被触碰后再展示错误；埋点                     |
+| `modified` / `selfModified`                         | 子字段变过 / 自己变过                               | “未保存修改”提示、脏标记                         |
+| `loading` / `validating` / `submitting`             | 异步状态                                            | 禁用按钮、显示加载态                             |
+
+**校验**
+
+| 状态                                            | 说明                                                | 什么时候用                                 |
+| ----------------------------------------------- | --------------------------------------------------- | ------------------------------------------ |
+| `required`                                      | 必填标记，独立于校验规则                            | 运行时切换必填，例如付费套餐才需要开票邮箱 |
+| `valid` / `invalid`                             | 自身及子字段的合法性                                | 表单级提交守卫                             |
+| `selfValid` / `selfInvalid`                     | 仅自身规则的合法性                                  | 子字段状态会造成误判时                     |
+| `selfErrors` / `selfWarnings` / `selfSuccesses` | 本字段产生的反馈                                    | 在控件下方展示消息                         |
+| `errors`                                        | 自身及子字段的错误                                  | 在数组或对象组中定位第一个错误行           |
+| `validateStatus`                                | `'validating' \| 'error' \| 'warning' \| 'success'` | 边框与状态样式                             |
+
+**字段图与生命周期**
+
+| 状态                                    | 说明                  | 什么时候用                                              |
+| --------------------------------------- | --------------------- | ------------------------------------------------------- |
+| `address` / `path`                      | 字段图地址 / 取值路径 | `query`、`setFieldState` / `getValuesIn`、`setValuesIn` |
+| `index`                                 | 作为数组项时的下标    | “删除第 3 位成员”、行号                                 |
+| `record` / `records`                    | 所在的 object 取值    | 在自定义控件中读取同级值                                |
+| `parent`                                | 父字段模型            | 需要感知层级的自定义组件                                |
+| `mounted` / `initialized` / `destroyed` | 生命周期标记          | 守卫 effect、避免卸载阶段继续执行                       |
 
 ### 通用方法
 
@@ -141,16 +185,48 @@ effect 注册在 `createForm({ effects })` 中；Vue 场景也可以通过 `@for
 
 ### 表单钩子
 
-`onFormInit`、`onFormMount`、`onFormUnmount`、`onFormValuesChange`、`onFormInitialValuesChange`、`onFormInputChange`、`onFormSubmit`、`onFormSubmitStart`、`onFormSubmitEnd`、`onFormSubmitSuccess`、`onFormSubmitFailed`、`onFormSubmitValidateStart`、`onFormSubmitValidateSuccess`、`onFormSubmitValidateFailed`、`onFormSubmitValidateEnd`、`onFormReset`、`onFormValidateStart`、`onFormValidateSuccess`、`onFormValidateFailed`、`onFormValidateEnd`、`onFormGraphChange`、`onFormLoading`，以及把回调包进 `autorun` 的响应式钩子 `onFormReact(callback)`。
+表单级钩子每个表单只注册一次，回调接收 `(form)`。
+
+| 钩子                                                                                                                   | 触发时机                                  | 什么时候用                                     |
+| ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- | ---------------------------------------------- |
+| `onFormInit`                                                                                                           | 表单模型创建完成、字段挂载之前            | 初始化取值、注册 reactions、加载选项           |
+| `onFormMount` / `onFormUnmount`                                                                                        | Provider 挂载 / 卸载表单                  | 启动或停止定时器、全局监听与埋点               |
+| `onFormValuesChange`                                                                                                   | 任意已提交的取值变化                      | 自动保存、脏检查、跨字段编排                   |
+| `onFormInitialValuesChange`                                                                                            | 初始值变化（`setInitialValues`、`reset`） | 依赖基线的状态需要重新同步                     |
+| `onFormInputChange`                                                                                                    | 任意字段产生原始输入                      | 实时预览、输入过程埋点                         |
+| `onFormSubmitStart`                                                                                                    | `submitting` 变为 `true`，校验开始前      | 禁用页面、显示进度条                           |
+| `onFormSubmitValidateStart` / `onFormSubmitValidateSuccess` / `onFormSubmitValidateFailed` / `onFormSubmitValidateEnd` | 提交中的校验阶段                          | 区分“校验失败”和“服务端失败”                   |
+| `onFormSubmitSuccess` / `onFormSubmitFailed`                                                                           | 提交回调 resolve / reject                 | 跳转、提示；失败时保持弹窗不关闭               |
+| `onFormSubmitEnd`                                                                                                      | `submitting` 变回 `false`                 | 恢复按钮可用状态                               |
+| `onFormSubmit`                                                                                                         | 提交流程结束，在 success / failed 之后    | 必须执行的清理，例如释放草稿标记               |
+| `onFormReset`                                                                                                          | 执行 `form.reset()`                       | 重置表单外部的 UI 状态                         |
+| `onFormValidateStart` / `onFormValidateSuccess` / `onFormValidateFailed` / `onFormValidateEnd`                         | 显式调用 `form.validate()`                | 分步表单的步骤反馈，与提交无关                 |
+| `onFormGraphChange`                                                                                                    | 字段挂载、卸载或重排                      | 同步外部大纲或可视化搭建器                     |
+| `onFormLoading`                                                                                                        | `form.loading` 变化                       | 全局骨架屏或遮罩                               |
+| `onFormReact(callback)`                                                                                                | 辅助钩子：回调运行在 `autorun` 中         | 需要同时读取多个取值的派生副作用，例如同步图表 |
+
+`onFormReact` 不是生命周期事件：它在 init 时注册 `autorun`，在 unmount 时销毁。需求是“只要这些值变了就执行”时用它；需要精确的触发时刻时用普通钩子。
 
 ### 字段钩子
 
-`onFieldInit`、`onFieldMount`、`onFieldUnmount`、`onFieldValueChange`、`onFieldInitialValueChange`、`onFieldInputValueChange`、`onFieldValidateStart`、`onFieldValidating`、`onFieldValidateEnd`、`onFieldValidateFailed`、`onFieldValidateSuccess`、`onFieldSubmit` 及完整的 `onFieldSubmit*` 系列、`onFieldReset`、`onFieldLoading`。
+字段钩子接收路径模式与 `(field, form)` 回调；通配符（`members.*.email`）会作用于当前及之后新增的每一行。
 
-另有两个响应式辅助钩子：
+| 钩子                                                                | 触发时机                                                  | 什么时候用                                        |
+| ------------------------------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------- |
+| `onFieldInit(pattern, cb)`                                          | 匹配字段创建时；字段已存在则立即执行                      | 只初始化一次状态、挂载每字段的清理函数            |
+| `onFieldMount` / `onFieldUnmount`                                   | 字段进入 / 离开挂载树                                     | 启动或停止每行的定时器、远程查询                  |
+| `onFieldValueChange`                                                | 已提交的取值变化                                          | 清空依赖值、重新校验上限、埋点                    |
+| `onFieldInitialValueChange`                                         | `initialValue` 变化                                       | reset 之后同步草稿或缓存                          |
+| `onFieldInputValueChange`                                           | 原始输入变化，值尚未提交                                  | “根据名称生成 slug”这类实时预览                   |
+| `onFieldValidateStart` / `onFieldValidating` / `onFieldValidateEnd` | 校验开始 / 进行中 / 结束                                  | 字段级 loading、忽略重复结果                      |
+| `onFieldValidateSuccess` / `onFieldValidateFailed`                  | 校验产生结果                                              | 成功图标、滚动到第一个失败行                      |
+| `onFieldSubmit` 及 `onFieldSubmit*` 系列                            | 字段参与 `form.submit()`                                  | 每行的保存状态、汇总行级错误                      |
+| `onFieldReset`                                                      | 字段被重置                                                | 重置与字段绑定的 UI 状态                          |
+| `onFieldLoading`                                                    | `field.loading` 切换                                      | 行级骨架屏                                        |
+| `onFieldReact(pattern, cb)`                                         | 辅助钩子：为每个匹配字段创建 `autorun`                    | 从任意可观察源派生状态（取值、props、外部 store） |
+| `onFieldChange(pattern, watches, cb)`                               | 辅助钩子：对指定状态键建立 `reaction`（默认 `['value']`） | 只关心特定键，而不是所有被读取的可观察值          |
 
-- `onFieldReact(pattern, (field, form) => void)`：回调运行在 `autorun` 中，读取的任何可观察数据都会成为依赖。
-- `onFieldChange(pattern, watches[], (field, form) => void)`：基于指定状态键（默认 `['value']`）建立 `reaction`。
+两个响应式辅助钩子（`onFieldReact`、`onFormReact`）存在的原因是：大多数“当 X 变化时做 Y”的逻辑并不关心具体事件名。若你本会在 `onFieldValueChange` 里读取多个值，就改用它们。
 
 ## Query
 
@@ -166,6 +242,55 @@ effect 注册在 `createForm({ effects })` 中；Vue 场景也可以通过 `@for
 | `value()` / `initialValue()`  | `get('value')` / `get('initialValue')` 的语法糖。 |
 
 <<< @/snippets/core/query.ts#query
+
+## 常见业务任务
+
+上面的表格说明“有什么”，本节说明“该用哪个”。所有片段都延续[团队邀请示例](/zh/vue/examples/team-invite)：一个包含 `plan` 字段与 `members` 数组的表单。
+
+| 我要…                    | 使用                                           |
+| ------------------------ | ---------------------------------------------- |
+| 读写普通数据             | `form.values`、`getValuesIn` / `setValuesIn`   |
+| 改变匹配字段的行为       | `form.setFieldState(pattern, setter)`          |
+| 在取值变化时执行代码     | [effects](#effects)，例如 `onFieldValueChange` |
+| 只为 UI 派生数据         | `computed(() => form.values...)`               |
+| 只校验、不提交           | `form.validate(pattern)`                       |
+| 给自定义错误面板收集反馈 | `form.errors` / `form.warnings`                |
+
+### 只校验一个步骤
+
+`form.validate(pattern)` 只对匹配字段执行规则，失败时 reject。适用于分步表单的“下一步”，或“保存草稿”这类不应被未触碰区域阻塞的动作。
+
+<<< @/snippets/core/recipes.ts#step-validation
+
+`form.submit()` 会校验整个表单；`field.validate()` 校验单个字段及其子字段。
+
+### 提交后切换为评审态
+
+只读评审页通常复用同一份 schema。`setPattern('readPretty')` 会把所有字段渲染成静态文本、清空校验反馈并保留取值，不需要再写一套组件。
+
+<<< @/snippets/core/recipes.ts#review
+
+### 定位到第一个错误字段
+
+`form.submit()` 失败时会 reject 反馈列表，`form.errors` 也保持可观察。每项都带 `address`（字段图）与 `path`（取值）。按 address 查询即可聚焦控件。
+
+<<< @/snippets/core/recipes.ts#first-error
+
+`query` / `setFieldState` 用 `address`，`getValuesIn` / `setValuesIn` 用 `path`。只有字段被布局（`void`）节点包裹时两者才会不同，见[路径系统](/zh/core/paths#address-与-path)。
+
+### 保存与恢复草稿
+
+用 `JSON.stringify(form.values)` 保存，用 `setValues(draft, 'deepMerge')` 恢复。`deepMerge` 会为草稿写入之后新增的键保留默认值；`overwrite` 会把它们丢掉。
+
+<<< @/snippets/core/recipes.ts#draft
+
+### 一次更新一整组字段
+
+通配符可以把一次调用变成批量操作。`setFieldState('members.*.email', ...)` 无需字段引用即可作用于每一行，`setValuesIn` 则直接写入普通数据。
+
+<<< @/snippets/core/recipes.ts#bulk
+
+更多分组模式见[路径系统](/zh/core/paths#场景团队成员表格)。
 
 ## 类型守卫
 

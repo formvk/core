@@ -15,6 +15,23 @@ React hooks return **bare values**, not Vue-style refs — there is no `.value` 
 
 There is no `useInjectionCleaner` hook: context isolation is built into `FormProvider`.
 
+## Which hook for which job
+
+| You are building…                                                  | Use                 | Why                                                 |
+| ------------------------------------------------------------------ | ------------------- | --------------------------------------------------- |
+| A footer / toolbar inside `FormProvider` but outside `SchemaField` | `useForm()`         | Reads and drives the same form model                |
+| A custom control rendered by `SchemaField`                         | `useField()`        | Gives you `value`, `onInput`, `selfErrors`          |
+| A component whose rendering depends on schema metadata             | `useFieldSchema()`  | Read slots, `componentProps` or custom `x-*` fields |
+| A block that registers form-level effects                          | `useFormEffects()`  | Automatically cleaned up on unmount                 |
+| Something inside a field subtree that must reach the form          | `useParentForm()`   | Walks up object-field parents                       |
+| Binding an externally created model to a component                 | `useAttach(target)` | Calls `onMount` / `onUnmount` with the lifecycle    |
+
+A footer toolbar is the typical `useForm()` case — it sits below the fields and drives submit or a partial validation:
+
+<<< @/snippets/react/use-form-toolbar.tsx
+
+Every hook returns a bare value. The component that reads it must be wrapped with `observer`, otherwise the toolbar button will not reflect `form.submitting`.
+
 A custom input that reads the field directly. Note the `observer` wrapper and the `slots` cleanup:
 
 <<< @/snippets/react/custom-input.tsx

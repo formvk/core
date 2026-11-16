@@ -92,11 +92,32 @@ Any schema value that supports expressions can contain a <code v-pre>{{ ... }}</
 
 ## Reactions
 
-Reactions connect fields. They listen to `dependencies`, evaluate `when` and apply `fulfill` / `otherwise`, patching field state or the schema itself:
+A reaction is a plain function `(field) => void`. It runs inside the field's reactive context, so any observable it reads — `field.value`, `field.form.values.plan`, an external store — becomes a dependency and re-runs the function when it changes:
 
 <<< @/snippets/schema/reactions.ts#field-reaction
 
-Reactions are the declarative counterpart of the core effect hooks (`onFieldReact`, `onFieldChange`). See [Dynamic Reactions](/vue/examples/reactions) for a running example.
+This is the same mental model as an effect: read what you need, then write what should change. Prefer it over the object form (`dependencies` / `when` / `fulfill`), which is only useful when a reaction has to stay inside a pure-JSON schema.
+
+See [Dynamic Reactions](/vue/examples/reactions) for a running example.
+
+## Expressions, reactions or effects?
+
+All three connect a schema to other data. Pick by what you are changing:
+
+| You want to…                                                                | Use        | Why                                                          |
+| --------------------------------------------------------------------------- | ---------- | ------------------------------------------------------------ |
+| Derive a prop or validation limit from values                               | expression | Compile-time string, stays inside the schema                 |
+| Toggle `visible` / `required` / `componentProps` when another field changes | reaction   | Function reading `field.form.values`; re-runs on change      |
+| Run imperative code on a change (validate, clear, call analytics)           | effect     | Full `field` / `form` access, async allowed                  |
+| Compute data that only the UI displays                                      | `computed` | Not part of the schema; no extra field state to keep in sync |
+
+The [team invitation](/vue/examples/team-invite) example uses them together: reactions toggle `seats`, `billingEmail` and `message`; effects re-validate limits when `plan` changes and restore an empty member row; a `computed` renders the invitation summary.
+
+Rules of thumb:
+
+- Prefer expressions for a single derived value — no subscription management, no extra state.
+- Prefer reactions when the outcome is a field state change (`visible`, `required`, `componentProps`).
+- Use effects when the logic is a sequence of actions or talks to the outside world.
 
 ## Next steps
 

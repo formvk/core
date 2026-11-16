@@ -78,10 +78,38 @@ form.setFieldState('members.*.email', field => {
 const email = form.query('members.*.email').take()
 ```
 
-The same patterns drive [effects](/core/#effects) and schema [reactions](/schema/#reactions): `dependencies` in a reaction are listened to as paths, and `target` writes to the field at that path.
+The same patterns drive [effects](/core/#effects) and schema [reactions](/schema/#reactions): inside a reaction function, `form.query(path)` reads fields by path, while `target` in the object form writes to the field at that path.
+
+## Scenario: a team-member table
+
+Repeated rows are where path patterns pay off. The snippets below use a `members` array from the [team invitation example](/vue/examples/team-invite); the same patterns apply to any list, tree or dynamically created field group.
+
+### Addresses vs values: pick the right API
+
+`address` walks the schema graph (including `void` wrappers and array indices); `path` walks `form.values` (skipping `void`). Field operations (`setFieldState`, `validate`, effect patterns) understand both, value operations only understand paths. Without `void` nodes they are identical, which is why most forms never notice the difference.
+
+<<< @/snippets/core/paths-business.ts#address-vs-path
+
+### Validate and update a whole column
+
+One wildcard replaces a loop over `form.fields`. Both calls affect existing rows; `setFieldState` also covers rows added later, because it is applied to matching fields as they mount.
+
+<<< @/snippets/core/paths-business.ts#bulk
+
+### Read a column as data
+
+`form.query(...).map(field => field.value)` bridges field models and plain arrays for summaries, counters and disabled states:
+
+<<< @/snippets/core/paths-business.ts#group-read
+
+### Reset one group
+
+`reset(pattern)` only touches matching fields, so a "clear all members" button does not reset the rest of the form:
+
+<<< @/snippets/core/paths-business.ts#group-reset
 
 ## Next steps
 
 - [Form model](/core/) — the state and methods that accept these paths.
-- [Schema reactions](/schema/#reactions) — declarative path dependencies.
+- [Schema reactions](/schema/#reactions) — reactive functions that read paths.
 - [Validation](/core/validation) — `form.validate(pattern)` and field-level triggers.

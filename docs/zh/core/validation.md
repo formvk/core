@@ -38,6 +38,48 @@ validator: [{ required: true, triggerType: 'onBlur', message: '该字段必填' 
 
 <<< @/snippets/validator/custom-rules.ts#sibling
 
+## 业务校验形态
+
+内置规则只校验单个值。业务规则往往依赖其他字段或整行数据，这时应使用自定义校验器。下面的例子都来自[团队邀请表单](/zh/vue/examples/team-invite)。
+
+| 需求                       | 规则写在哪       | 做法                                  |
+| -------------------------- | ---------------- | ------------------------------------- |
+| 席位数不能超过所选套餐     | `seats` 字段     | 自定义校验器读取 `form.values`        |
+| 成员数不能超过套餐上限     | `members` 数组   | 把校验器写在数组节点上                |
+| 邮箱不能重复               | 每一行的 `email` | 自定义校验器比较同级行                |
+| 邮箱可用性需要请求后端     | 每一行的 `email` | 异步校验器 + `triggerType`            |
+| 套餐变化后重新检查相关限制 | 依赖方字段       | 在 effect 中调用 `form.validate(...)` |
+
+### 跨字段限制
+
+字段可以通过 `form.values` 读取任意同级值。当失败原因需要展示给用户时，返回字符串而不是 `false`，它会原样作为错误消息：
+
+<<< @/snippets/validator/business-rules.ts#cross-field
+
+跨字段规则只在**自己的字段**被校验时重新执行。切换 `plan` 不会自动重新校验 `seats`，因此需要配合 effect：
+
+<<< @/snippets/validator/business-rules.ts#revalidate
+
+只在依赖真正变化时安排这类复查，不需要每次输入都校验整张表单；`form.validate('seats')` 能把成本限制在受影响的字段上。
+
+### 数组级规则
+
+当错误属于整个列表而不是某一行时，把规则写在数组节点上。校验器收到的是整个数组：
+
+<<< @/snippets/validator/business-rules.ts#array-rule
+
+### 行内唯一性
+
+在行校验器里把当前值与数组其余项比较，错误就会渲染在出问题的输入框下方，而不是列表底部：
+
+<<< @/snippets/validator/business-rules.ts#duplicate
+
+### 失焦时远程校验
+
+异步校验器与同步校验器用法一致。设置 `triggerType: 'onBlur'` 可以避免每次按键都发请求；校验期间字段会处于 `validateStatus: 'validating'`：
+
+<<< @/snippets/validator/business-rules.ts#async
+
 ## 展示错误
 
 校验反馈会写回字段模型：

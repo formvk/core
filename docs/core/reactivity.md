@@ -20,6 +20,34 @@
 | `toJS(value)`         | Returns a plain, non-observable snapshot                                                       |
 | `untracked(fn)`       | Reads observables without subscribing the current effect                                       |
 
+## When to reach for this layer
+
+The form packages already run on these primitives. Use them directly when the data you need is not a field:
+
+| Need                                              | Primitive   | Why                                                         |
+| ------------------------------------------------- | ----------- | ----------------------------------------------------------- |
+| A summary such as "3/5 invitations ready"         | `computed`  | Cached; recomputes only when a value it read changes        |
+| Autosave a draft                                  | `autorun`   | Runs now and after every tracked change; returns a disposer |
+| Write several values without intermediate renders | `batch`     | Dependent effects flush once                                |
+| Send values to an API                             | `toJS`      | Returns plain objects and arrays                            |
+| Read a value without subscribing                  | `untracked` | Avoids accidental dependencies                              |
+
+### Deriving display data
+
+<<< @/snippets/reactive/business.ts#derived
+
+### Autosaving a draft
+
+<<< @/snippets/reactive/business.ts#autosave
+
+`autorun` tracks every observable read inside the callback, including nested arrays. Dispose it when the component unmounts — `onUnmounted(stop)` in Vue, or returning `stop` from a `useEffect` in React.
+
+### Grouping writes
+
+<<< @/snippets/reactive/business.ts#batch
+
+Without `batch`, each `setValuesIn` notifies dependents separately; with it, all writes in the callback produce one flush and one render.
+
 Try it — the log below is produced by `autorun`:
 
 ### Vue 3

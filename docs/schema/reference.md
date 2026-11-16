@@ -162,7 +162,11 @@ Any field marked as expression-capable accepts a <code v-pre>{{ ... }}</code> st
 
 ## Reactions
 
-A reaction observes `dependencies`, evaluates `when`, and applies `fulfill` or `otherwise`:
+A reaction is a function `(field, scope) => void` that runs inside the field's reactive context. Any observable read inside it becomes a dependency:
+
+<<< @/snippets/schema/reactions.ts#field-reaction
+
+The object form exists only for reactions that must stay inside a pure-JSON schema:
 
 <<< @/snippets/schema/reactions.ts#reaction-object
 
@@ -176,7 +180,7 @@ A reaction observes `dependencies`, evaluates `when`, and applies `fulfill` or `
 | `fulfill.schema` / `otherwise.schema` | Schema fragment merged onto the node.                                                       |
 | `fulfill.run` / `otherwise.run`       | Expression string executed as code.                                                         |
 
-A reaction may also be a plain function `(field, scope) => void`, which runs inside the field's reactive context.
+Prefer the function form for application code: it is ordinary TypeScript, needs no expression strings, and reads top-to-bottom.
 
 ## `createExpression`
 

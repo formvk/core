@@ -20,6 +20,34 @@
 | `toJS(value)`         | 返回普通、不可观察的快照                          |
 | `untracked(fn)`       | 读取可观察值但不建立依赖                          |
 
+## 什么时候直接用这一层
+
+表单包内部已经在使用这些原语。当你需要的数据不是字段时，可以直接使用它们：
+
+| 需求                       | 原语        | 原因                                 |
+| -------------------------- | ----------- | ------------------------------------ |
+| “3/5 个邀请已就绪”这类汇总 | `computed`  | 有缓存，只在读取过的值变化时重新计算 |
+| 自动保存草稿               | `autorun`   | 立即执行，之后每次受追踪的变化都执行 |
+| 多次写入时不产生中间渲染   | `batch`     | 依赖它的 effects 只刷新一次          |
+| 把取值发送给 API           | `toJS`      | 返回普通对象与数组                   |
+| 读取取值但不建立订阅       | `untracked` | 避免意外依赖                         |
+
+### 派生展示数据
+
+<<< @/snippets/reactive/business.ts#derived
+
+### 自动保存草稿
+
+<<< @/snippets/reactive/business.ts#autosave
+
+`autorun` 会追踪回调内读取的每个可观察值，包括嵌套数组。组件卸载时要销毁它 —— Vue 中用 `onUnmounted(stop)`，React 中从 `useEffect` 返回 `stop`。
+
+### 合并写入
+
+<<< @/snippets/reactive/business.ts#batch
+
+不使用 `batch` 时，每次 `setValuesIn` 都会单独通知依赖方；使用后，回调内的所有写入只产生一次刷新和一次渲染。
+
 试一试，下面的日志由 `autorun` 产生：
 
 ### Vue 3

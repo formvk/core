@@ -81,7 +81,51 @@ Every schema node becomes one of four models:
 
 ### Common state
 
-`value` / `initialValue`, `inputValue` / `inputValues`, `title` / `description`, `pattern` / `display` and their sugar flags (`editable`, `disabled`, `readOnly`, `readPretty`, `visible`, `hidden`), `required`, `valid` / `invalid` / `selfValid` / `selfInvalid`, `selfErrors` / `selfWarnings` / `selfSuccesses`, `errors` (including children), `validateStatus` (`'validating' | 'error' | 'warning' | 'success'`), `active` / `visited` / `modified` / `selfModified`, `loading` / `validating` / `submitting`, `component` / `componentProps`, `decorator` / `decoratorProps`, `dataSource`, `address` / `path` / `index` / `record` / `records` / `parent`, `mounted` / `initialized` / `destroyed`.
+State is grouped by the question it answers. Most custom components only need the first two groups; the rest is for orchestration.
+
+**Value and rendering**
+
+| State                          | Description                                                          | When to use                                                                 |
+| ------------------------------ | -------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| `value` / `initialValue`       | Current value, and the value `reset()` restores                      | Set `initialValue` for resettable defaults; read `value` in custom controls |
+| `inputValue` / `inputValues`   | Raw value from the last `onInput`; array fields expose `inputValues` | When the typed text differs from the parsed value (numbers, tags, dates)    |
+| `title` / `description`        | Label and help text, writable at runtime                             | Custom decorators, i18n, context-dependent labels                           |
+| `component` / `componentProps` | Renderer and its props                                               | Adapter code; prefer schema or reactions over direct writes                 |
+| `decorator` / `decoratorProps` | Wrapper renderer and its props                                       | Same as above                                                               |
+| `dataSource`                   | Options for selects, trees and cascades                              | When options come from an API                                               |
+
+**Interaction**
+
+| State                                               | Description                                         | When to use                                             |
+| --------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------- |
+| `pattern`                                           | `editable` / `readOnly` / `disabled` / `readPretty` | Switch a section to review mode after submit            |
+| `display`                                           | `visible` / `hidden` / `none`                       | Hide a step: `hidden` keeps values, `none` removes them |
+| `editable` / `disabled` / `readOnly` / `readPretty` | Boolean sugar over `pattern`                        | Quick conditions in components and reactions            |
+| `visible` / `hidden`                                | Boolean sugar over `display`                        | Same as above                                           |
+| `active` / `visited`                                | Focused now / has been focused before               | Show errors only after a field was touched; analytics   |
+| `modified` / `selfModified`                         | A descendant changed / this field changed           | "Unsaved changes" guards, dirty markers                 |
+| `loading` / `validating` / `submitting`             | Async status flags                                  | Disable buttons, show spinners and skeletons            |
+
+**Validation**
+
+| State                                           | Description                                         | When to use                                                       |
+| ----------------------------------------------- | --------------------------------------------------- | ----------------------------------------------------------------- |
+| `required`                                      | Required flag, independent from validator rules     | Toggle required at runtime, e.g. billing email only on paid plans |
+| `valid` / `invalid`                             | Validity of this field and its descendants          | Form-level submit guards                                          |
+| `selfValid` / `selfInvalid`                     | Validity of this field's own rules only             | When children's state would produce a false negative              |
+| `selfErrors` / `selfWarnings` / `selfSuccesses` | Feedback raised by this field                       | Render messages under the control                                 |
+| `errors`                                        | Own and descendants' errors                         | Locate the first invalid row inside an array or object group      |
+| `validateStatus`                                | `'validating' \| 'error' \| 'warning' \| 'success'` | Border / status styling                                           |
+
+**Graph and lifecycle**
+
+| State                                   | Description                              | When to use                                                |
+| --------------------------------------- | ---------------------------------------- | ---------------------------------------------------------- |
+| `address` / `path`                      | Field-graph address vs value path        | `query` / `setFieldState` vs `getValuesIn` / `setValuesIn` |
+| `index`                                 | Position when the field is an array item | "Remove member 3" labels, row numbering                    |
+| `record` / `records`                    | Enclosing object value(s)                | Reading siblings in a custom control                       |
+| `parent`                                | Parent field model                       | Scope-aware custom components                              |
+| `mounted` / `initialized` / `destroyed` | Lifecycle flags                          | Guard effects and avoid work during teardown               |
 
 ### Common methods
 
@@ -141,16 +185,48 @@ Effects are registered inside `createForm({ effects })` or, in Vue, through `use
 
 ### Form hooks
 
-`onFormInit`, `onFormMount`, `onFormUnmount`, `onFormValuesChange`, `onFormInitialValuesChange`, `onFormInputChange`, `onFormSubmit`, `onFormSubmitStart`, `onFormSubmitEnd`, `onFormSubmitSuccess`, `onFormSubmitFailed`, `onFormSubmitValidateStart`, `onFormSubmitValidateSuccess`, `onFormSubmitValidateFailed`, `onFormSubmitValidateEnd`, `onFormReset`, `onFormValidateStart`, `onFormValidateSuccess`, `onFormValidateFailed`, `onFormValidateEnd`, `onFormGraphChange`, `onFormLoading`, plus the reactive `onFormReact(callback)` which wraps the callback in an `autorun`.
+Form hooks run once per form and receive `(form)`.
+
+| Hook                                                                                                                   | Fires when                                          | When to use                                                            |
+| ---------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- | ---------------------------------------------------------------------- |
+| `onFormInit`                                                                                                           | The form model is created, before fields mount      | Seed values, register reactions, load option lists                     |
+| `onFormMount` / `onFormUnmount`                                                                                        | The provider attaches / detaches the form           | Start or stop timers, global listeners and analytics                   |
+| `onFormValuesChange`                                                                                                   | Any committed value changes                         | Autosave, dirty checks, cross-field orchestration                      |
+| `onFormInitialValuesChange`                                                                                            | Initial values change (`setInitialValues`, `reset`) | Re-sync state that depends on the baseline                             |
+| `onFormInputChange`                                                                                                    | Any field emits raw input                           | Live previews and typing analytics                                     |
+| `onFormSubmitStart`                                                                                                    | Submitting turns `true`, before validation          | Disable the page, show a progress bar                                  |
+| `onFormSubmitValidateStart` / `onFormSubmitValidateSuccess` / `onFormSubmitValidateFailed` / `onFormSubmitValidateEnd` | The validation phase of a submit                    | Tell "validation failed" apart from "server failed"                    |
+| `onFormSubmitSuccess` / `onFormSubmitFailed`                                                                           | The submit callback resolves / rejects              | Navigate, toast, or keep a dialog open on failure                      |
+| `onFormSubmitEnd`                                                                                                      | Submitting turns `false`                            | Re-enable actions                                                      |
+| `onFormSubmit`                                                                                                         | The submit settles, after success / failed          | Cleanup that must always run, e.g. release a draft flag                |
+| `onFormReset`                                                                                                          | `form.reset()` runs                                 | Reset UI-only state kept outside the form                              |
+| `onFormValidateStart` / `onFormValidateSuccess` / `onFormValidateFailed` / `onFormValidateEnd`                         | Explicit `form.validate()` runs                     | Wizard step feedback without submitting                                |
+| `onFormGraphChange`                                                                                                    | Fields mount, unmount or reorder                    | Keep an external outline or visual builder in sync                     |
+| `onFormLoading`                                                                                                        | `form.loading` changes                              | Global skeleton or overlay                                             |
+| `onFormReact(callback)`                                                                                                | Helper: the callback runs inside `autorun`          | Derived side effects that read several values, such as syncing a chart |
+
+`onFormReact` is not a lifecycle event: it registers an `autorun` on init and disposes it on unmount. Use it when you want "whenever these values change, do this", and a plain hook when you need the exact moment.
 
 ### Field hooks
 
-`onFieldInit`, `onFieldMount`, `onFieldUnmount`, `onFieldValueChange`, `onFieldInitialValueChange`, `onFieldInputValueChange`, `onFieldValidateStart`, `onFieldValidating`, `onFieldValidateEnd`, `onFieldValidateFailed`, `onFieldValidateSuccess`, `onFieldSubmit` and the full `onFieldSubmit*` family, `onFieldReset`, `onFieldLoading`.
+Field hooks take a path pattern and a `(field, form)` callback; wildcards (`members.*.email`) match every current and future row.
 
-Two reactive helpers complement the event hooks:
+| Hook                                                                | Fires when                                                            | When to use                                                  |
+| ------------------------------------------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------ |
+| `onFieldInit(pattern, cb)`                                          | A matching field is created; runs immediately if it already exists    | Seed state once, attach per-field disposers                  |
+| `onFieldMount` / `onFieldUnmount`                                   | The field enters / leaves the mounted tree                            | Start or stop per-row timers and remote lookups              |
+| `onFieldValueChange`                                                | The committed value changes                                           | Clear dependent values, re-validate limits, analytics        |
+| `onFieldInitialValueChange`                                         | `initialValue` changes                                                | Keep drafts or caches in sync after a reset                  |
+| `onFieldInputValueChange`                                           | Raw input changes, before the value is committed                      | Live preview such as slug-from-name                          |
+| `onFieldValidateStart` / `onFieldValidating` / `onFieldValidateEnd` | A validation round starts / is in flight / settles                    | Per-field spinner, ignore duplicate results                  |
+| `onFieldValidateSuccess` / `onFieldValidateFailed`                  | Validation produces a result                                          | Success icon, scroll to the first failing row                |
+| `onFieldSubmit` and the `onFieldSubmit*` family                     | The field takes part in `form.submit()`                               | Per-row saving state, aggregate row errors                   |
+| `onFieldReset`                                                      | The field is reset                                                    | Reset UI state tied to the field                             |
+| `onFieldLoading`                                                    | `field.loading` toggles                                               | Row-level skeleton                                           |
+| `onFieldReact(pattern, cb)`                                         | Helper: an `autorun` is created per matching field                    | Derive from any observable (values, props, external stores)  |
+| `onFieldChange(pattern, watches, cb)`                               | Helper: a `reaction` over the chosen state keys (default `['value']`) | React only to specific keys instead of every observable read |
 
-- `onFieldReact(pattern, (field, form) => void)` — runs the callback inside an `autorun`, so any observable read becomes a dependency.
-- `onFieldChange(pattern, watches[], (field, form) => void)` — wraps a `reaction` over the listed state keys (defaults to `['value']`).
+The two reactive helpers (`onFieldReact`, `onFormReact`) exist because most "when X changes, do Y" logic does not care about the event name — use them when you would otherwise read several values inside `onFieldValueChange`.
 
 ## Query
 
@@ -166,6 +242,55 @@ Two reactive helpers complement the event hooks:
 | `value()` / `initialValue()`  | Sugar for `get('value')` / `get('initialValue')`. |
 
 <<< @/snippets/core/query.ts#query
+
+## Common business tasks
+
+The tables above describe what exists; this section maps a task to the API you actually reach for. All snippets continue the [team invitation example](/vue/examples/team-invite), a form with a `plan` field and a `members` array.
+
+| I need to…                                | Use                                              |
+| ----------------------------------------- | ------------------------------------------------ |
+| Read or write plain data                  | `form.values`, `getValuesIn` / `setValuesIn`     |
+| Change how matching fields behave         | `form.setFieldState(pattern, setter)`            |
+| Run code when a value changes             | [effects](#effects) such as `onFieldValueChange` |
+| Derive data for the UI only               | `computed(() => form.values...)`                 |
+| Validate without submitting               | `form.validate(pattern)`                         |
+| Collect feedback for a custom error panel | `form.errors` / `form.warnings`                  |
+
+### Validate one step
+
+`form.validate(pattern)` runs rules only on matching fields and rejects on failure. Use it for wizard steps, or for a "save draft" action that should not block on untouched sections.
+
+<<< @/snippets/core/recipes.ts#step-validation
+
+`form.submit()` validates the whole form; `field.validate()` validates one field and its children.
+
+### Submit, then switch to review mode
+
+Read-only review pages usually reuse the same schema. `setPattern('readPretty')` renders every field as static text, clears validation feedback and keeps values visible, so you do not need a second set of components.
+
+<<< @/snippets/core/recipes.ts#review
+
+### Jump to the first invalid field
+
+`form.submit()` rejects with the feedback list, and `form.errors` stays observable. Each entry carries `address` (field graph) and `path` (values). Query by address to focus the control.
+
+<<< @/snippets/core/recipes.ts#first-error
+
+Use `address` for `query` / `setFieldState`; use `path` for `getValuesIn` / `setValuesIn`. The difference only appears when layout (`void`) nodes wrap the field — see [Path system](/core/paths#address-vs-path).
+
+### Persist and restore a draft
+
+Save with `JSON.stringify(form.values)`, restore with `setValues(draft, 'deepMerge')`. `deepMerge` keeps defaults for keys added after the draft was written; `overwrite` would drop them.
+
+<<< @/snippets/core/recipes.ts#draft
+
+### Update a whole group at once
+
+Wildcards turn one call into a bulk operation. `setFieldState('members.*.email', ...)` touches every row without holding references, while `setValuesIn` writes plain data.
+
+<<< @/snippets/core/recipes.ts#bulk
+
+More group patterns are in [Path system](/core/paths#scenario-a-team-member-table).
 
 ## Type guards
 

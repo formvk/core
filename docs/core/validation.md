@@ -38,6 +38,48 @@ The function receives `(value, rule, ctx, render)`, where `ctx` contains the sur
 
 <<< @/snippets/validator/custom-rules.ts#sibling
 
+## Business rule patterns
+
+Built-in rules validate one value in isolation. Business rules usually depend on other fields or on the whole row, which is what custom validators are for. Every example below comes from the [team invitation form](/vue/examples/team-invite).
+
+| Requirement                            | Rule lives on        | Approach                              |
+| -------------------------------------- | -------------------- | ------------------------------------- |
+| Seats must respect the selected plan   | the `seats` field    | custom validator reads `form.values`  |
+| The list must respect the plan limit   | the `members` array  | validator on the array node itself    |
+| Emails must be unique                  | each row's `email`   | custom validator compares siblings    |
+| Email availability must hit the server | each row's `email`   | async validator + `triggerType`       |
+| Re-check limits when the plan changes  | the dependent fields | `form.validate(pattern)` in an effect |
+
+### Cross-field limits
+
+A field can read any sibling through `form.values`. Return a message instead of `false` when the reason matters — it is shown as-is:
+
+<<< @/snippets/validator/business-rules.ts#cross-field
+
+Cross-field rules re-run only when **their own field** is validated. Changing `plan` does not automatically re-validate `seats`, so pair the rule with an effect:
+
+<<< @/snippets/validator/business-rules.ts#revalidate
+
+Schedule such a re-check only when a dependency actually changes. Validating on every keystroke of the whole form is unnecessary; `form.validate('seats')` keeps the cost to the affected fields.
+
+### Array-level rules
+
+Put the rule on the array node when the message belongs to the list rather than to one row. The value passed to the validator is the whole array:
+
+<<< @/snippets/validator/business-rules.ts#array-rule
+
+### Unique rows
+
+Compare the current value with the rest of the array inside the row validator, so feedback renders under the offending input instead of at the bottom of the list:
+
+<<< @/snippets/validator/business-rules.ts#duplicate
+
+### Remote checks on blur
+
+Async validators work like sync ones. Set `triggerType: 'onBlur'` so an expensive request is not fired on every keystroke; the field enters `validateStatus: 'validating'` until it settles:
+
+<<< @/snippets/validator/business-rules.ts#async
+
 ## Display errors
 
 Validation feedback is written back onto the field model:

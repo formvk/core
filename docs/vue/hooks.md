@@ -16,6 +16,21 @@ Hooks expose the current form and field to components rendered through `SchemaFi
 
 `useField()` returns a ref: read it through `.value` in `<script setup>`, while templates unwrap it automatically. It returns `null` outside a field subtree.
 
+## Which hook for which job
+
+| You are building…                                                  | Use                | Why                                                 |
+| ------------------------------------------------------------------ | ------------------ | --------------------------------------------------- |
+| A footer / toolbar inside `FormProvider` but outside `SchemaField` | `useForm()`        | Reads and drives the same form model                |
+| A custom control rendered by `SchemaField`                         | `useField()`       | Gives you `value`, `onInput`, `selfErrors`          |
+| A component whose rendering depends on schema metadata             | `useFieldSchema()` | Read slots, `componentProps` or custom `x-*` fields |
+| A block that registers form-level effects                          | `useFormEffects()` | Cleaned up with the component lifecycle             |
+| Something inside a field subtree that must reach the form          | `useParentForm()`  | Walks up object-field parents                       |
+| Binding an externally created model to a component                 | `useAttach(ref)`   | Calls `onMount` / `onUnmount` with the lifecycle    |
+
+A footer toolbar is the typical `useForm()` case — it sits below the fields and drives submit or a partial validation. Templates unwrap the ref automatically, so no `.value` is needed:
+
+<<< @/snippets/vue/use-form-toolbar.vue
+
 A custom input that reads the field directly:
 
 <<< @/snippets/vue/custom-input.vue

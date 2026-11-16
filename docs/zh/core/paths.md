@@ -78,7 +78,35 @@ form.setFieldState('members.*.email', field => {
 const email = form.query('members.*.email').take()
 ```
 
-同一套模式也驱动 [effects](/zh/core/#effects) 与 schema 的[响应联动](/zh/schema/#响应联动)：reaction 的 `dependencies` 按路径监听，`target` 按路径写入字段。
+同一套模式也驱动 [effects](/zh/core/#effects) 与 schema 的[响应联动](/zh/schema/#响应联动)：在 reaction 函数里用 `form.query(path)` 按路径读取字段，对象形式的 `target` 则按路径写入字段。
+
+## 场景：团队成员表格
+
+重复行最能体现路径模式的价值。下面的片段使用[团队邀请示例](/zh/vue/examples/team-invite)中的 `members` 数组；同样的模式适用于任何列表、树或动态创建的字段组。
+
+### address 还是 path：选对 API
+
+`address` 走 schema 图（包含 `void` 包装与数组下标）；`path` 走 `form.values`（跳过 `void`）。字段操作（`setFieldState`、`validate`、effect 模式）两者都能理解，取值操作只理解 path。没有 `void` 节点时两者完全一致，所以大多数表单不会察觉差异。
+
+<<< @/snippets/core/paths-business.ts#address-vs-path
+
+### 校验并更新一整列
+
+一个通配符就能替代遍历 `form.fields`。两次调用都会作用于已有行；`setFieldState` 还能覆盖之后新增的行，因为匹配的字段在挂载时会再次应用。
+
+<<< @/snippets/core/paths-business.ts#bulk
+
+### 把一整列读成数据
+
+`form.query(...).map(field => field.value)` 是字段模型与普通数组之间的桥梁，适合汇总、计数与禁用态判断：
+
+<<< @/snippets/core/paths-business.ts#group-read
+
+### 只重置一组字段
+
+`reset(pattern)` 只作用于匹配字段，因此“清空所有成员”按钮不会重置表单其余部分：
+
+<<< @/snippets/core/paths-business.ts#group-reset
 
 ## 下一步
 

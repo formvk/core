@@ -162,7 +162,11 @@ TypeScript 不支持部分类型参数推断：显式传入组件 map 后，`Def
 
 ## 联动
 
-联动会监听 `dependencies`、求值 `when`，并执行 `fulfill` 或 `otherwise` 分支：
+联动是一个 `(field, scope) => void` 函数，运行在字段的响应式上下文中。函数内读取到的任何可观察值都会成为依赖：
+
+<<< @/snippets/schema/reactions.ts#field-reaction
+
+对象形式只用于必须保存在纯 JSON schema 中的联动：
 
 <<< @/snippets/schema/reactions.ts#reaction-object
 
@@ -176,7 +180,7 @@ TypeScript 不支持部分类型参数推断：显式传入组件 map 后，`Def
 | `fulfill.schema` / `otherwise.schema` | 合并到节点上的 schema 片段。                                                      |
 | `fulfill.run` / `otherwise.run`       | 作为代码执行的表达式字符串。                                                      |
 
-联动也可以直接写成函数 `(field, scope) => void`，该函数运行在字段的响应式上下文中。
+业务代码优先使用函数形式：它就是普通 TypeScript，不需要表达式字符串，阅读顺序也是自上而下。
 
 ## `createExpression`
 

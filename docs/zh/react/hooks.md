@@ -15,6 +15,23 @@ React hooks 返回的是**裸值**，不是 Vue 风格的 ref，不需要 `.valu
 
 没有 `useInjectionCleaner` hook：上下文隔离已经内建在 `FormProvider` 中。
 
+## 每个 hook 用在什么场景
+
+| 你要构建…                                         | 使用                | 原因                                            |
+| ------------------------------------------------- | ------------------- | ----------------------------------------------- |
+| `FormProvider` 内、`SchemaField` 外的页脚或工具栏 | `useForm()`         | 读写同一个表单模型                              |
+| 由 `SchemaField` 渲染的自定义控件                 | `useField()`        | 直接拿到 `value`、`onInput`、`selfErrors`       |
+| 渲染依赖 schema 元数据的组件                      | `useFieldSchema()`  | 读取 slot、`componentProps` 或自定义 `x-*` 字段 |
+| 需要注册表单级 effects 的区块                     | `useFormEffects()`  | 卸载时自动清理                                  |
+| 字段子树内需要访问所属表单                        | `useParentForm()`   | 会沿 object 字段父级向上查找                    |
+| 把外部创建的模型绑定到组件生命周期                | `useAttach(target)` | 随组件调用 `onMount` / `onUnmount`              |
+
+页脚工具栏是 `useForm()` 的典型场景 —— 它位于字段下方，负责提交或局部校验：
+
+<<< @/snippets/react/use-form-toolbar.tsx
+
+所有 hook 都返回裸值。读取它的组件必须用 `observer` 包裹，否则工具栏按钮不会响应 `form.submitting` 的变化。
+
 直接读取字段的自定义输入组件。注意 `observer` 包裹与 `slots` 清理：
 
 <<< @/snippets/react/custom-input.tsx

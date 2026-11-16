@@ -57,6 +57,23 @@ Each descriptor is normalized into a rule object: a string becomes `{ format: va
 
 Empty values skip every rule except `required`, so optional fields do not produce format errors while blank.
 
+### Pick a rule by requirement
+
+| Requirement                            | Rule                          | Note                                                     |
+| -------------------------------------- | ----------------------------- | -------------------------------------------------------- |
+| The field must be filled               | `required: true`              | Also drives the required marker in components            |
+| Email / URL / phone / ID card          | `format: 'email'` and friends | Prefer a built-in format over a hand-written regex       |
+| Must match a custom shape              | `pattern`                     | Accepts a `RegExp` or a regex string                     |
+| Amount must be a multiple of something | `multipleOf`                  | Combine with `min` / `max` for a range                   |
+| Exact length                           | `len`                         | Or `minLength` / `maxLength`                             |
+| At most N rows                         | `maxItems`                    | Put it on the array field                                |
+| No duplicate primitive items           | `uniqueItems: true`           | Objects need a custom validator                          |
+| Value must be one of a list            | `enum`                        | Good for select-like values                              |
+| Must equal another field               | custom `validator`            | Built-ins only see the current value                     |
+| Must be available on the server        | async custom `validator`      | Add `triggerType: 'onBlur'` to avoid per-keystroke calls |
+
+The pattern: use a declarative rule when the requirement can be checked from the value alone, and a custom validator as soon as it needs sibling values, the whole row or the network.
+
 ## Custom validator functions
 
 ```ts

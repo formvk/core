@@ -92,11 +92,32 @@ Schema 使用小驼峰命名：Formily 的 `x-component` 对应 `component`，`x
 
 ## 响应联动
 
-reactions 用于字段联动：监听 `dependencies`，判断 `when`，命中后应用 `fulfill`，否则应用 `otherwise`，从而 patch 字段状态甚至 schema 本身：
+reaction 就是一个普通函数 `(field) => void`。它运行在字段的响应式上下文中，读取到的任何可观察值（`field.value`、`field.form.values.plan`、外部 store）都会成为依赖，变化时函数自动重跑：
 
 <<< @/snippets/schema/reactions.ts#field-reaction
 
-reactions 是核心 effect 钩子（`onFieldReact`、`onFieldChange`）的声明式对应物。可运行示例见[动态联动](/zh/vue/examples/reactions)。
+心智模型与 effect 一致：读取需要的数据，再写入需要变化的状态。优先使用函数形式；对象形式（`dependencies` / `when` / `fulfill`）只在联动必须保存在纯 JSON schema 中时才需要。
+
+可运行示例见[动态联动](/zh/vue/examples/reactions)。
+
+## 表达式、reactions 还是 effects？
+
+三者都是把 schema 与其他数据连接起来，按“你要改变什么”来选择：
+
+| 你要…                                                        | 使用       | 原因                                         |
+| ------------------------------------------------------------ | ---------- | -------------------------------------------- |
+| 根据取值派生组件 prop 或校验上限                             | 表达式     | 编译期字符串，留在 schema 内部               |
+| 其他字段变化时切换 `visible` / `required` / `componentProps` | reaction   | 函数读取 `field.form.values`，变化时自动重跑 |
+| 在变化时执行命令式逻辑（校验、清空、埋点）                   | effect     | 可访问完整的 `field` / `form`，支持异步      |
+| 只给 UI 使用的派生数据                                       | `computed` | 不属于 schema，也不需要额外字段状态来同步    |
+
+[团队邀请示例](/zh/vue/examples/team-invite)三者配合使用：reactions 控制 `seats`、`billingEmail` 与 `message` 的显隐；effects 在 `plan` 变化时重新校验限制，并在成员被删空时补回一行；`computed` 渲染邀请汇总。
+
+选择经验：
+
+- 单个派生值优先用表达式 —— 不需要管理订阅，也不引入额外状态。
+- 结果是字段状态变化（`visible`、`required`、`componentProps`）时优先用 reaction。
+- 逻辑是一串动作或需要与外部交互时用 effect。
 
 ## 下一步
 

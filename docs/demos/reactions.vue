@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import { createForm, FormProvider, createExpression, createSchema, createSchemaField } from '@formvk/vue'
+import { createForm, FormProvider, createSchema, createSchemaField } from '@formvk/vue'
 
 import { DemoArrayItems, demoComponents, FormItem } from './components'
 
 const form = createForm({
   values: { plan: 'free', subscribe: false, email: '', company: '' },
 })
-
-const exp = createExpression<{ plan: string; subscribe: boolean }>('$values')
 
 const { SchemaField, fragment: f } = createSchemaField({
   components: demoComponents,
@@ -33,26 +31,18 @@ const schema = createSchema({
     title: 'Email',
     validator: [{ required: true, message: 'Email is required' }],
     componentProps: { placeholder: 'you@example.com' },
-    reactions: [
-      {
-        dependencies: ['subscribe'],
-        when: exp.subscribe.eq(true),
-        fulfill: { state: { visible: true, required: true } },
-        otherwise: { state: { visible: false, required: false } },
-      },
-    ],
+    reactions: field => {
+      const subscribe = field.form.values.subscribe === true
+      field.visible = subscribe
+      field.required = subscribe
+    },
   }),
   company: f.Input({
     title: 'Company',
     componentProps: { placeholder: 'Acme Inc.' },
-    reactions: [
-      {
-        dependencies: ['plan'],
-        when: exp.plan.eq('enterprise'),
-        fulfill: { state: { visible: true } },
-        otherwise: { state: { visible: false } },
-      },
-    ],
+    reactions: field => {
+      field.visible = field.form.values.plan === 'enterprise'
+    },
   }),
 })
 </script>

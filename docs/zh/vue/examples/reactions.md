@@ -16,10 +16,10 @@ import ReactionsDemo from '../../../demos/zh/reactions.vue'
 
 <<< @/snippets/schema/example-reactions.ts
 
-- `dependencies` 列出 reaction 监听的表单路径（相对表单根）。
-- `when` 是表达式（或普通布尔值），`createExpression` 提供类型提示并产出 <code v-pre>{{ ... }}</code> 字符串。
-- `when` 为真时应用 `fulfill`，否则应用 `otherwise`。
-- `state` 会 patch 到字段上，支持 `visible`、`required`、`title`、`componentProps` 等字段状态。
+- reaction 就是一个普通函数 `(field) => void`。函数里读到的一切 —— `field.form.values.plan`、`field.value`、外部 store —— 都会被自动收集为依赖，不需要维护依赖列表。
+- 直接写字段状态：`field.visible`、`field.required`、`field.title`、`field.componentProps` 等字段状态键都可以赋值。
+- 心智模型和 effect 一致：读取需要的数据，再写入需要变化的状态。
+- 对象形式（`dependencies` / `when` / `fulfill` / `otherwise`）仍然可用，但它只为无法承载函数的纯 JSON schema 保留 —— 见 [Schema 参考](/zh/schema/reference#reactions)。
 
 ## schema 值中的表达式
 
@@ -29,7 +29,7 @@ import ReactionsDemo from '../../../demos/zh/reactions.vue'
 company: f.Input({
   title: '公司名称',
   componentProps: {
-    placeholder: exp.plan.ter('例如：Acme', '你的公司名称'),
+    placeholder: '{{ $values.plan === "free" ? "例如：Acme" : "你的公司名称" }}',
   },
 })
 ```
