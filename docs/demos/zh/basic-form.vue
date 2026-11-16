@@ -2,7 +2,7 @@
 import { createForm, FormProvider, createSchema, createSchemaField } from '@formvk/vue'
 import { ref } from 'vue'
 
-import { DemoArrayItems, demoComponents } from '../components'
+import { DemoArrayItems, demoComponents, FormItem } from '../components'
 
 const form = createForm({
   values: {
@@ -17,7 +17,9 @@ const submitted = ref('')
 
 const { SchemaField, fragment: f } = createSchemaField({
   components: demoComponents,
+  voidComponents: { FormItem },
   arrayComponents: { ArrayItems: DemoArrayItems },
+  defaultDecorator: 'FormItem',
 })
 const schema = createSchema({
   username: f.Input({

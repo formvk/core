@@ -1,7 +1,6 @@
 import { observer } from '@formvk/reactive-react'
 import type { ChangeEvent, FocusEvent } from 'react'
 
-import { FieldWrapper } from './FieldWrapper'
 import { useDemoField } from './useDemoField'
 
 export interface DemoOption {
@@ -47,31 +46,24 @@ export const DemoSelect = observer((props: DemoSelectProps) => {
   }
 
   return (
-    <FieldWrapper
-      title={field?.title as string | undefined}
-      description={field?.description as string | undefined}
-      required={!!field?.required}
-      errors={(field?.selfErrors ?? []) as string[]}
+    <select
+      {...rest}
+      className="demo-select"
+      value={(value as string) ?? ''}
+      disabled={disabled}
+      onChange={handleChange}
+      onFocus={onFocus}
+      onBlur={onBlur}
     >
-      <select
-        {...rest}
-        className="demo-select"
-        value={(value as string) ?? ''}
-        disabled={disabled}
-        onChange={handleChange}
-        onFocus={onFocus}
-        onBlur={onBlur}
-      >
-        <option value="" disabled>
-          {placeholder ?? 'Select an option'}
+      <option value="" disabled>
+        {placeholder ?? 'Select an option'}
+      </option>
+      {resolvedOptions.map(option => (
+        <option key={String(option.value)} value={option.value as string}>
+          {option.label}
         </option>
-        {resolvedOptions.map(option => (
-          <option key={String(option.value)} value={option.value as string}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </FieldWrapper>
+      ))}
+    </select>
   )
 })
 

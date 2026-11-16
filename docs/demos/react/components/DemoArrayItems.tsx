@@ -15,7 +15,6 @@ export const DemoArrayItems = observer((props: DemoArrayItemsProps) => {
   const value = field?.value as unknown[] | undefined
   const items = Array.isArray(value) ? value : []
   const itemSchema = schema?.items
-  const errors = (field?.selfErrors ?? []) as string[]
 
   function add() {
     field?.push({})
@@ -26,31 +25,23 @@ export const DemoArrayItems = observer((props: DemoArrayItemsProps) => {
   }
 
   return (
-    <div className="demo-field">
-      <span className="demo-field__label">{field?.title as string}</span>
-      <span className="demo-field__control">
-        {items.map((_item, index) => (
-          <div key={index} className="demo-array__item">
-            <div className="demo-array__header">
-              <span>#{index + 1}</span>
-              <button type="button" className="demo-btn demo-btn--danger" onClick={() => remove(index)}>
-                {props.removeText ?? 'Remove'}
-              </button>
-            </div>
-            {itemSchema && !Array.isArray(itemSchema) ? <RecursionField schema={itemSchema} name={index} /> : null}
+    <div className="demo-array">
+      {items.map((_item, index) => (
+        <div key={index} className="demo-array__item">
+          <div className="demo-array__header">
+            <span>#{index + 1}</span>
+            <button type="button" className="demo-btn demo-btn--danger" onClick={() => remove(index)}>
+              {props.removeText ?? 'Remove'}
+            </button>
           </div>
-        ))}
-        <div>
-          <button type="button" className="demo-btn demo-btn--ghost" onClick={add}>
-            {props.addText ?? 'Add item'}
-          </button>
+          {itemSchema && !Array.isArray(itemSchema) ? <RecursionField schema={itemSchema} name={index} /> : null}
         </div>
-        {errors.map(error => (
-          <span key={error} className="demo-field__error">
-            {error}
-          </span>
-        ))}
-      </span>
+      ))}
+      <div>
+        <button type="button" className="demo-btn demo-btn--ghost" onClick={add}>
+          {props.addText ?? 'Add item'}
+        </button>
+      </div>
     </div>
   )
 })

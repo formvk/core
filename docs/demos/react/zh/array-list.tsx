@@ -1,11 +1,13 @@
 import { createForm, createSchema, createSchemaField, FormProvider } from '@formvk/react'
 import { useState } from 'react'
 
-import { DemoArrayItems, demoComponents } from '../components'
+import { DemoArrayItems, demoComponents, FormItem } from '../components'
 
 const { SchemaField, fragment: f } = createSchemaField({
   components: demoComponents,
+  voidComponents: { FormItem },
   arrayComponents: { ArrayItems: DemoArrayItems },
+  defaultDecorator: 'FormItem',
 })
 
 const schema = createSchema({
@@ -24,6 +26,8 @@ const schema = createSchema({
     }),
     {
       title: '成员',
+      // 默认装饰器只作用于 string 字段，array 需要显式声明
+      decorator: 'FormItem',
       componentProps: { addText: '添加成员', removeText: '删除' },
     }
   ),

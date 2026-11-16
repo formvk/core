@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-import FieldWrapper from './FieldWrapper.vue'
 import { useDemoField } from './useDemoField'
 
 interface Option {
@@ -23,7 +22,7 @@ const emit = defineEmits<{
   blur: [event: FocusEvent]
 }>()
 
-const { field, title, description, required, errors } = useDemoField()
+const { field } = useDemoField()
 
 function normalize(source: any): Option[] {
   if (!Array.isArray(source)) return []
@@ -49,19 +48,17 @@ function onChange(event: Event) {
 </script>
 
 <template>
-  <FieldWrapper :title="title" :description="description" :required="required" :errors="errors">
-    <select
-      class="demo-select"
-      :value="value ?? ''"
-      :disabled="disabled"
-      @change="onChange"
-      @focus="emit('focus', $event)"
-      @blur="emit('blur', $event)"
-    >
-      <option value="" disabled>{{ placeholder ?? 'Select an option' }}</option>
-      <option v-for="option in resolvedOptions" :key="option.value" :value="option.value">
-        {{ option.label }}
-      </option>
-    </select>
-  </FieldWrapper>
+  <select
+    class="demo-select"
+    :value="value ?? ''"
+    :disabled="disabled"
+    @change="onChange"
+    @focus="emit('focus', $event)"
+    @blur="emit('blur', $event)"
+  >
+    <option value="" disabled>{{ placeholder ?? 'Select an option' }}</option>
+    <option v-for="option in resolvedOptions" :key="option.value" :value="option.value">
+      {{ option.label }}
+    </option>
+  </select>
 </template>

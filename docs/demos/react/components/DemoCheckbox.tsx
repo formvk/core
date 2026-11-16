@@ -1,11 +1,8 @@
 import { observer } from '@formvk/reactive-react'
 import type { ChangeEvent, FocusEvent } from 'react'
 
-import { useDemoField } from './useDemoField'
-
 export interface DemoCheckboxProps {
   value?: unknown
-  label?: string
   disabled?: boolean
   readOnly?: boolean
   onChange?: (value: boolean) => void
@@ -15,39 +12,24 @@ export interface DemoCheckboxProps {
 }
 
 export const DemoCheckbox = observer((props: DemoCheckboxProps) => {
-  const field = useDemoField()
-  const { value, label, disabled, readOnly, onChange, onFocus, onBlur, ...rest } = props
+  const { value, disabled, readOnly, onChange, onFocus, onBlur, ...rest } = props
   delete rest.slots
-
-  const content = label ?? (field?.title as string | undefined) ?? ''
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
     onChange?.(event.target.checked)
   }
 
   return (
-    <div className="demo-field">
-      <span className="demo-field__label" />
-      <span className="demo-field__control">
-        <label className="demo-checkbox">
-          <input
-            {...rest}
-            type="checkbox"
-            checked={!!value}
-            disabled={disabled || readOnly}
-            onChange={handleChange}
-            onFocus={onFocus}
-            onBlur={onBlur}
-          />
-          <span>{content}</span>
-        </label>
-        {((field?.selfErrors ?? []) as string[]).map(error => (
-          <span key={error} className="demo-field__error">
-            {error}
-          </span>
-        ))}
-      </span>
-    </div>
+    <input
+      {...rest}
+      className="demo-checkbox"
+      type="checkbox"
+      checked={!!value}
+      disabled={disabled || readOnly}
+      onChange={handleChange}
+      onFocus={onFocus}
+      onBlur={onBlur}
+    />
   )
 })
 

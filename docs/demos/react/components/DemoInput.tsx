@@ -1,9 +1,6 @@
 import { observer } from '@formvk/reactive-react'
 import type { ChangeEvent, FocusEvent } from 'react'
 
-import { FieldWrapper } from './FieldWrapper'
-import { useDemoField } from './useDemoField'
-
 export interface DemoInputProps {
   value?: unknown
   type?: string
@@ -17,7 +14,6 @@ export interface DemoInputProps {
 }
 
 export const DemoInput = observer((props: DemoInputProps) => {
-  const field = useDemoField()
   const { value, type, placeholder, disabled, readOnly, onChange, onFocus, onBlur, ...rest } = props
   // slots is the named-slot map injected by the React binding, not a native input attribute
   delete rest.slots
@@ -28,25 +24,18 @@ export const DemoInput = observer((props: DemoInputProps) => {
   }
 
   return (
-    <FieldWrapper
-      title={field?.title as string | undefined}
-      description={field?.description as string | undefined}
-      required={!!field?.required}
-      errors={(field?.selfErrors ?? []) as string[]}
-    >
-      <input
-        {...rest}
-        className="demo-input"
-        type={type ?? 'text'}
-        value={(value as string) ?? ''}
-        placeholder={placeholder}
-        disabled={disabled}
-        readOnly={readOnly}
-        onChange={handleChange}
-        onFocus={onFocus}
-        onBlur={onBlur}
-      />
-    </FieldWrapper>
+    <input
+      {...rest}
+      className="demo-input"
+      type={type ?? 'text'}
+      value={(value as string) ?? ''}
+      placeholder={placeholder}
+      disabled={disabled}
+      readOnly={readOnly}
+      onChange={handleChange}
+      onFocus={onFocus}
+      onBlur={onBlur}
+    />
   )
 })
 

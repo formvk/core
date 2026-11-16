@@ -22,6 +22,13 @@ export default defineConfig({
       label: '简体中文',
       lang: 'zh-CN',
       link: '/zh/',
+      themeConfig: {
+        nav: [
+          { text: '指南', link: '/zh/guide/', activeMatch: '^/zh/guide/' },
+          { text: '示例', link: '/zh/examples/basic-form', activeMatch: '^/zh/examples/' },
+          { text: 'API', link: '/zh/api/vue', activeMatch: '^/zh/api/' },
+        ],
+      },
     },
   },
   themeConfig: {

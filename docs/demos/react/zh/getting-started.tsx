@@ -2,12 +2,14 @@ import { createForm, createSchema, createSchemaField, FormProvider } from '@form
 import { observer } from '@formvk/reactive-react'
 import { useState } from 'react'
 
-import { DemoArrayItems, demoComponents } from '../components'
+import { DemoArrayItems, demoComponents, FormItem } from '../components'
 
 // schema 与组件工厂是静态的，模块级只构建一次；form 放进组件内惰性创建，实例随组件生命周期走
 const { SchemaField, fragment: f } = createSchemaField({
   components: demoComponents,
+  voidComponents: { FormItem },
   arrayComponents: { ArrayItems: DemoArrayItems },
+  defaultDecorator: 'FormItem',
 })
 
 const schema = createSchema({

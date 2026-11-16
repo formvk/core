@@ -2,13 +2,15 @@ import { createExpression, createForm, createSchema, createSchemaField, FormProv
 import { observer } from '@formvk/reactive-react'
 import { useState } from 'react'
 
-import { DemoArrayItems, demoComponents } from './components'
+import { DemoArrayItems, demoComponents, FormItem } from './components'
 
 const exp = createExpression<{ plan: string; subscribe: boolean }>('$values')
 
 const { SchemaField, fragment: f } = createSchemaField({
   components: demoComponents,
+  voidComponents: { FormItem },
   arrayComponents: { ArrayItems: DemoArrayItems },
+  defaultDecorator: 'FormItem',
 })
 
 const schema = createSchema({
