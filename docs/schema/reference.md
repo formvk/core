@@ -11,15 +11,43 @@ import { createSchema, createFragment, createExpression, Schema } from '@formvk/
 ## `createSchema`
 
 ```ts
-function createSchema<Properties extends Record<string, unknown>>(
-  properties: Properties,
+// Inject the value type explicitly
+function createSchema<IValues extends object, IScope extends object = {}>(
+  properties: SchemaPropertiesInjection<IValues, IScope>,
+  patches?: SchemaPatchInput | SchemaPatchInput[]
+): ISchema & { _$types$_: [IValues] }
+
+// Infer the value type from the creators
+function createSchema<Properties extends Record<string, unknown>, IValues extends SchemaPropertiesValues<Properties>>(
+  properties: Properties & ValidateSchemaProperties<Properties>,
   patches?: SchemaPatchInput | SchemaPatchInput[]
 ): ISchema & { _$types$_: [IValues] }
 ```
 
 Assembles a root `type: 'object'` schema. Each property accepts a creator (the functions returned by `createFragment`), a plain `ISchema` object, or `null` / `undefined`. Creators are expanded immediately, so the return value is a plain JSON-serializable schema.
 
-The `_$types$_` marker carries the inferred form value type (for example `{ name: string; tags: string[] }`). It is type-level metadata only and never appears at runtime.
+Without a type argument the value type is inferred from the creators, and top-level creators cannot see it: TypeScript does not propagate an object literal's inferred type into its siblings, so `field.record` stays `any`. Pass the value type explicitly to inject it as the root record context — `field.record` becomes `IValues`, `scope.$record` becomes `IValues & { $lookup, $index }` and `scope.$values` becomes `IValues` inside every top-level creator:
+
+```ts
+interface InviteValues {
+  plan?: string
+  seats?: number
+}
+
+const schema = createSchema<InviteValues>({
+  plan: f.Field({ component: 'Select' }),
+  seats: f.Field({
+    reactions: (field, scope) => {
+      // field.record is InviteValues, scope.$values is InviteValues
+      field.visible = field.record.plan !== 'free'
+    },
+  }),
+})
+```
+
+Injection also drives each key's value type: a creator placed under a declared key infers its value type from that key, so `field.value` inside `reactions` is `number | undefined` under `seats?: number` and `string | undefined` under `plan?: string`. Keys missing from the interface only accept void creators, plain `ISchema` objects or empty values. Leave the value generic off top-level creators (`f.Field({...})` rather than `f.Field<number>({...})`) — an explicit generic stops TypeScript from inferring the creator's remaining type parameters, which turns `field.record` back into `any`. Object-valued keys (nested objects, arrays) keep the container's own inferred record, so `f.Object` / `f.ArrayItems` are typed from their own contents.
+
+The `_$types$_` marker carries the form value type (for example `{ name: string; tags: string[] }`). It is type-level metadata only and never appears at runtime.
 
 > Vue users can skip the hand-written component props maps entirely: `createSchemaField` from `@formvk/vue` takes a flat component map plus optional `voidComponents` / `arrayComponents`, returns `{ SchemaField, fragment }`, and infers the component props, scope and value types with no type arguments. See [Vue bindings](/vue/#schemafield).
 
@@ -162,7 +190,7 @@ Any field marked as expression-capable accepts a <code v-pre>{{ ... }}</code> st
 
 ## Reactions
 
-A reaction is a function `(field, scope) => void` that runs inside the field's reactive context. Any observable read inside it becomes a dependency:
+A reaction is a function `(field, scope) => void` that runs inside the field's reactive context. Any observable read inside it becomes a dependency. `field.record` is typed when the value type is injected with `createSchema<Values>`; otherwise it stays `any`:
 
 <<< @/snippets/schema/reactions.ts#field-reaction
 

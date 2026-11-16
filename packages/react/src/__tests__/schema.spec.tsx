@@ -546,7 +546,7 @@ describe('createSchemaField 返回 SchemaField + fragment', () => {
       name: f.Field({
         required: true,
         reactions: (field, scope) => {
-          expectTypeOf(field.value).toEqualTypeOf<string>()
+          expectTypeOf(field.value).toEqualTypeOf<string | undefined>()
           expectTypeOf(scope.$moment).toEqualTypeOf<(value: string) => string>()
           expectTypeOf(scope.$record).toEqualTypeOf<{ name: string; age: number } & { $lookup: any; $index: number }>()
         },
@@ -554,7 +554,7 @@ describe('createSchemaField 返回 SchemaField + fragment', () => {
       age: f.Field({
         required: true,
         reactions: field => {
-          expectTypeOf(field.value).toEqualTypeOf<number>()
+          expectTypeOf(field.value).toEqualTypeOf<number | undefined>()
         },
       }),
       layout: f.Layout({}),
@@ -577,7 +577,7 @@ describe('createSchemaField 返回 SchemaField + fragment', () => {
       }),
       {
         reactions: (field, scope) => {
-          expectTypeOf(field.value).toEqualTypeOf<{ name: string }[]>()
+          expectTypeOf(field.value).toEqualTypeOf<{ name: string }[] | undefined>()
           expectTypeOf(scope.$moment).toEqualTypeOf<(value: string) => string>()
         },
       }

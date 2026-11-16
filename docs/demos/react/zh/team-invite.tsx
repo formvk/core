@@ -42,7 +42,7 @@ const { SchemaField, fragment: f } = createSchemaField({
   defaultDecorator: 'FormItem',
 })
 
-const schema = createSchema({
+const schema = createSchema<TeamInviteValues>({
   teamName: f.Input({
     title: '团队名称',
     required: true,
@@ -85,7 +85,7 @@ const schema = createSchema({
     ],
     componentProps: { type: 'number', placeholder: '3' },
     reactions: field => {
-      const paid = field.form.values.plan !== 'free'
+      const paid = field.record.plan !== 'free'
       field.visible = paid
       field.required = paid
     },
@@ -96,7 +96,7 @@ const schema = createSchema({
     validator: [{ format: 'email', message: '请输入有效的账单邮箱' }],
     componentProps: { placeholder: 'finance@acme.com' },
     reactions: field => {
-      const paid = field.form.values.plan !== 'free'
+      const paid = field.record.plan !== 'free'
       field.visible = paid
       field.required = paid
     },
@@ -162,7 +162,7 @@ const schema = createSchema({
     title: '邀请文案',
     componentProps: { rows: 3, placeholder: '欢迎加入！这里是我们的协作方式……' },
     reactions: field => {
-      field.visible = field.form.values.inviteNow === true
+      field.visible = field.record.inviteNow === true
     },
   }),
 })

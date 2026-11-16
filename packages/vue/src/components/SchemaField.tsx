@@ -1,3 +1,4 @@
+/** @jsxImportSource vue */
 import type { Form } from '@formvk/core'
 import { createFragment, Schema } from '@formvk/schema'
 import type { AnyComponent, ISchema, SchemaKey } from '@formvk/schema'

@@ -1,16 +1,25 @@
-import { createFragment } from '@formvk/schema'
+import { createFragment, createSchema } from '@formvk/schema'
 
 const f = createFragment()
 
 // #region field-reaction
-const email = f.Field({
-  title: 'Email',
-  component: 'Input',
-  reactions: field => {
-    const subscribe = field.form.values.subscribe === true
-    field.visible = subscribe
-    field.required = subscribe
-  },
+interface InviteValues {
+  subscribe?: boolean
+  email?: string
+}
+
+const schema = createSchema<InviteValues>({
+  subscribe: f.Field({ component: 'Checkbox', title: 'Subscribe' }),
+  email: f.Field({
+    title: 'Email',
+    component: 'Input',
+    reactions: field => {
+      // field.record is InviteValues: createSchema injected the declared values
+      const subscribe = field.record.subscribe === true
+      field.visible = subscribe
+      field.required = subscribe
+    },
+  }),
 })
 // #endregion
 
@@ -25,5 +34,5 @@ const reaction = {
 }
 // #endregion
 
-void email
+void schema
 void reaction

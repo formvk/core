@@ -272,36 +272,36 @@ describe('fragment types', () => {
   test('reactions infer value and record', () => {
     f.Field<number>({
       reactions: field => {
-        expectTypeOf(field.value).toEqualTypeOf<number>()
+        expectTypeOf(field.value).toEqualTypeOf<number | undefined>()
       },
     })
     f.Field({
       reactions: field => {
-        expectTypeOf(field.value).toEqualTypeOf<string>()
+        expectTypeOf(field.value).toEqualTypeOf<string | undefined>()
       },
     })
     f.Input<number>({
       reactions: field => {
-        expectTypeOf(field.value).toEqualTypeOf<number>()
+        expectTypeOf(field.value).toEqualTypeOf<number | undefined>()
       },
     })
     f.Object(
       { name: f.Field({ required: true }) },
       {
         reactions: field => {
-          expectTypeOf(field.value).toEqualTypeOf<{ name?: string }>()
+          expectTypeOf(field.value).toEqualTypeOf<{ name?: string } | undefined>()
         },
       }
     )
     f.Array(f.Object({ name: f.Field({ required: true }) }), {
       reactions: field => {
-        expectTypeOf(field.value).toEqualTypeOf<{ name?: string }[]>()
+        expectTypeOf(field.value).toEqualTypeOf<{ name?: string }[] | undefined>()
         expectTypeOf(field.record).toEqualTypeOf<{ name?: string }>()
       },
     })
     f.ArrayItems(f.Field<number>({ required: true }), {
       reactions: field => {
-        expectTypeOf(field.value).toEqualTypeOf<number[]>()
+        expectTypeOf(field.value).toEqualTypeOf<number[] | undefined>()
       },
     })
   })
@@ -310,7 +310,7 @@ describe('fragment types', () => {
     f.Field<number>({
       reactions: (field, scope) => {
         expectTypeOf(scope.$self).toEqualTypeOf(field)
-        expectTypeOf(scope.$self.value).toEqualTypeOf<number>()
+        expectTypeOf(scope.$self.value).toEqualTypeOf<number | undefined>()
         expectTypeOf(scope.$index).toEqualTypeOf<number>()
         expectTypeOf(scope.$form).toEqualTypeOf<Form<any>>()
         expectTypeOf(scope.$values).toBeAny()
@@ -361,7 +361,7 @@ describe('fragment types', () => {
 
     scoped.Field<number>({
       reactions: (field, scope) => {
-        expectTypeOf(field.value).toEqualTypeOf<number>()
+        expectTypeOf(field.value).toEqualTypeOf<number | undefined>()
         expectTypeOf(scope.$moment).toEqualTypeOf<(value: string) => string>()
         // @ts-expect-error scope 未声明的字段
         void scope.$unknown
@@ -371,14 +371,14 @@ describe('fragment types', () => {
     scoped.Field({
       required: true,
       reactions: (field, scope) => {
-        expectTypeOf(field.value).toEqualTypeOf<string>()
+        expectTypeOf(field.value).toEqualTypeOf<string | undefined>()
         expectTypeOf(scope.$moment).toEqualTypeOf<(value: string) => string>()
       },
     })
 
     scoped.Array(scoped.Object({ name: scoped.Field({ required: true }) }), {
       reactions: (field, scope) => {
-        expectTypeOf(field.value).toEqualTypeOf<{ name?: string }[]>()
+        expectTypeOf(field.value).toEqualTypeOf<{ name?: string }[] | undefined>()
         expectTypeOf(field.record).toEqualTypeOf<{ name?: string }>()
         expectTypeOf(scope.$moment).toEqualTypeOf<(value: string) => string>()
       },
@@ -402,7 +402,7 @@ describe('fragment types', () => {
       name: scoped.Field({
         required: true,
         reactions: (field, scope) => {
-          expectTypeOf(field.value).toEqualTypeOf<string>()
+          expectTypeOf(field.value).toEqualTypeOf<string | undefined>()
           expectTypeOf(scope.$moment).toEqualTypeOf<(value: string) => string>()
           expectTypeOf(scope.$record).toEqualTypeOf<{ name: string; age: number } & { $lookup: any; $index: number }>()
         },
@@ -411,7 +411,7 @@ describe('fragment types', () => {
       age: scoped.Field({
         required: true,
         reactions: (field, scope) => {
-          expectTypeOf(field.value).toEqualTypeOf<number>()
+          expectTypeOf(field.value).toEqualTypeOf<number | undefined>()
           expectTypeOf(scope.$record).toEqualTypeOf<{ name: string; age: number } & { $lookup: any; $index: number }>()
         },
       }),
@@ -427,7 +427,7 @@ describe('fragment types', () => {
         street: scoped.Field({
           required: true,
           reactions: (field, scope) => {
-            expectTypeOf(field.value).toEqualTypeOf<string>()
+            expectTypeOf(field.value).toEqualTypeOf<string | undefined>()
             expectTypeOf(scope.$moment).toEqualTypeOf<(value: string) => string>()
             expectTypeOf(scope.$record).toEqualTypeOf<{ street: string } & { $lookup: any; $index: number }>()
           },
@@ -457,7 +457,7 @@ describe('fragment types', () => {
       }),
       {
         reactions: (field, scope) => {
-          expectTypeOf(field.value).toEqualTypeOf<{ name: string }[]>()
+          expectTypeOf(field.value).toEqualTypeOf<{ name: string }[] | undefined>()
           expectTypeOf(scope.$moment).toEqualTypeOf<(value: string) => string>()
         },
       }
@@ -468,7 +468,7 @@ describe('fragment types', () => {
       name: scoped.Field<string, 'Input', 'FormItem', MyScope, { name: string }, Values>({
         required: true,
         reactions: (field, scope) => {
-          expectTypeOf(field.value).toEqualTypeOf<string>()
+          expectTypeOf(field.value).toEqualTypeOf<string | undefined>()
           expectTypeOf(scope.$values).toEqualTypeOf<Values>()
         },
       }),
@@ -478,7 +478,7 @@ describe('fragment types', () => {
   test('SchemaReaction accepts explicit scope generic', () => {
     type MyScope = { $locale: string }
     const reaction: SchemaReaction<Field<string>, MyScope> = (field, scope) => {
-      expectTypeOf(field.value).toEqualTypeOf<string>()
+      expectTypeOf(field.value).toEqualTypeOf<string | undefined>()
       expectTypeOf(scope.$locale).toEqualTypeOf<string>()
     }
     void reaction
@@ -545,6 +545,47 @@ describe('fragment types', () => {
       name?: string
       age?: number | undefined
     }>()
+  })
+
+  test('createSchema injects declared values as the root record', () => {
+    interface InviteValues {
+      plan: string
+      seats?: number
+      members?: { name?: string }[]
+    }
+
+    const schema = createSchema<InviteValues>({
+      plan: f.Field({
+        required: true,
+        reactions: field => {
+          // 键的值类型从 IValues 注入到 creator 上下文
+          expectTypeOf(field.value).toEqualTypeOf<string | undefined>()
+        },
+      }),
+      // creator 不写显式值泛型，record 才能从上下文推断
+      seats: f.Field({
+        reactions: (field, scope) => {
+          expectTypeOf(field.value).toEqualTypeOf<number | undefined>()
+          // 注入 values 后，根级 creator 的 record 就是整份表单值
+          expectTypeOf(field.record).toEqualTypeOf<InviteValues>()
+          expectTypeOf(scope.$record).toEqualTypeOf<InviteValues & { $lookup: any; $index: number }>()
+          expectTypeOf(scope.$values).toEqualTypeOf<InviteValues>()
+        },
+      }),
+      // 对象值键交给容器 creator 自己推断 record，不被根 record 收敛
+      members: f.ArrayItems(f.Object({ name: f.Input() })),
+    })
+
+    expectTypeOf<(typeof schema._$types$_)[0]>().toEqualTypeOf<InviteValues>()
+  })
+
+  test('createSchema values exclude void nodes and plain schemas', () => {
+    const schema = createSchema({
+      name: f.Field({ required: true }),
+      layout: f.FormLayout(),
+      plain: { type: 'number' },
+    })
+    expectTypeOf<(typeof schema._$types$_)[0]>().toEqualTypeOf<{ name?: string }>()
   })
 
   test('ISchema can be extended', () => {

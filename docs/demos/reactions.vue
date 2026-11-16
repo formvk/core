@@ -3,6 +3,13 @@ import { createForm, FormProvider, createSchema, createSchemaField } from '@form
 
 import { DemoArrayItems, demoComponents, FormItem } from './components'
 
+interface SubscribeValues {
+  plan?: string
+  subscribe?: boolean
+  email?: string
+  company?: string
+}
+
 const form = createForm({
   values: { plan: 'free', subscribe: false, email: '', company: '' },
 })
@@ -13,7 +20,7 @@ const { SchemaField, fragment: f } = createSchemaField({
   arrayComponents: { ArrayItems: DemoArrayItems },
   defaultDecorator: 'FormItem',
 })
-const schema = createSchema({
+const schema = createSchema<SubscribeValues>({
   plan: f.Select({
     title: 'Plan',
     componentProps: {
@@ -32,7 +39,7 @@ const schema = createSchema({
     validator: [{ required: true, message: 'Email is required' }],
     componentProps: { placeholder: 'you@example.com' },
     reactions: field => {
-      const subscribe = field.form.values.subscribe === true
+      const subscribe = field.record.subscribe === true
       field.visible = subscribe
       field.required = subscribe
     },
@@ -41,7 +48,7 @@ const schema = createSchema({
     title: 'Company',
     componentProps: { placeholder: 'Acme Inc.' },
     reactions: field => {
-      field.visible = field.form.values.plan === 'enterprise'
+      field.visible = field.record.plan === 'enterprise'
     },
   }),
 })

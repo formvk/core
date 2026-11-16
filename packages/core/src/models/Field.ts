@@ -235,7 +235,7 @@ export class Field<
   }
 
   @computed
-  get value(): Value {
+  get value(): Value | undefined {
     return this.form.getValuesIn(this.path)
   }
 

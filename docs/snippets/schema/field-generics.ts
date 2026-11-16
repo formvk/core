@@ -18,7 +18,7 @@ f.Object<{ name: string; age: number }>({
   name: f.Field({
     required: true,
     reactions: (field, scope) => {
-      void field.value // string
+      void field.value // string | undefined
       void scope.$record // { name: string; age: number } & { $lookup: any; $index: number }
       void scope.$moment // (value: string) => string
     },

@@ -33,7 +33,7 @@ const schema = createSchema({
     // componentProps is checked against the Input component's props
     componentProps: { placeholder: 'Alice' },
     reactions: (field, scope) => {
-      const value: string = field.value // string
+      const value = field.value // string | undefined: the value may be absent from form.values
       const moment: (value: string) => string = scope.$moment // inferred from the scope option
       void value
       void moment

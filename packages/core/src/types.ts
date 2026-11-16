@@ -132,9 +132,10 @@ export type IFieldUpdate = {
 }
 
 export interface IFormRequests {
-  validate?: number
-  submit?: number
-  loading?: number
+  /** setTimeout 句柄；Node 环境返回值与浏览器不同，用 ReturnType 保持环境无关 */
+  validate?: ReturnType<typeof setTimeout>
+  submit?: ReturnType<typeof setTimeout>
+  loading?: ReturnType<typeof setTimeout>
   updates?: IFieldUpdate[]
   updateIndexes?: Record<string, number>
 }
@@ -243,9 +244,10 @@ export interface IVoidFieldFactoryProps<
 }
 
 export interface IFieldRequests {
-  validate?: number
-  submit?: number
-  loading?: number
+  /** setTimeout 句柄；Node 环境返回值与浏览器不同，用 ReturnType 保持环境无关 */
+  validate?: ReturnType<typeof setTimeout>
+  submit?: ReturnType<typeof setTimeout>
+  loading?: ReturnType<typeof setTimeout>
   batch?: () => void
 }
 

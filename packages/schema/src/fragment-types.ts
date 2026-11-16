@@ -120,7 +120,25 @@ export type SchemaPropertiesContext<
  * 显式 overload 的调用守卫：第一个类型参数默认 never，未显式提供时参数类型为 never，
  * 使调用落到后面的推断 overload；显式提供泛型时还原为真实入参类型。
  */
-type ExplicitTypeArgGuard<T, Context> = [T] extends [never] ? never : Context
+export type ExplicitTypeArgGuard<T, Context> = [T] extends [never] ? never : Context
+
+/**
+ * 显式注入值类型的 properties 上下文（供 createSchema 的注入 overload 使用）。
+ * - 原始值键（string / number / boolean 等）的 creator 通过上下文返回值推断出键的值类型，
+ *   因此 reactions 里 `field.value` 也是该键的值类型；同时 `IValues` 会注入为 record / scope 上下文。
+ * - 对象值键（嵌套对象 / 数组）交给 creator 自己推断：`f.Object` / `f.ArrayItems` 的 record 是
+ *   它们自身的内容类型，与根 record 不同，若仍按 `IValues` 收敛会导致合法的容器 creator 被拒收。
+ * - 未声明的键仍只允许 void 字段，用于布局等不产生值的节点。
+ */
+export type SchemaPropertiesInjection<IValues extends object = any, Scope extends object = {}> =
+  | {
+      [K in keyof IValues]?: NonNullable<IValues[K]> extends object
+        ? SchemaCreator<any, any, any, any> | ISchema | null | undefined
+        : SchemaCreator<NonNullable<IValues[K]> | undefined, Scope, IValues, IValues> | ISchema | null | undefined
+    }
+  | {
+      [key: string]: VoidSchemaCreator<IValues, Scope, IValues> | ISchema | null | undefined
+    }
 
 export interface SchemaCreator<Value = any, IScope = any, IRecord extends object = any, IValues = any> {
   (patches?: SchemaPatchInput | SchemaPatchInput[]): ISchema
@@ -134,8 +152,20 @@ export interface VoidSchemaCreator<IRecord extends object = any, IScope = any, I
   _$types$_: [IRecord, IScope, IValues]
 }
 
+/**
+ * 从 properties 中汇总值类型。
+ * 仅保留 field / object / array 的 creator：void 布局节点、普通 ISchema 与空值不产生表单值，
+ * 从 values 中剔除（与 createSchema 的运行时输出保持一致）。
+ */
 export type SchemaPropertiesValues<P extends Record<string, any>> = {
-  [K in keyof P]?: P[K] extends SchemaCreator<infer Value, any, any, any> ? Value : any
+  [K in keyof P as P[K] extends SchemaCreator<any, any, any, any> ? K : never]?: P[K] extends SchemaCreator<
+    infer Value,
+    any,
+    any,
+    any
+  >
+    ? Value
+    : never
 }
 
 export type FieldSchema<

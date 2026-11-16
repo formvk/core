@@ -5,7 +5,9 @@
     "declaration": false,
     "jsx": "react-jsx",
     "types": ["vite/client"],
-    "paths": {}
+    "paths": {
+      "@formvk/*": ["../packages/*/src"]
+    }
   },
   "include": [
     "./env.d.ts",

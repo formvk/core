@@ -43,7 +43,7 @@ const { SchemaField, fragment: f } = createSchemaField({
   defaultDecorator: 'FormItem',
 })
 
-const schema = createSchema({
+const schema = createSchema<TeamInviteValues>({
   teamName: f.Input({
     title: 'Team name',
     required: true,
@@ -86,7 +86,7 @@ const schema = createSchema({
     ],
     componentProps: { type: 'number', placeholder: '3' },
     reactions: field => {
-      const paid = field.form.values.plan !== 'free'
+      const paid = field.record.plan !== 'free'
       field.visible = paid
       field.required = paid
     },
@@ -97,7 +97,7 @@ const schema = createSchema({
     validator: [{ format: 'email', message: 'Enter a valid billing email' }],
     componentProps: { placeholder: 'finance@acme.com' },
     reactions: field => {
-      const paid = field.form.values.plan !== 'free'
+      const paid = field.record.plan !== 'free'
       field.visible = paid
       field.required = paid
     },
@@ -163,7 +163,7 @@ const schema = createSchema({
     title: 'Invitation message',
     componentProps: { rows: 3, placeholder: 'Welcome aboard! Here is how we work…' },
     reactions: field => {
-      field.visible = field.form.values.inviteNow === true
+      field.visible = field.record.inviteNow === true
     },
   }),
 })

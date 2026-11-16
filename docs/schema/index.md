@@ -51,6 +51,8 @@ Each creator carries its value type. `f.Field<number>()` yields `number | undefi
 
 <<< @/snippets/schema/value-inference.ts
 
+If the values interface already exists (it usually does, since the form is typed with it), declare it instead: `createSchema<Values>({...})` injects it as the root record context, so `field.record` and `scope.$values` inside top-level creators are fully typed. The injected type also drives each key's value type, so `field.value` is typed too. Leave the value generic off those creators (`f.Field({...})`, not `f.Field<number>({...})`), otherwise TypeScript stops inferring their remaining type parameters and `field.record` falls back to `any`.
+
 ### Component props typing
 
 Pass component props maps to `createFragment` to type `componentProps` and get dynamic creators. The first three type arguments are independent maps — `F` for field components, `V` for void / layout components and `A` for array components:
@@ -92,9 +94,11 @@ Any schema value that supports expressions can contain a <code v-pre>{{ ... }}</
 
 ## Reactions
 
-A reaction is a plain function `(field) => void`. It runs inside the field's reactive context, so any observable it reads — `field.value`, `field.form.values.plan`, an external store — becomes a dependency and re-runs the function when it changes:
+A reaction is a plain function `(field) => void`. It runs inside the field's reactive context, so any observable it reads — `field.value`, `field.record.plan`, `field.form.values.plan`, an external store — becomes a dependency and re-runs the function when it changes:
 
 <<< @/snippets/schema/reactions.ts#field-reaction
+
+`field.record` is the parent record, which is the whole form values for a top-level field. Pass the value type to `createSchema<Values>` to inject it as the root record context; without the type argument `field.record` is `any`.
 
 This is the same mental model as an effect: read what you need, then write what should change. Prefer it over the object form (`dependencies` / `when` / `fulfill`), which is only useful when a reaction has to stay inside a pure-JSON schema.
 

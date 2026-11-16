@@ -11,7 +11,14 @@ const { SchemaField, fragment: f } = createSchemaField({
   defaultDecorator: 'FormItem',
 })
 
-const schema = createSchema({
+interface SubscribeValues {
+  plan?: string
+  subscribe?: boolean
+  email?: string
+  company?: string
+}
+
+const schema = createSchema<SubscribeValues>({
   plan: f.Select({
     title: '套餐',
     componentProps: {
@@ -30,7 +37,7 @@ const schema = createSchema({
     validator: [{ required: true, message: '请输入邮箱' }],
     componentProps: { placeholder: 'you@example.com' },
     reactions: field => {
-      const subscribe = field.form.values.subscribe === true
+      const subscribe = field.record.subscribe === true
       field.visible = subscribe
       field.required = subscribe
     },
@@ -39,7 +46,7 @@ const schema = createSchema({
     title: '公司名称',
     componentProps: { placeholder: '例如：Acme' },
     reactions: field => {
-      field.visible = field.form.values.plan === 'enterprise'
+      field.visible = field.record.plan === 'enterprise'
     },
   }),
 })

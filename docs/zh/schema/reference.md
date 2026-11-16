@@ -11,15 +11,43 @@ import { createSchema, createFragment, createExpression, Schema } from '@formvk/
 ## `createSchema`
 
 ```ts
-function createSchema<Properties extends Record<string, unknown>>(
-  properties: Properties,
+// 显式注入值类型
+function createSchema<IValues extends object, IScope extends object = {}>(
+  properties: SchemaPropertiesInjection<IValues, IScope>,
+  patches?: SchemaPatchInput | SchemaPatchInput[]
+): ISchema & { _$types$_: [IValues] }
+
+// 从构造器推断值类型
+function createSchema<Properties extends Record<string, unknown>, IValues extends SchemaPropertiesValues<Properties>>(
+  properties: Properties & ValidateSchemaProperties<Properties>,
   patches?: SchemaPatchInput | SchemaPatchInput[]
 ): ISchema & { _$types$_: [IValues] }
 ```
 
 组装根级 `type: 'object'` schema。每个属性可以是构造器（`createFragment` 返回的函数）、普通 `ISchema` 对象，或 `null` / `undefined`。构造器会被立即展开，返回值是可 JSON 序列化的普通 schema。
 
-`_$types$_` 标记承载推导出的表单值类型（例如 `{ name: string; tags: string[] }`），仅用于类型层面，运行时不存在。
+不传类型参数时，值类型由构造器推断，但顶层构造器看不到它：TypeScript 不会把对象字面量推断出的类型传给兄弟属性，因此 `field.record` 是 `any`。显式传入值类型即可把它作为根级 record 上下文注入 —— 顶层构造器的 `field.record` 变为 `IValues`，`scope.$record` 变为 `IValues & { $lookup, $index }`，`scope.$values` 变为 `IValues`：
+
+```ts
+interface InviteValues {
+  plan?: string
+  seats?: number
+}
+
+const schema = createSchema<InviteValues>({
+  plan: f.Field({ component: 'Select' }),
+  seats: f.Field({
+    reactions: (field, scope) => {
+      // field.record 是 InviteValues，scope.$values 是 InviteValues
+      field.visible = field.record.plan !== 'free'
+    },
+  }),
+})
+```
+
+注入同时决定每个键的值类型：声明键下的构造器会从该键推断值类型，因此 `reactions` 里的 `field.value` 在 `seats?: number` 下是 `number | undefined`，在 `plan?: string` 下是 `string | undefined`。接口里没有的键只允许 void 构造器、普通 `ISchema` 对象或空值。顶层构造器不要写值泛型（用 `f.Field({...})`，而不是 `f.Field<number>({...})`）—— 显式泛型会让 TypeScript 停止推断该构造器其余的类型参数，`field.record` 会退回 `any`。对象值键（嵌套对象、数组）保留容器自身的 record 推断，`f.Object` / `f.ArrayItems` 按各自内容定型。
+
+`_$types$_` 标记承载表单值类型（例如 `{ name: string; tags: string[] }`），仅用于类型层面，运行时不存在。
 
 > Vue 用户可以完全跳过手写组件 props map：`@formvk/vue` 的 `createSchemaField` 接收扁平组件映射与可选的 `voidComponents` / `arrayComponents`，返回 `{ SchemaField, fragment }`，无需任何类型参数即可自动推断组件 props、scope 与值类型。参见 [Vue 绑定](/zh/vue/#createschemafield)。
 
@@ -162,7 +190,7 @@ TypeScript 不支持部分类型参数推断：显式传入组件 map 后，`Def
 
 ## 联动
 
-联动是一个 `(field, scope) => void` 函数，运行在字段的响应式上下文中。函数内读取到的任何可观察值都会成为依赖：
+联动是一个 `(field, scope) => void` 函数，运行在字段的响应式上下文中。函数内读取到的任何可观察值都会成为依赖。用 `createSchema<Values>` 注入值类型后 `field.record` 才有类型，否则为 `any`：
 
 <<< @/snippets/schema/reactions.ts#field-reaction
 

@@ -12,10 +12,10 @@ function globalSelf() {
     }
   } catch (e) {}
   try {
-    // @ts-expect-error
-    if (typeof global !== 'undefined') {
-      // @ts-expect-error
-      return global
+    // 索引访问避免依赖 Node 的 `global` 类型声明：文档站等未加载 @types/node 的场景也能编译
+    const nodeGlobal = (globalThis as Record<string, unknown>).global
+    if (typeof nodeGlobal !== 'undefined') {
+      return nodeGlobal as Window
     }
   } catch (e) {}
   return Function('return this')()
