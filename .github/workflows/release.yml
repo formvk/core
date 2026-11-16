@@ -98,8 +98,8 @@ jobs:
             exit 1
           fi
 
-      # 显式校验 token 非空并确认 npm 身份，
-      # 避免空 secret 时发布步骤才以语义不明的 404 失败
+      # 显式校验 token 非空、确认 npm 身份，并验证 @formvk scope 归属。
+      # npm 对无权发布的 scope 统一返回 404，先在此拦截以便定位原因
       - name: Verify npm token
         env:
           NODE_AUTH_TOKEN: ${{ secrets.FORMVK }}
@@ -108,7 +108,14 @@ jobs:
             echo "::error::Secret FORMVK is missing or empty. Add an npm Automation token (registry.npmjs.org) to repository secrets."
             exit 1
           fi
-          npm whoami
+          echo "authenticated as: $(npm whoami)"
+          if ! members="$(npm org ls formvk 2>&1)"; then
+            echo "$members"
+            echo "::error::Scope @formvk is unreachable with this token. Create the 'formvk' organization on npmjs.com and ensure this user is a member with write access, or use an Automation token issued after the org existed."
+            exit 1
+          fi
+          echo "scope @formvk members:"
+          echo "$members"
 
       # 工作区协议 workspace:^ 会在打包时替换为实际版本号，
       # CI 为 detached HEAD，需要 --no-git-checks 跳过分支校验
