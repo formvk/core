@@ -1,87 +1,87 @@
-# Reactivity
+# 响应式
 
-`@formvk/reactive` is a thin layer on top of `@vue/reactivity`. It powers the form models and is also useful on its own.
+`@formvk/reactive` 是构建在 `@vue/reactivity` 之上的轻量封装层，为表单模型提供动力，也可以单独使用。
 
-## Observable state
+## 可观察状态
 
 <<< @/snippets/reactive/observable.ts
 
-`observable` returns a deeply reactive proxy. Mutating any nested property triggers the effects that read it.
+`observable` 返回一个深度响应式代理，修改任意嵌套属性都会触发读取它的 effect。
 
-## Derivations and effects
+## 派生与 effects
 
-| API                   | Description                                                                                    |
-| --------------------- | ---------------------------------------------------------------------------------------------- |
-| `computed(fn)`        | Cached derivation, recomputed only when its dependencies change                                |
-| `autorun(fn)`         | Runs `fn` immediately and re-runs it whenever a dependency changes; returns a dispose function |
-| `observe(target, fn)` | Low-level watcher for a specific observable object                                             |
-| `batch(fn)`           | Groups mutations and flushes effects once                                                      |
-| `action(fn)`          | Wraps a function in `batch`                                                                    |
-| `toJS(value)`         | Returns a plain, non-observable snapshot                                                       |
-| `untracked(fn)`       | Reads observables without subscribing the current effect                                       |
+| API                   | 说明                                                     |
+| --------------------- | -------------------------------------------------------- |
+| `computed(fn)`        | 带缓存的派生值，只在其依赖变化时重新计算                 |
+| `autorun(fn)`         | 立即执行 `fn`，并在依赖变化时自动重跑；返回 dispose 函数 |
+| `observe(target, fn)` | 针对某个可观察对象的底层 watcher                         |
+| `batch(fn)`           | 合并多次变更，只刷新一次 effect                          |
+| `action(fn)`          | 用 `batch` 包裹一个函数                                  |
+| `toJS(value)`         | 返回普通的、非可观察的快照                               |
+| `untracked(fn)`       | 读取可观察值但不让当前 effect 建立订阅                   |
 
-## When to reach for this layer
+## 什么时候直接用这一层
 
-The form packages already run on these primitives. Use them directly when the data you need is not a field:
+表单相关包已经构建在这些原语之上。当你需要的数据不是字段时，可以直接使用它们：
 
-| Need                                              | Primitive   | Why                                                         |
-| ------------------------------------------------- | ----------- | ----------------------------------------------------------- |
-| A summary such as "3/5 invitations ready"         | `computed`  | Cached; recomputes only when a value it read changes        |
-| Autosave a draft                                  | `autorun`   | Runs now and after every tracked change; returns a disposer |
-| Write several values without intermediate renders | `batch`     | Dependent effects flush once                                |
-| Send values to an API                             | `toJS`      | Returns plain objects and arrays                            |
-| Read a value without subscribing                  | `untracked` | Avoids accidental dependencies                              |
+| 需求                           | 原语        | 原因                                                  |
+| ------------------------------ | ----------- | ----------------------------------------------------- |
+| “3/5 个邀请已就绪”这类汇总     | `computed`  | 有缓存，只在读取过的值变化时重新计算                  |
+| 自动保存草稿                   | `autorun`   | 立即执行并在每次被追踪的变化后重跑；返回 dispose 函数 |
+| 一次性写入多个值，避免中间渲染 | `batch`     | 依赖它的 effect 只刷新一次                            |
+| 把取值交给 API                 | `toJS`      | 返回普通对象与数组                                    |
+| 读取值但不建立订阅             | `untracked` | 避免意外建立依赖                                      |
 
-### Deriving display data
+### 派生展示数据
 
 <<< @/snippets/reactive/business.ts#derived
 
-### Autosaving a draft
+### 自动保存草稿
 
 <<< @/snippets/reactive/business.ts#autosave
 
-`autorun` tracks every observable read inside the callback, including nested arrays. Dispose it when the component unmounts — `onUnmounted(stop)` in Vue, or returning `stop` from a `useEffect` in React.
+`autorun` 会追踪回调内读取的每一个可观察值，包括嵌套数组。组件卸载时要销毁它：Vue 中用 `onUnmounted(stop)`，React 中从 `useEffect` 返回 `stop`。
 
-### Grouping writes
+### 合并写入
 
 <<< @/snippets/reactive/business.ts#batch
 
-Without `batch`, each `setValuesIn` notifies dependents separately; with it, all writes in the callback produce one flush and one render.
+不使用 `batch` 时，每次 `setValuesIn` 都会单独通知依赖方；使用后，回调内的所有写入只产生一次刷新和一次渲染。
 
-Try it — the log below is produced by `autorun`:
+试一试 —— 下面的日志由 `autorun` 输出：
 
 ### Vue 3
 
 <demo vue="../demos/reactivity.vue" stackblitz="true" />
 
-### React (TSX)
+### React（TSX）
 
 <demo react="../demos/react/reactivity.tsx" stackblitz="true" />
 
-`autorun` is framework-agnostic: start it inside `useEffect` and return its dispose function as the cleanup. The component itself is wrapped with `observer` so reading `state.count` and the `computed` re-renders it:
+`autorun` 与框架无关：在 `useEffect` 中启动它，并把它的 dispose 函数作为清理函数返回。组件本身用 `observer` 包裹，因此读取 `state.count` 与 `computed` 会触发重新渲染：
 
-## Working with Vue components
+## 与 Vue 组件配合
 
-Formvk models are built from observable objects, so Vue templates track them like any other reactive source. The form packages never call `forceUpdate` — a field component re-renders only when the field state it reads changes.
+Formvk 的模型都建立在可观察对象之上，因此 Vue 模板会像对待其他响应式源一样追踪它们。表单相关包从不调用 `forceUpdate` —— 字段组件只在它读取的字段状态变化时重新渲染。
 
 <<< @/snippets/core/model-mutation.ts
 
-## Working with React components
+## 与 React 组件配合
 
-React has no automatic dependency tracking, so the React binding renders observable state through `observer` (from `@formvk/reactive-react`, built on `useSyncExternalStore`). Wrap any component that reads a form model, a field or an `observable` directly; hooks such as `useField()` return bare values, and reactivity starts when the wrapped component reads them:
+React 没有自动依赖追踪，因此 React 绑定通过 `observer`（来自 `@formvk/reactive-react`，基于 `useSyncExternalStore`）渲染可观察状态。任何直接读取表单模型、字段或 `observable` 的组件都需要包裹 `observer`；`useField()` 等 Hook 返回的是裸值，只有被包裹的组件读取它们时才会建立响应式：
 
 <<< @/snippets/react/name-preview.tsx
 
-Side-effect primitives stay framework-free — `autorun`, `reaction` and `effect` are started and disposed with ordinary React effect hooks.
+副作用原语与框架无关 —— `autorun`、`reaction` 与 `effect` 通过普通的 React effect 钩子启动与销毁。
 
-## Snapshots
+## 快照
 
-`toJS` walks an observable tree and returns plain objects and arrays. It is used internally when submitting a form:
+`toJS` 遍历可观察树，返回普通对象与数组。提交表单时内部会用到它：
 
 <<< @/snippets/reactive/snapshots.ts
 
-## Next steps
+## 下一步
 
-- [Schema overview](/schema/) — how schemas compile into field props.
-- [Form model](/core/) — the models built on this reactive core.
-- [Basic Form](/vue/examples/basic-form) — validation and submit in practice.
+- [Schema 概览](/schema/) —— schema 如何编译成字段 props。
+- [表单模型](/core/) —— 构建在这个响应式内核之上的模型。
+- [基础表单](/vue/examples/basic-form) —— 校验与提交的实战。

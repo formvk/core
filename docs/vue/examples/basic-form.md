@@ -1,10 +1,10 @@
-# Basic Form
+# 基础表单
 
-A complete form with initial values, validation rules, submit and reset — the schema is built with the fragment returned by `createSchemaField`, which infers every component prop type from the flat component map.
+一个包含初始值、校验规则、提交与重置的完整表单 —— schema 由 `createSchemaField` 返回的 fragment 构建，它会从扁平组件映射中推导出每个组件的 prop 类型。
 
 <demo vue="../../demos/basic-form.vue" stackblitz="true" />
 
-## How it works
+## 实现说明
 
 ```vue
 <script setup lang="ts">
@@ -47,13 +47,13 @@ async function onSubmit() {
 </template>
 ```
 
-- `validator` accepts a single rule object or an array of rule descriptions.
-- `required: true` adds the required rule and marks the field as required; rules with an explicit `message` produce stable, locale-independent errors.
-- `form.submit()` validates every editable field, then resolves with a plain values object — or rejects with the form errors.
-- `form.submitting` is `true` while the submit promise is pending, which is handy to disable the button.
-- `form.reset()` restores the initial values.
+- `validator` 接受单个规则对象或规则描述数组。
+- `required: true` 会添加必填规则并把字段标记为必填；带显式 `message` 的规则会产生稳定、与语言环境无关的错误。
+- `form.submit()` 会校验所有可编辑字段，成功后 resolve 普通取值对象 —— 失败时 reject 表单错误。
+- 提交 promise 未完成期间 `form.submitting` 为 `true`，很适合用来禁用按钮。
+- `form.reset()` 恢复初始值。
 
-## Validate without submitting
+## 只校验、不提交
 
 ```ts
 try {
@@ -64,8 +64,8 @@ try {
 }
 ```
 
-## Next steps
+## 下一步
 
-- [Dynamic Reactions](/vue/examples/reactions) — show and hide fields based on other values.
-- [Array List](/vue/examples/array-list) — repeatable field groups.
-- [React version](/react/examples/basic-form) — the same form with the React binding.
+- [动态联动](/vue/examples/reactions) —— 根据其他取值显示或隐藏字段。
+- [数组列表](/vue/examples/array-list) —— 可重复的字段组。
+- [React 版本](/react/examples/basic-form) —— 使用 React 绑定的同一表单。

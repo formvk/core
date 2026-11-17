@@ -290,7 +290,7 @@ effect 注册在 `createForm({ effects })` 中；Vue 场景也可以通过 `@for
 
 <<< @/snippets/core/recipes.ts#bulk
 
-更多分组模式见[路径系统](/core/paths#场景团队成员表格)。
+更多分组模式见[路径系统](/core/paths#场景-团队成员表格)。
 
 ## 类型守卫
 

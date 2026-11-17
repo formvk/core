@@ -1,12 +1,12 @@
-# Nested Objects
+# 嵌套对象
 
-`f.Object` describes a nested object node. Its children live under `properties` and their values are merged into the parent value, so the form value shape follows the schema shape.
+`f.Object` 描述嵌套对象节点。它的子节点放在 `properties` 下，取值会合并进父级取值，因此表单取值的形态与 schema 的形态一致。
 
 <demo react="../../demos/react/schema-object.tsx" stackblitz="true" />
 
-The schema and fragment builders are imported from `@formvk/react` unchanged — only the rendering wrapper differs:
+schema 与 fragment 构造器仍然从 `@formvk/react` 原样导入 —— 只有渲染外壳不同：
 
-## What the schema describes
+## 这份 schema 描述了什么
 
 ```ts
 const schema = createSchema({
@@ -25,18 +25,18 @@ const schema = createSchema({
 })
 ```
 
-- `f.Object` produces a `type: 'object'` node backed by an `ObjectField`; its children are resolved relative to `profile`.
-- `f.Input` and `f.Select` are dynamic creators generated from the flat component map passed to `createSchemaField`.
-- `defaultDecorator: 'FormItem'` wraps fields that declare a `title` without an explicit decorator. See [Custom components](/react/custom-components#decorators) for the decorator contract.
+- `f.Object` 产出由 `ObjectField` 支撑的 `type: 'object'` 节点，其子节点相对于 `profile` 解析。
+- `f.Input` 与 `f.Select` 是根据传给 `createSchemaField` 的扁平组件映射生成的动态构造器。
+- `defaultDecorator: 'FormItem'` 会包裹声明了 `title` 但未显式指定装饰器的字段。装饰器契约见[自定义组件](/react/custom-components#装饰器)。
 
-## Value inference
+## 值类型推导
 
-Each creator carries its value type. `f.Field<number>()` yields `number | undefined`, `f.Field({ required: true })` yields `string`, and `f.Array(f.Field())` yields `string[]`. `createSchema` collects these into one object type:
+每个构造器都携带值类型。`f.Field<number>()` 得到 `number | undefined`，`f.Field({ required: true })` 得到 `string`，`f.Array(f.Field())` 得到 `string[]`。`createSchema` 会把它们汇总成一个对象类型：
 
 <<< @/snippets/schema/value-inference.ts
 
-## Next steps
+## 下一步
 
-- [Schema overview](/schema/) — how schema nodes map to core field models.
-- [Array List](/react/examples/array-list) — `type: 'array'` nodes with `RecursionField`.
-- [Vue version](/vue/examples/schema-object) — the same nested schema in a Vue SFC.
+- [Schema 概览](/schema/) —— schema 节点如何映射到核心字段模型。
+- [数组列表](/react/examples/array-list) —— 用 `RecursionField` 渲染 `type: 'array'` 节点。
+- [Vue 版本](/vue/examples/schema-object) —— Vue SFC 中的同一份嵌套 schema。

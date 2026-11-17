@@ -1,25 +1,25 @@
-# Getting Started
+# 快速开始
 
-## Requirements
+## 环境要求
 
 - Node.js `>= 22.12`
-- `pnpm` as the package manager
+- 使用 `pnpm` 作为包管理器
 
-## Install
+## 安装
 
 ```bash
 pnpm add @formvk/vue vue
 ```
 
-React users install the React binding and the `observer` helper instead:
+React 用户改为安装 React 绑定与 `observer` 辅助工具：
 
 ```bash
 pnpm add @formvk/react @formvk/reactive-react react react-dom
 ```
 
-## Use with AI agents
+## 与 AI Agent 配合使用
 
-The repository ships two [Agent Skills](https://github.com/formvk/core/tree/main/skills) that teach coding agents how to use formvk: `formvk-form-dev` for building forms and `formvk-component-bridge` for adapting a UI library. Install them with the [skills CLI](https://skills.sh), which detects your agent and writes the files to the right directory:
+仓库内置两个 [Agent Skills](https://github.com/formvk/core/tree/main/skills)，用于教会编码 Agent 使用 formvk：`formvk-form-dev` 负责构建表单，`formvk-component-bridge` 负责适配 UI 组件库。通过 [skills CLI](https://skills.sh) 安装，它会识别你的 Agent 并把文件写入正确的目录：
 
 ```bash
 npx skills add formvk/core
@@ -27,25 +27,25 @@ npx skills add formvk/core
 npx skills add formvk/core --skill formvk-form-dev
 ```
 
-Once installed, prompts such as "build a Vue form with formvk and validate the email" work without pasting documentation into the chat — the skill points the agent at the AI-readable Markdown on this site.
+安装完成后，像“用 formvk 构建一个 Vue 表单并校验邮箱”这样的提示词无需再把文档粘贴进对话 —— skill 会让 Agent 去读本站面向 AI 的 Markdown。
 
-## Your first form
+## 第一个表单
 
-The example below creates a form model, describes one field with the schema DSL and renders it with the demo `Input` component.
+下面的示例创建了一个表单模型，用 schema DSL 描述一个字段，并用演示用的 `Input` 组件渲染它。
 
 <demo vue="../demos/getting-started.vue" stackblitz="true" />
 
-## What just happened
+## 刚才发生了什么
 
-- `createForm({ values })` creates a `Form` model. `values` are the initial values of the form.
-- `FormProvider` provides the model to all descendants through Vue's `provide` / `inject`.
-- `createFragment()` returns a typed schema builder, and `createSchema({...})` assembles the root object schema. `f.Object({...})` describes a nested object node; each `f.Field(...)` describes one field. Calling a creator `()` produces a plain `ISchema` object.
-- `SchemaField` walks the schema, creates fields and renders `component: 'Input'` with your own component.
-- `form.values` is observable. The line at the bottom updates on every keystroke without any explicit listener, because Vue templates track reactive reads automatically.
+- `createForm({ values })` 创建 `Form` 模型，`values` 是表单的初始值。
+- `FormProvider` 通过 Vue 的 `provide` / `inject` 把模型提供给所有后代。
+- `createFragment()` 返回带类型的 schema 构造器，`createSchema({...})` 组装根对象 schema。`f.Object({...})` 描述嵌套对象节点，每个 `f.Field(...)` 描述一个字段。无参调用构造器 `()` 会得到普通的 `ISchema` 对象。
+- `SchemaField` 遍历 schema、创建字段，并用你自己的组件渲染 `component: 'Input'`。
+- `form.values` 是可观察的。底部的文字会在每次按键后更新，不需要任何显式监听，因为 Vue 模板会自动追踪响应式读取。
 
-## Adding validation
+## 添加校验
 
-Rules live on the field schema. A field with `required: true` also shows the required marker in the demo components:
+规则写在字段 schema 上。带有 `required: true` 的字段在演示组件中还会显示必填标记：
 
 ```ts
 username: f.Input({
@@ -58,10 +58,10 @@ username: f.Input({
 })
 ```
 
-See [Basic Form](/vue/examples/basic-form) for a complete form with validation, submit and reset, and [React](/react/) for the same form with the React binding.
+完整的校验、提交与重置表单见[基础表单](/vue/examples/basic-form)；使用 React 绑定的同一表单见 [React](/react/)。
 
-## Next steps
+## 下一步
 
-- [Core](/core/) — the form and field models behind the schema.
-- [Schema](/schema/) — how schema nodes map to core concepts.
-- [Vue](/vue/) — components, hooks and custom components.
+- [核心](/core/) —— schema 背后的表单与字段模型。
+- [Schema](/schema/) —— schema 节点如何映射到核心概念。
+- [Vue](/vue/) —— 组件、hooks 与自定义组件。
