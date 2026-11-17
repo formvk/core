@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.1.1](https://github.com/formvk/core/compare/v1.1.0...v1.1.1) (2026-11-17)
+
+### Bug Fixes
+
+- **react:** 修复插槽传递方式，将slots改为同名props传递 ([4c0f4ba](https://github.com/formvk/core/commit/4c0f4bab47023b857bda0c05133fce10fb93c462))
+
 # [1.1.0](https://github.com/formvk/core/compare/v1.0.0...v1.1.0) (2026-11-16)
 
 ### Features
