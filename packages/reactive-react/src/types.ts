@@ -1,4 +1,4 @@
-import type React from 'react'
+import type { FC, ReactElement, ReactNode } from 'react'
 
 export interface IObserverOptions {
   /** 是否向被包裹组件透传 ref */
@@ -10,11 +10,11 @@ export interface IObserverOptions {
 }
 
 export interface IObserverProps {
-  children?: (() => React.ReactElement) | React.ReactNode
+  children?: (() => ReactElement) | ReactNode
 }
 
 export type Modify<T, R> = Omit<T, keyof R> & R
 
-export type ReactPropsWithChildren<P> = Modify<{ children?: React.ReactNode | undefined }, P>
+export type ReactPropsWithChildren<P> = Modify<{ children?: ReactNode | undefined }, P>
 
-export type ReactFC<P = {}> = React.FC<ReactPropsWithChildren<P>>
+export type ReactFC<P = {}> = FC<ReactPropsWithChildren<P>>

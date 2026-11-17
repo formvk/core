@@ -1,7 +1,7 @@
 import { reactive, shallowRef } from '@formvk/reactive'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { createRef, useState } from 'react'
-import type React from 'react'
+import type { Ref } from 'react'
 import { afterEach, expect, test, vi } from 'vitest'
 
 import { Observer, observer } from '../observer'
@@ -66,9 +66,7 @@ test('observer 的 props 变化时正常刷新', () => {
 
 test('observer forwardRef 选项透传 ref', () => {
   const Input = observer(
-    (props: { value: string; ref?: React.Ref<HTMLInputElement> }) => (
-      <input ref={props.ref} value={props.value} readOnly />
-    ),
+    (props: { value: string; ref?: Ref<HTMLInputElement> }) => <input ref={props.ref} value={props.value} readOnly />,
     { forwardRef: true }
   )
 

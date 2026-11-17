@@ -1,18 +1,18 @@
 import hoistNonReactStatics from 'hoist-non-react-statics'
 import { createElement, forwardRef, memo, Fragment } from 'react'
-import type React from 'react'
+import type { ForwardRefRenderFunction, MemoExoticComponent, PropsWithoutRef, RefAttributes } from 'react'
 
 import { useObserver } from './hooks/useObserver'
 import type { IObserverOptions, IObserverProps, ReactFC } from './types'
 
 /** observer 包裹后的组件类型：按 forwardRef 选项决定是否携带 ref */
-type ObserverComponent<P, Options extends IObserverOptions> = React.MemoExoticComponent<
+type ObserverComponent<P, Options extends IObserverOptions> = MemoExoticComponent<
   ReactFC<
     Options extends { forwardRef: true }
       ? P & {
-          ref?: 'ref' extends keyof P ? P['ref'] : React.RefAttributes<unknown>
+          ref?: 'ref' extends keyof P ? P['ref'] : RefAttributes<unknown>
         }
-      : React.PropsWithoutRef<P>
+      : PropsWithoutRef<P>
   >
 >
 
@@ -30,7 +30,7 @@ export function observer<P, Options extends IObserverOptions = IObserverOptions>
         // React 19 的 FC 返回类型含 Promise<ReactNode>，forwardRef 渲染函数不接受，此处为同步 observer 场景收窄
         ((props: any, ref: any) => {
           return useObserver(() => component({ ...props, ref }), realOptions)
-        }) as React.ForwardRefRenderFunction<any, any>
+        }) as ForwardRefRenderFunction<any, any>
       )
     : (props: any) => {
         return useObserver(() => component(props), realOptions)

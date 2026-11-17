@@ -1,7 +1,7 @@
 import type { Form, GeneralField, IFieldFactoryProps } from '@formvk/core'
 import type { AnyComponent, Fragment, ISchema, Schema, SchemaKey, SchemaPatchInput } from '@formvk/schema'
 import type { FormPathPattern } from '@formvk/shared'
-import type { ComponentType, ComponentProps as ReactComponentProps } from 'react'
+import type { ComponentType, ComponentProps as ReactComponentProps, ReactNode } from 'react'
 
 // 仅用于工厂返回值类型，type-only 引用不产生运行时循环依赖
 import type { SchemaField } from '../components/SchemaField'
@@ -126,8 +126,8 @@ export interface IReactiveFieldProps {
   fieldType?: ReactiveFieldType
   fieldProps?: IFieldFactoryProps<any, any>
   /** RecursionField 按 schema.slot 分组生成的具名插槽节点 */
-  slots?: Record<string, React.ReactNode>
-  children?: React.ReactNode
+  slots?: Record<string, ReactNode>
+  children?: ReactNode
 }
 
 export interface IExpressionScopeProps {
