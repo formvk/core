@@ -1,21 +1,21 @@
-# 嵌套对象
+# Nested Objects
 
-`f.Object` 描述嵌套对象节点。它的子节点位于 `properties` 中，取值会合并进父级取值，因此表单值结构与 schema 结构一致。
+`f.Object` describes a nested object node. Its children live under `properties` and their values are merged into the parent value, so the form value shape follows the schema shape.
 
-<demo vue="../../demos/zh/schema-object.vue" stackblitz="true" />
+<demo vue="../../demos/schema-object.vue" stackblitz="true" />
 
-## schema 描述了什么
+## What the schema describes
 
 ```ts
 const schema = createSchema({
   profile: f.Object({
-    name: f.Input({ title: '姓名' }),
+    name: f.Input({ title: 'Name' }),
     role: f.Select({
-      title: '角色',
+      title: 'Role',
       componentProps: {
         options: [
-          { label: '开发者', value: 'developer' },
-          { label: '设计师', value: 'designer' },
+          { label: 'Developer', value: 'developer' },
+          { label: 'Designer', value: 'designer' },
         ],
       },
     }),
@@ -23,18 +23,18 @@ const schema = createSchema({
 })
 ```
 
-- `f.Object` 产出 `type: 'object'` 节点，由 `ObjectField` 承载；子字段相对 `profile` 解析。
-- `f.Input` 与 `f.Select` 是根据 `createSchemaField` 扁平组件映射生成的动态构造器。
-- `defaultDecorator: 'FormItem'` 会为声明了 `title` 但未指定 `decorator` 的字段补上装饰器。装饰器契约见[自定义组件](/vue/custom-components#装饰器)。
+- `f.Object` produces a `type: 'object'` node backed by an `ObjectField`; its children are resolved relative to `profile`.
+- `f.Input` and `f.Select` are dynamic creators generated from the flat component map passed to `createSchemaField`.
+- `defaultDecorator: 'FormItem'` wraps fields that declare a `title` without an explicit decorator. See [Custom components](/vue/custom-components#decorators) for the decorator contract.
 
-## 值类型推导
+## Value inference
 
-每个构造器都携带值类型：`f.Field<number>()` 得到 `number | undefined`，`f.Field({ required: true })` 得到 `string`，`f.Array(f.Field())` 得到 `string[]`。`createSchema` 会把它们汇总成一个对象类型：
+Each creator carries its value type. `f.Field<number>()` yields `number | undefined`, `f.Field({ required: true })` yields `string`, and `f.Array(f.Field())` yields `string[]`. `createSchema` collects these into one object type:
 
 <<< @/snippets/schema/value-inference.ts
 
-## 下一步
+## Next steps
 
-- [Schema 概览](/schema/) —— schema 节点与核心字段模型的对应关系。
-- [数组列表](/vue/examples/array-list) —— 使用 `RecursionField` 的 `type: 'array'` 节点。
-- [React 版本](/react/examples/schema-object) —— 同一个嵌套 schema 的 TSX 实现。
+- [Schema overview](/schema/) — how schema nodes map to core field models.
+- [Array List](/vue/examples/array-list) — `type: 'array'` nodes with `RecursionField`.
+- [React version](/react/examples/schema-object) — the same nested schema in TSX.

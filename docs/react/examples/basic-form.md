@@ -1,18 +1,18 @@
-# 基础表单
+# Basic Form
 
-一个包含初始值、校验规则、提交与重置的完整表单。schema 由 `createSchemaField` 返回的 fragment 构建，form 在组件内惰性创建，因此每个实例都持有独立模型。
+A complete form with initial values, validation rules, submit and reset. The schema is built with the fragment returned by `createSchemaField`, and the form is created lazily inside the component so every instance owns an independent model.
 
-<demo react="../../demos/react/zh/basic-form.tsx" stackblitz="true" />
+<demo react="../../demos/react/basic-form.tsx" stackblitz="true" />
 
-## 实现说明
+## How it works
 
-- `createSchemaField` 与 `createSchema` 在模块级执行——它们是静态的、可安全共享。`createForm` 写在 `useState(() => createForm(...))` 里，每个组件实例只执行一次，卸载时由 `FormProvider` 清理模型。
-- 读取 `form.submitting` 的组件用 `@formvk/reactive-react` 的 `observer` 包裹；否则该标记变化时 React 不会重渲染。
-- `validator` 支持单个规则对象或规则数组。`required: true` 会添加必填规则并标记字段为必填。
-- `form.submit()` 校验所有可编辑字段，成功时 resolve 普通取值对象，失败时 reject 表单错误。
-- `form.reset()` 恢复初始值。
+- `createSchemaField` and `createSchema` run at module level — they are static and safely shared. `createForm` runs inside `useState(() => createForm(...))`, so it executes once per component instance and `FormProvider` disposes the model on unmount.
+- The component that reads `form.submitting` is wrapped with `observer` from `@formvk/reactive-react`; without it, React would not re-render when the flag changes.
+- `validator` accepts a single rule object or an array of rule descriptions. `required: true` adds the required rule and marks the field as required.
+- `form.submit()` validates every editable field, then resolves with a plain values object — or rejects with the form errors.
+- `form.reset()` restores the initial values.
 
-## 仅校验不提交
+## Validate without submitting
 
 ```ts
 try {
@@ -23,8 +23,8 @@ try {
 }
 ```
 
-## 下一步
+## Next steps
 
-- [动态联动](/react/examples/reactions) —— 根据其他字段的值显示或隐藏字段。
-- [数组列表](/react/examples/array-list) —— 可增删的字段组。
-- [Vue 版本](/vue/examples/basic-form) —— 同一个表单的 Vue 实现。
+- [Dynamic Reactions](/react/examples/reactions) — show and hide fields based on other values.
+- [Array List](/react/examples/array-list) — repeatable field groups.
+- [Vue version](/vue/examples/basic-form) — the same form with the Vue binding.

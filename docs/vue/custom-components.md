@@ -1,36 +1,36 @@
-# 自定义组件
+# Custom Components
 
-Formvk 本身不渲染任何 UI。schema 只声明组件名（`component: 'Input'`），真正的 Vue 组件由你提供并注册到 `SchemaField`。本文按完整路径讲解：最小字段组件、注册、装饰器、严格类型、接入既有组件库，以及数组组件。
+Formvk renders nothing by itself. A schema only names components (`component: 'Input'`); you provide the actual Vue components and register them on `SchemaField`. This guide walks through the full path: a minimal field component, registration, decorators, strict typing, adapting an existing component library, and array components.
 
-## 字段组件契约
+## The field component contract
 
-通过 `SchemaField` 渲染的组件运行在字段注入上下文中，调用 `useField()` 即可读取当前字段模型。
+A component rendered through `SchemaField` runs inside a field injection context. Call `useField()` to read the current field model.
 
 <<< @/snippets/vue/MyInput.vue
 
-一个组件能作为字段控件工作，需要三点：
+Three things make a component work as a field control:
 
-1. **读值**：从 `field.value` 读取（它是由 `form.values` 支撑的 computed）。
-2. **写值**：通过 `field.onInput(event)` 写入。它接收原生 DOM 事件，会更新取值并执行输入触发的校验。非 DOM 场景（例如 Select 直接抛出原始值）请改用 `field.setValue(value)`。
-3. **展示反馈**：使用 `field.selfErrors`、`field.validateStatus`、`field.required`、`field.title`、`field.description`。
+1. **Read** the value from `field.value` (a computed backed by `form.values`).
+2. **Write** through `field.onInput(event)`. It accepts the native DOM event, updates the value and runs input-triggered validation. For non-DOM updates (for example a Select emitting a raw value), call `field.setValue(value)` instead.
+3. **Display feedback** with `field.selfErrors`, `field.validateStatus`, `field.required`, `field.title` and `field.description`.
 
-Vue 中 `useField()` 返回 ref：`<script setup>` 里通过 `.value` 读取，模板自动解包。
+In Vue `useField()` returns a ref: read it through `.value` in `<script setup>`, while templates unwrap it automatically.
 
-## 注册组件
+## Register the component
 
-在 `SchemaField` 上一次性注册组件（或用 `createSchemaField` 预绑定）。映射的键就是 `component` 中使用的名称：
+Register components once on `SchemaField` (or pre-bind them with `createSchemaField`). The map keys are the names used in `component`:
 
 <<< @/snippets/vue/register-app.vue
 
-装饰器组件与嵌套节点也从同一份映射中查找，一次注册即可覆盖整棵 schema 树。
+The same map is searched for decorator components and nested nodes, so one registration covers the whole schema tree.
 
-## 装饰器
+## Decorators
 
-装饰器在字段控件外层负责布局：标题、必填标记、说明文字与校验消息。控件本身不需要关心这些，只渲染自己，由装饰器通过默认插槽接收。
+A decorator wraps the field control with layout: label, required mark, help text and validation messages. The control stays unaware of all of that — it only renders itself, and the decorator receives it through the default slot.
 
 <<< @/snippets/vue/decorator.vue
 
-把装饰器注册进同一份扁平映射，并通过 `decorator: 'FormItem'` 引用。若希望所有带 `title` 的字段都自动使用它，给 `createSchemaField` 传 `defaultDecorator`，无需逐个字段重复声明 —— 显式 `decorator` 仍然优先：
+Register the decorator in the same flat map and reference it with `decorator: 'FormItem'`. To apply it to every titled field, pass `defaultDecorator` to `createSchemaField` instead of repeating the key — explicit `decorator` values still win:
 
 ```ts
 const { SchemaField, fragment: f } = createSchemaField({
@@ -39,76 +39,76 @@ const { SchemaField, fragment: f } = createSchemaField({
 })
 ```
 
-`defaultDecorator` 只会为未声明 `decorator` 的 `string` 字段补默认值。void、object 与 array 节点本身就是布局节点，需要显式声明（`f.Array(items, { decorator: 'FormItem' })`）。
+`defaultDecorator` only patches `string` fields created without a `decorator`. Void, object and array nodes are layout nodes in their own right, so they opt in explicitly (`f.Array(items, { decorator: 'FormItem' })`).
 
-## 给 `componentProps` 加类型
+## Type `componentProps`
 
-不传组件 map 时，`componentProps` 没有类型约束。把组件 map（组件名 → 组件类型）传给 `createFragment` —— 前三个类型参数分别是 field、void / 布局、array 三个相互独立的组件 map —— 组件 props 会自动从组件类型中提取：
+Without a component map, `componentProps` is untyped. Pass component maps to `createFragment` — the first three type arguments are independent maps from component name to component type, for field, void / layout and array components. Each component's props are extracted automatically:
 
 <<< @/snippets/vue/component-maps.ts#props-map
 
-纯布局组件声明在第二个 map（`V`）中，数组组件声明在第三个 map（`A`）中。数组构造器还需要运行时提示 `arrayComponentNames`，因为组件分类只存在于类型层面：
+Layout-only components go in the second map (`V`) and array components in the third map (`A`). Array creators additionally need the runtime hint `arrayComponentNames`, because component categories are type-level information:
 
 <<< @/snippets/vue/component-maps.ts#void-array
 
-### 跳过手写映射：让 `createSchemaField` 自动推断
+### Skip the map: let `createSchemaField` infer everything
 
-当 schema 与组件位于同一个应用中时，把扁平的运行时组件映射传给 `createSchemaField`，再用 `voidComponents` / `arrayComponents` **组件 map** 归类特殊组件 —— 它们会被自动合并进运行时组件映射，无需重复注册。工厂返回 `{ SchemaField, fragment }` 并自动提取每个组件的 props —— 不需要手写组件 map，也不需要任何类型参数：
+When the schema lives in the same app as the components, pass a flat runtime component map to `createSchemaField` and classify the special components with `voidComponents` / `arrayComponents` component maps — they are merged into the runtime component map automatically, so no duplicate registration is needed. The factory returns `{ SchemaField, fragment }` and extracts each component's props automatically — no hand-written component maps, no type arguments:
 
 <<< @/snippets/vue/component-maps.ts#inference
 
-返回的 `SchemaField` 已预绑定拍平后的映射，渲染时无需再传 `components` prop：`<SchemaField :schema="schema" />`。完整选项见 [Vue 绑定](/vue/#schemafield)。
+The returned `SchemaField` is pre-bound with the flattened map, so rendering needs no `components` prop: `<SchemaField :schema="schema" />`. See the [Vue bindings](/vue/#schemafield) reference for the full option list.
 
-## 接入既有组件库
+## Adapt an existing component library
 
-大多数 UI 库的组件并不认识字段模型，下面三个辅助函数可以在不重写组件的前提下完成桥接：
+Most UI libraries ship components that do not know about field models. Three helpers bridge them without rewriting anything:
 
 ### `mapProps(...mappers)`
 
-把字段状态映射为组件 props。对象 mapper 的键是字段路径，值是目标 props 名（`true` 表示同名透传）；函数 mapper 接收 `(props, field)` 并返回新的 props。
+Maps field state onto component props. An object mapper reads field paths (keys) and writes target props (values; `true` keeps the same name). A function mapper receives `(props, field)` and returns new props.
 
 <<< @/snippets/vue/component-helpers.ts#map-props
 
 ### `mapReadPretty(component, props?)`
 
-当字段 pattern 为 `readPretty` 时，自动切换为只读组件：
+Swaps in a read-only component whenever the field pattern is `readPretty`:
 
 <<< @/snippets/vue/component-helpers.ts#read-pretty
 
 ### `connect(target, ...mappers)`
 
-把多个 mapper 组合成一个组件。Vue 中结果会被 `markRaw` 标记：
+Composes mappers into one component. In Vue the result is marked `markRaw`:
 
 <<< @/snippets/vue/component-helpers.ts#connect
 
-把连接后的组件按 schema 中引用的同名键注册即可。
+Register the connected component under the same map key you reference from the schema.
 
-### 把 `dataSource` 映射为 `options`
+### Map `dataSource` to `options`
 
-schema 里用 `enum` 声明字段的数据源，运行时它存放在 `field.dataSource`；而多数 Select 类组件的 prop 名是 `options`。在 mapper 里做一次重命名即可，组件本身不用改：
+A schema declares a field's option list with `enum`. At runtime it is stored on `field.dataSource`, while most select components expect an `options` prop instead. Rename it in the mapper — the component itself stays untouched:
 
 <<< @/snippets/vue/component-helpers.ts#data-source
 
-映射后 `f.Select({ enum: [...] })` 会直接喂给组件的 `options`。
+With this mapping, `f.Select({ enum: [...] })` feeds the component's `options` directly.
 
-## 数组组件
+## Array components
 
-数组组件负责重复项的布局，并通过 `RecursionField` 渲染每一项：
+An array component owns the layout of repeated items and renders each item with `RecursionField`:
 
 <<< @/snippets/vue/array-list.vue
 
-此时字段是 `ArrayField`，可以直接使用 `push`、`pop`、`insert`、`remove`、`move`、`moveUp`、`moveDown`。完整带样式的实现见[数组列表示例](/vue/examples/array-list)。
+The field is an `ArrayField`, so `push`, `pop`, `insert`, `remove`, `move`, `moveUp` and `moveDown` are available. See the [Array List example](/vue/examples/array-list) for a complete, styled implementation.
 
-## 常见问题
+## Common pitfalls
 
-- **`useField()` 返回 `null`**：组件不在 `SchemaField` / `RecursionField` 子树内。组件必须由 schema 引用，不能直接挂载。
-- **取值不更新**：把原始值传给了 `onInput`。非事件载荷请使用 `field.setValue(value)`。
-- **props 没有类型**：没有传入组件 map；此时 `f.Input` 这类动态构造器也不会作为类型符号存在。
-- **pattern 标记**（`disabled`、`readOnly`、`readPretty`）会从表单和父字段继承，组件应从字段模型读取，不要写死。
+- **`useField()` returns `null`** outside a `SchemaField` / `RecursionField` subtree — the component must be referenced from a schema, not mounted directly.
+- **Values do not update** when emitting raw values into `onInput`; use `field.setValue(value)` for non-event payloads.
+- **Props are untyped** when no component map is passed; dynamic creators such as `f.Input` also stop existing as typed symbols.
+- **Pattern flags** (`disabled`, `readOnly`, `readPretty`) are inherited from the form and parent fields, so components should read them from the field model rather than hard-coding them.
 
-## 下一步
+## Next steps
 
-- [Hooks 与组件工具](/vue/hooks) —— 所有 hook 与工具函数签名。
-- [校验](/core/validation) —— 自定义组件中的规则与错误展示。
-- [Schema 参考](/schema/reference) —— 组件 map、构造器与字段 schema。
-- [React 自定义组件](/react/custom-components) —— TSX 下的同一套契约。
+- [Hooks & component helpers](/vue/hooks) — every hook and helper signature.
+- [Validation](/core/validation) — rules and error display inside custom components.
+- [Schema reference](/schema/reference) — component maps, creators and field schema fields.
+- [React custom components](/react/custom-components) — the same contract in TSX.

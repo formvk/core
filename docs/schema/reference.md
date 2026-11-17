@@ -1,32 +1,32 @@
-# Schema DSL 参考
+# Schema DSL Reference
 
-`@formvk/schema` 提供 schema 模型、类型安全的 fragment DSL 与表达式工具，本身不依赖 Vue。`@formvk/vue` 全量重新导出了该包，因此下面的所有符号从两个包导入均可。
+`@formvk/schema` provides the schema model, the typed fragment DSL and expression helpers. It has no Vue dependency. `@formvk/vue` re-exports this package in full, so every symbol below can be imported from either package.
 
 ```ts
 import { createSchema, createFragment, createExpression, Schema } from '@formvk/schema'
-// 或
+// or
 import { createSchema, createFragment, createExpression, Schema } from '@formvk/vue'
 ```
 
 ## `createSchema`
 
 ```ts
-// 显式注入值类型
+// Inject the value type explicitly
 function createSchema<IValues extends object, IScope extends object = {}>(
   properties: SchemaPropertiesInjection<IValues, IScope>,
   patches?: SchemaPatchInput | SchemaPatchInput[]
 ): ISchema & { _$types$_: [IValues] }
 
-// 从构造器推断值类型
+// Infer the value type from the creators
 function createSchema<Properties extends Record<string, unknown>, IValues extends SchemaPropertiesValues<Properties>>(
   properties: Properties & ValidateSchemaProperties<Properties>,
   patches?: SchemaPatchInput | SchemaPatchInput[]
 ): ISchema & { _$types$_: [IValues] }
 ```
 
-组装根级 `type: 'object'` schema。每个属性可以是构造器（`createFragment` 返回的函数）、普通 `ISchema` 对象，或 `null` / `undefined`。构造器会被立即展开，返回值是可 JSON 序列化的普通 schema。
+Assembles a root `type: 'object'` schema. Each property accepts a creator (the functions returned by `createFragment`), a plain `ISchema` object, or `null` / `undefined`. Creators are expanded immediately, so the return value is a plain JSON-serializable schema.
 
-不传类型参数时，值类型由构造器推断，但顶层构造器看不到它：TypeScript 不会把对象字面量推断出的类型传给兄弟属性，因此 `field.record` 是 `any`。显式传入值类型即可把它作为根级 record 上下文注入 —— 顶层构造器的 `field.record` 变为 `IValues`，`scope.$record` 变为 `IValues & { $lookup, $index }`，`scope.$values` 变为 `IValues`：
+Without a type argument the value type is inferred from the creators, and top-level creators cannot see it: TypeScript does not propagate an object literal's inferred type into its siblings, so `field.record` stays `any`. Pass the value type explicitly to inject it as the root record context — `field.record` becomes `IValues`, `scope.$record` becomes `IValues & { $lookup, $index }` and `scope.$values` becomes `IValues` inside every top-level creator:
 
 ```ts
 interface InviteValues {
@@ -38,20 +38,20 @@ const schema = createSchema<InviteValues>({
   plan: f.Field({ component: 'Select' }),
   seats: f.Field({
     reactions: (field, scope) => {
-      // field.record 是 InviteValues，scope.$values 是 InviteValues
+      // field.record is InviteValues, scope.$values is InviteValues
       field.visible = field.record.plan !== 'free'
     },
   }),
 })
 ```
 
-注入同时决定每个键的值类型：声明键下的构造器会从该键推断值类型，因此 `reactions` 里的 `field.value` 在 `seats?: number` 下是 `number | undefined`，在 `plan?: string` 下是 `string | undefined`。接口里没有的键只允许 void 构造器、普通 `ISchema` 对象或空值。顶层构造器不要写值泛型（用 `f.Field({...})`，而不是 `f.Field<number>({...})`）—— 显式泛型会让 TypeScript 停止推断该构造器其余的类型参数，`field.record` 会退回 `any`。对象值键（嵌套对象、数组）保留容器自身的 record 推断，`f.Object` / `f.ArrayItems` 按各自内容定型。
+Injection also drives each key's value type: a creator placed under a declared key infers its value type from that key, so `field.value` inside `reactions` is `number | undefined` under `seats?: number` and `string | undefined` under `plan?: string`. Keys missing from the interface only accept void creators, plain `ISchema` objects or empty values. Leave the value generic off top-level creators (`f.Field({...})` rather than `f.Field<number>({...})`) — an explicit generic stops TypeScript from inferring the creator's remaining type parameters, which turns `field.record` back into `any`. Object-valued keys (nested objects, arrays) keep the container's own inferred record, so `f.Object` / `f.ArrayItems` are typed from their own contents.
 
-`_$types$_` 标记承载表单值类型（例如 `{ name: string; tags: string[] }`），仅用于类型层面，运行时不存在。
+The `_$types$_` marker carries the form value type (for example `{ name: string; tags: string[] }`). It is type-level metadata only and never appears at runtime.
 
-推断模式下聚合出的每个键都是必填的：字段是否可缺省由值类型承载（非 `required` 字段聚合为 `T | undefined`），而不是可选修饰符。这样推断出的对象构造器可以抽到变量里、回填到显式声明类型的父级中 —— 值形状匹配时 `f.Object<FormValues>({ address })` 直接放行，不匹配则报错。对象值键只校验值槽，因为容器构造器自身的 record 是它的内容类型，而非根 record。`f.Void` 与推断式 `createSchema` 遵循同一聚合规则。
+In inferred mode every aggregated key is required: whether a field can be absent is carried by its value type (a non-`required` field contributes `T | undefined`), not by an optional modifier. This lets an inferred object creator be extracted to a variable and reused under an explicitly typed parent — `f.Object<FormValues>({ address })` accepts it when the value shapes match and rejects mismatches. Object-valued keys are checked on their value slot only, because a container creator's own record is its content type rather than the root record. `f.Void` and inferred `createSchema` follow the same aggregation rule.
 
-> Vue 用户可以完全跳过手写组件 map：`@formvk/vue` 的 `createSchemaField` 接收扁平组件映射与可选的 `voidComponents` / `arrayComponents`，返回 `{ SchemaField, fragment }`，无需任何类型参数即可自动推断组件 map、scope 与值类型。参见 [Vue 绑定](/vue/#createschemafield)。
+> Vue users can skip the hand-written component maps entirely: `createSchemaField` from `@formvk/vue` takes a flat component map plus optional `voidComponents` / `arrayComponents`, returns `{ SchemaField, fragment }`, and infers the component maps, scope and value types with no type arguments. See [Vue bindings](/vue/#schemafield).
 
 ## `createFragment`
 
@@ -65,155 +65,155 @@ function createFragment<
 >(options?: FragmentOptions<V, DefaultDecorator>): Fragment<F, V, A, Scope, DefaultDecorator>
 ```
 
-前三个类型参数是相互独立的组件 map —— `F` 对应 field 组件，`V` 对应 void / 布局 / 装饰器组件，`A` 对应 array 组件。每个 map 把组件名映射到组件类型，`componentProps` 与 `decoratorProps` 会自动从组件类型中提取（Vue 组件取 `$props`，函数 / 类组件取第一个参数）。
+The first three type arguments are independent component maps — `F` for field components, `V` for void / layout / decorator components, and `A` for array components. Each maps a component name to the component type; `componentProps` and `decoratorProps` are extracted from it automatically (`$props` for Vue components, the first parameter for function and class components).
 
-### 选项
+### Options
 
-| 选项                  | 类型                 | 说明                                                                                                                                   |
-| --------------------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `patches`             | patch \| patch[]     | 应用到该 fragment 产出的每个 schema 上的 patch；`{ pre: true, patch }` 会优先执行。                                                    |
-| `voidComponentNames`  | `string[]`           | 按 `type: 'void'` 节点处理的动态构造器名。                                                                                             |
-| `arrayComponentNames` | `string[]`           | 按 `type: 'array'` 节点处理的动态构造器名，并自动填入 `component`。                                                                    |
-| `defaultDecorator`    | `string \| 组件引用` | 为声明了 `title` 且未显式设置 `decorator` 的 `string` 字段补默认装饰器；其它节点类型与无 `title` 的字段不处理，显式 `decorator` 优先。 |
+| Option                | Type                  | Description                                                                                                                                                               |
+| --------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `patches`             | patch \| patch[]      | Patches applied to every schema produced by this fragment. A `{ pre: true, patch }` entry runs before the rest.                                                           |
+| `voidComponentNames`  | `string[]`            | Dynamic creator names that produce `type: 'void'` nodes.                                                                                                                  |
+| `arrayComponentNames` | `string[]`            | Dynamic creator names that produce `type: 'array'` nodes and prefill `component`.                                                                                         |
+| `defaultDecorator`    | `string \| component` | Decorator added to `string` fields that declare `title` but no `decorator`. Other node types and fields without `title` are left untouched. An explicit `decorator` wins. |
 
-组件分类只存在于类型映射中，运行时 Proxy 无法读取 `F` / `V` / `A`，因此动态构造器需要 void / array 语义时，必须显式声明 `voidComponentNames` / `arrayComponentNames`。
+The component categories only exist in the type maps. The runtime Proxy cannot inspect `F` / `V` / `A`, so `voidComponentNames` / `arrayComponentNames` must be declared explicitly when dynamic creators need those node types.
 
-开发构建下，两类误配会触发一次性 `console.warn`（生产产物中相关分支会被编译消除）：同一名字同时出现在两个列表中（运行时按 `array > void` 优先级静默取 array 分类）；对未登记的动态构造器按 array 方式传入 items 参数（会静默回退为 `type: 'string'` 字段节点）。
+In development builds, two misconfigurations emit a one-time `console.warn` (the checks are compiled out of production bundles): a name declared in both lists — the array classification silently wins under the `array > void` precedence — and calling an unregistered dynamic creator with an array-style items argument, which silently falls back to a `type: 'string'` field node.
 
-`defaultDecorator` 对齐 formily-pro 的 `defaultDecoratorPatch`，但保持 opt-in —— formvk 本身不内置 `FormItem` 组件：
+`defaultDecorator` mirrors formily-pro's `defaultDecoratorPatch`, but stays opt-in because formvk does not ship a `FormItem` component:
 
 <<< @/snippets/schema/decorator.ts#basic
 
-装饰器名同样需要注册到传给 `SchemaField` 的 `components` 映射中。
+The decorator name must also be registered in the `components` map passed to `SchemaField`.
 
-TypeScript 不支持部分类型参数推断：显式传入组件 map 后，`DefaultDecorator` 不会从选项值推断，而是走默认值。需要收窄 `decoratorProps` 时，把它作为第五个类型参数传入：
+TypeScript does not support partial type argument inference: once the component maps are passed explicitly, `DefaultDecorator` falls back to its default instead of being inferred from the option. Pass it as the fifth type argument to narrow `decoratorProps`:
 
 <<< @/snippets/schema/decorator.ts#fifth-arg
 
-### 基础构造器
+### Base creators
 
-| 构造器                          | 产出               | 说明                                                |
-| ------------------------------- | ------------------ | --------------------------------------------------- |
-| `f.Field(schema?)`              | `type: 'string'`   | 数字、布尔、日期等需显式指定 `type`。               |
-| `f.Object(properties, schema?)` | `type: 'object'`   | 嵌套对象节点。                                      |
-| `f.Array(items, schema?)`       | `type: 'array'`    | `items` 为构造器或普通 `ISchema`。                  |
-| `f.Void(properties, schema?)`   | `type: 'void'`     | 无值的布局节点。                                    |
-| `f.transform(rawSchema)`        | 展开后的 `ISchema` | 转换普通 schema，并递归应用该 fragment 的 patches。 |
+| Creator                         | Produces           | Notes                                                               |
+| ------------------------------- | ------------------ | ------------------------------------------------------------------- |
+| `f.Field(schema?)`              | `type: 'string'`   | Override `type` explicitly for numbers, booleans and dates.         |
+| `f.Object(properties, schema?)` | `type: 'object'`   | Nested object node.                                                 |
+| `f.Array(items, schema?)`       | `type: 'array'`    | `items` is a creator or plain `ISchema`.                            |
+| `f.Void(properties, schema?)`   | `type: 'void'`     | Layout node without a value.                                        |
+| `f.transform(rawSchema)`        | expanded `ISchema` | Converts a raw schema, applying the fragment's patches recursively. |
 
-构造器返回的是函数：无参调用得到普通 `ISchema`；传入额外 patch 则在其基础上叠加。
+Creators return a function. Calling it with no arguments yields the plain `ISchema`; calling it with extra patches applies them on top.
 
-### 动态构造器与组件 map
+### Dynamic creators and component maps
 
-三个 map 都是普通的 `name → 组件` 对象，每个分类一个：
+The three maps are plain `name → component` objects, one per category:
 
 <<< @/snippets/schema/dynamic-creators.ts#maps
 
-把它们传给 `createFragment` 后，会为每个声明的组件生成一个快捷构造器：
+Passing them to `createFragment` generates one shorthand creator per declared component:
 
 <<< @/snippets/schema/dynamic-creators.ts#creators
 
-- 声明在 `F` 中的组件名生成字段构造器；`V` / `A` 中的分别生成 void / array 构造器。
-- 使用未在对应 map 中声明的构造器会直接报类型错误；请改用 `f.Field({ component: 'X' })` 或在 map 中声明 `X`。
-- `componentProps` 会按从组件类型中提取的 props 做校验；其中任意叶子（或整个 props）都可以写 <code v-pre>{{...}}</code> 表达式，普通错误类型字符串仍会报错，例如 <code v-pre>maxLength: '10'</code> 不合法而 <code v-pre>maxLength: '{{$values.limit}}'</code> 合法。
-- 严格性刻意不对称：简写构造器（`f.Input`）只对已声明的名字存在，而 `component` / `decorator` 字符串字段接受任意字符串（经 `string & {}`），以兼容仅在运行时注册的组件。未声明的字符串名没有补全，`componentProps` 退化为宽松的 `Record<string, unknown>`；props 校验只对已声明名字生效。
+- Names declared in `F` generate field creators; names in `V` and `A` generate void / array creators.
+- A creator that is not declared in the matching map is a type error. Use `f.Field({ component: 'X' })` or declare `X` in the map.
+- `componentProps` is checked against the props extracted from that component; any leaf (or the whole props object) may be a <code v-pre>{{...}}</code> expression. Ordinary mistyped strings are still rejected — <code v-pre>maxLength: '10'</code> is invalid while <code v-pre>maxLength: '{{$values.limit}}'</code> is allowed.
+- Strictness is intentionally asymmetric: shorthand creators (`f.Input`) only exist for declared names, while the `component` / `decorator` string fields accept any string (via `string & {}`) so components registered only at runtime stay usable. An undeclared string name gets no autocomplete and falls back to a loose `Record<string, unknown>` for `componentProps`; props checking applies only to declared names.
 
-### 字段级类型参数
+### Field-level type parameters
 
-`f.Field`、`f.Object`、`f.Void`、`f.Array` 支持字段级类型参数，无需断言即可校验 reactions 与子级：
+`f.Field`, `f.Object`, `f.Void` and `f.Array` accept field-level type parameters so reactions and children are checked without casts:
 
-| 构造器                                   | 类型参数                                                             |
-| ---------------------------------------- | -------------------------------------------------------------------- |
-| `f.Field<Value, Scope, Record, Values>`  | 字段值类型、字段级 Scope、父级 record、子级 reactions 的 `$values`。 |
-| `f.Object<Value, Scope, Record, Values>` | 对象值类型、字段级 Scope、父级 record、子级 reactions 的 `$values`。 |
-| `f.Void<Record, Scope, Values>`          | 向子级暴露的 record、字段级 Scope、子级 reactions 的 `$values`。     |
-| `f.Array<Item, Scope, Record, Values>`   | 数组项类型、字段级 Scope、数组自身 record、子级 `$values`。          |
+| Creator                                  | Type parameters                                                                  |
+| ---------------------------------------- | -------------------------------------------------------------------------------- |
+| `f.Field<Value, Scope, Record, Values>`  | Field value type, field-level scope, parent record, child reactions' `$values`.  |
+| `f.Object<Value, Scope, Record, Values>` | Object value type, field-level scope, parent record, child reactions' `$values`. |
+| `f.Void<Record, Scope, Values>`          | Record exposed to children, field-level scope, child reactions' `$values`.       |
+| `f.Array<Item, Scope, Record, Values>`   | Item type, field-level scope, array's own record, child `$values`.               |
 
-四个构造器的泛型顺序一致：值 / record → 字段级 Scope → 父级 record → `$values` → `Component` → `Decorator`。`Component` / `Decorator` 固定在末尾，容器构造器（Object / Array / Void）同样如此；不传时由组件 map 推断。
+All four creators share the same parameter order: value / record → field-level scope → parent record → `$values` → `Component` → `Decorator`. `Component` and `Decorator` always come last — container creators (Object / Array / Void) follow the same rule — and are inferred from the component maps when omitted.
 
-父级声明的类型会自动传递给 `properties` / `items` 中创建的子级：
+Types declared on a parent flow into the children created inside `properties` / `items`:
 
 <<< @/snippets/schema/field-generics.ts
 
-要点：
+Rules of thumb:
 
-- 父级的值类型同时决定每个子级 creator 的值类型与子级的 `$record`。
-- 未在父级 record 中声明的 key 只接受 void 构造器（布局节点）或普通 `ISchema`；在这些 key 上使用会产生值的字段属于类型错误。
-- 继承 fragment 级的 `Scope`；传入不同的第二个类型参数（例如 `f.Object<Value, OtherScope>`）可以覆盖整棵子树的 Scope。
-- `f.Void<Record>` 向子级暴露 `Record`，自身不产生值。
-- `f.Array<Item>` 把 `items` 约束为 `SchemaCreator<Item>`，数组自身的值类型为 `Item[]`。数组项 creator 也需声明自身值类型（例如 `f.Object<Item>`），其子级才能继续获得上下文。
-- object / array 节点位于各自的父容器中，自身 `$record` 默认为 `any`；需要时传入第三个类型参数：`f.Object<Value, Scope, ParentRecord>`、`f.Array<Item, Scope, ParentRecord>`。
-- 需要收窄子级 reactions 的 `$values` 时传入 `Values` 槽位：`f.Field<Value, Scope, Record, FormValues>`、`f.Object<Value, Scope, Record, FormValues>`、`f.Void<Record, Scope, FormValues>`、`f.Array<Item, Scope, Record, FormValues>`；不传时为 `any`。
-- 为字段显式声明值泛型（例如 `f.Field<number>`）会关闭其余类型参数的推断（TypeScript 限制）。可能时省略 `Value`，交给父级 record 驱动。
+- The parent value type drives both the value type of each child creator and the child's `$record`.
+- Keys absent from the parent record only accept void creators (layout nodes) or plain `ISchema`; a value-producing field on such a key is a type error.
+- The fragment-level `Scope` is inherited automatically; pass a different second type parameter (for example `f.Object<Value, OtherScope>`) to override it for a whole subtree.
+- `f.Void<Record>` exposes `Record` to children without producing a value of its own.
+- `f.Array<Item>` types `items` as `SchemaCreator<Item>` and the array's own value as `Item[]`. Declare the item creator's value type too (for example `f.Object<Item>`) so its children keep the context.
+- Object and array nodes live inside their parent container, so their own `$record` defaults to `any`. Pass the third type parameter when it matters: `f.Object<Value, Scope, ParentRecord>`, `f.Array<Item, Scope, ParentRecord>`.
+- Pass the `Values` slot to narrow `$values` inside child reactions: `f.Field<Value, Scope, Record, FormValues>`, `f.Object<Value, Scope, Record, FormValues>`, `f.Void<Record, Scope, FormValues>`, `f.Array<Item, Scope, Record, FormValues>`. It defaults to `any`.
+- Declaring a value generic on a field, for example `f.Field<number>`, disables inference for its remaining type parameters (a TypeScript limitation). Leave `Value` off and let the parent record drive it when possible.
 
-## `ISchema` 字段参考
+## `ISchema` field reference
 
-### 交互与展示
+### Interaction and presentation
 
-| 字段                                                | 类型                              | 说明                                                                      |
-| --------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------- |
-| `title`                                             | `string` / 表达式                 | 字段标题。                                                                |
-| `description`                                       | `string` / 表达式                 | 字段帮助文案。                                                            |
-| `display`                                           | `'visible' \| 'hidden' \| 'none'` | `hidden` 保留布局占位；`none` 移除节点且其值不会出现在 `form.values` 中。 |
-| `visible` / `hidden`                                | `boolean` / 表达式                | 写入 `display` 的语法糖。                                                 |
-| `editable` / `disabled` / `readOnly` / `readPretty` | `boolean` / 表达式                | 写入字段交互模式的语法糖。                                                |
-| `data`                                              | `any`                             | 挂载到字段上的自由数据，字段模型上可直接读取。                            |
-| `content`                                           | `any`                             | 供装饰器组件使用的原始内容。                                              |
-| `x*`                                                | `any`                             | 第三方扩展字段，以 `x` 前缀命名。                                         |
+| Field                                               | Type                              | Description                                                                            |
+| --------------------------------------------------- | --------------------------------- | -------------------------------------------------------------------------------------- |
+| `title`                                             | `string` / expression             | Field label.                                                                           |
+| `description`                                       | `string` / expression             | Help text under the field.                                                             |
+| `display`                                           | `'visible' \| 'hidden' \| 'none'` | `hidden` keeps layout space; `none` removes the node and its value from `form.values`. |
+| `visible` / `hidden`                                | `boolean` / expression            | Sugar that writes `display`.                                                           |
+| `editable` / `disabled` / `readOnly` / `readPretty` | `boolean` / expression            | Sugar that writes the field interaction pattern.                                       |
+| `data`                                              | `any`                             | Free-form data attached to the field, available on the field model.                    |
+| `content`                                           | `any`                             | Raw content for decorator components.                                                  |
+| `x*`                                                | `any`                             | Third-party extension fields, named with an `x` prefix.                                |
 
-### 结构
+### Structure
 
-| 字段                                                             | 说明                                                                                                                                                                   |
-| ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `type`                                                           | `'string' \| 'number' \| 'boolean' \| 'object' \| 'array' \| 'void' \| 'date' \| 'datetime'` 或自定义字符串。                                                          |
-| `name`                                                           | 字段名，通常由父级 `properties` 的键推导。                                                                                                                             |
-| `properties`                                                     | object / void 节点的子节点。                                                                                                                                           |
-| `items`                                                          | array 节点的单项 schema（或元组形式的多个 schema）。                                                                                                                   |
-| `additionalProperties` / `patternProperties` / `additionalItems` | 条件子节点定义。                                                                                                                                                       |
-| `definitions` / `$ref`                                           | 可复用 schema 定义，通过 `#/...` 路径引用。                                                                                                                            |
-| `default`                                                        | 字段初始化时使用的默认值。                                                                                                                                             |
-| `enum`                                                           | 允许的取值，可使用 `{ label, value }` 形式。运行时存放在 `field.dataSource`；若 Select 类组件用的是 `options`，需要 `mapProps({ dataSource: 'options' })` 之类的映射。 |
+| Field                                                            | Description                                                                                                                                                                                                         |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `type`                                                           | `'string' \| 'number' \| 'boolean' \| 'object' \| 'array' \| 'void' \| 'date' \| 'datetime'` or a custom string.                                                                                                    |
+| `name`                                                           | Field key; normally derived from the parent's `properties`.                                                                                                                                                         |
+| `properties`                                                     | Child nodes of an object / void node.                                                                                                                                                                               |
+| `items`                                                          | Item schema (or tuple of schemas) of an array node.                                                                                                                                                                 |
+| `additionalProperties` / `patternProperties` / `additionalItems` | Conditional child definitions.                                                                                                                                                                                      |
+| `definitions` / `$ref`                                           | Reusable schema definitions referenced by `#/...` paths.                                                                                                                                                            |
+| `default`                                                        | Default value used when the field initializes.                                                                                                                                                                      |
+| `enum`                                                           | Allowed values, optionally `{ label, value }` entries. At runtime it is stored on `field.dataSource`; select components that expect an `options` prop need a mapping such as `mapProps({ dataSource: 'options' })`. |
 
-### 校验字段
+### Validation fields
 
-标准 JSON Schema 约束由 `@formvk/validator` 解释：`required`、`format`、`pattern`（**正则字符串**，不是交互模式）、`maxLength` / `minLength`、`maximum` / `minimum`、`exclusiveMaximum` / `exclusiveMinimum`、`multipleOf`、`maxItems` / `minItems` / `uniqueItems`、`maxProperties` / `minProperties`、`const`、`enum`，以及用于自定义规则的 `validator`。完整规则表见[校验参考](/core/validation-reference)。
+Standard JSON Schema constraints are interpreted by `@formvk/validator`: `required`, `format`, `pattern` (a **regex string**, not the interaction pattern), `maxLength` / `minLength`, `maximum` / `minimum`, `exclusiveMaximum` / `exclusiveMinimum`, `multipleOf`, `maxItems` / `minItems` / `uniqueItems`, `maxProperties` / `minProperties`, `const`, `enum`, plus `validator` for custom rules. See the [Validation reference](/core/validation-reference) for the full rule table.
 
-上述每个校验键都支持 <code v-pre>{{...}}</code> 表达式（包括 `validator` 规则对象内部的叶子），类型上体现为 `Stringify<T>`：取值是 `T` 与表达式字符串的联合，普通错误类型字符串（例如数字字段传 `'10'`）仍然报类型错误。
+Every validation key above accepts a <code v-pre>{{...}}</code> expression (including leaves inside a `validator` rule object). At the type level this is represented by `Stringify<T>`: the value is a union of `T` and an expression string, while an ordinary mistyped string (for example `'10'` for a numeric field) is still rejected.
 
-### Formvk 扩展字段
+### Formvk extensions
 
-| 字段                           | 说明                                                                                                                                     |
-| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `component`                    | 组件名，从 `components` 映射中解析；也可以是组件定义本身，或求值结果为组件名/组件引用的表达式。                                          |
-| `componentProps`               | 传给组件的 props，类型由 fragment 的组件 map 约束；任意层级的字符串叶子（或整个 props）都支持表达式，严格类型由 `ExpressionProps` 承载。 |
-| `decorator` / `decoratorProps` | 装饰器组件（例如表单项包装器）及其 props；表达式规则与 `component` / `componentProps` 一致。                                             |
-| `validator`                    | 校验描述符、规则对象或数组；支持整体表达式，也支持规则对象内的叶子表达式。                                                               |
-| `reactions`                    | 单个联动或联动数组，见[联动](#联动)。                                                                                                    |
-| `slot` / `slotNode`            | 把节点渲染到父组件的具名插槽中。                                                                                                         |
-| `compileOmitted`               | 指定不做表达式编译的字段路径。                                                                                                           |
+| Field                          | Description                                                                                                                                                                                        |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `component`                    | Component name resolved from the `components` map, a component definition, or an expression evaluating to a component name / definition.                                                           |
+| `componentProps`               | Props passed to the component. Typed via the fragment's component maps; any nested string leaf (or the whole props object) accepts an expression, with strict typing carried by `ExpressionProps`. |
+| `decorator` / `decoratorProps` | Decorator component (for example a form-item wrapper) and its props; the same expression rules as `component` / `componentProps` apply.                                                            |
+| `validator`                    | Validator descriptor, rule object or array; accepts a whole-value expression or leaf expressions inside rule objects.                                                                              |
+| `reactions`                    | One reaction or an array; see [Reactions](#reactions).                                                                                                                                             |
+| `slot` / `slotNode`            | Render the node into a named slot of its parent component.                                                                                                                                         |
+| `compileOmitted`               | Field paths that must not be compiled as expressions.                                                                                                                                              |
 
-所有支持表达式的字段都可以填写 <code v-pre>{{ ... }}</code> 字符串，编译时按字段作用域求值。完整的表达式能力字段包括：交互展示字段（`title`、`visible` 等）、全部校验键、`component` / `decorator` 引用、`componentProps` / `decoratorProps` 的任意层级叶子，以及 `enum` / `pattern` / `required`。
+Any field marked as expression-capable accepts a <code v-pre>{{ ... }}</code> string compiled against the field scope. The full set covers interaction / presentation fields (`title`, `visible`, ...), every validation key, the `component` / `decorator` references, any nested leaf of `componentProps` / `decoratorProps`, plus `enum` / `pattern` / `required`.
 
-## 联动
+## Reactions
 
-联动是一个 `(field, scope) => void` 函数，运行在字段的响应式上下文中。函数内读取到的任何可观察值都会成为依赖。用 `createSchema<Values>` 注入值类型后 `field.record` 才有类型，否则为 `any`：
+A reaction is a function `(field, scope) => void` that runs inside the field's reactive context. Any observable read inside it becomes a dependency. `field.record` is typed when the value type is injected with `createSchema<Values>`; otherwise it stays `any`:
 
 <<< @/snippets/schema/reactions.ts#field-reaction
 
-对象形式只用于必须保存在纯 JSON schema 中的联动：
+The object form exists only for reactions that must stay inside a pure-JSON schema:
 
 <<< @/snippets/schema/reactions.ts#reaction-object
 
-| 键                                    | 说明                                                                              |
-| ------------------------------------- | --------------------------------------------------------------------------------- |
-| `dependencies`                        | 字段路径（字符串）、`{ name, type, source, property }` 对象，或名称到来源的映射。 |
-| `when`                                | 表达式字符串或布尔值，决定执行哪个分支。                                          |
-| `target`                              | 联动要写入的其他字段路径。                                                        |
-| `effects`                             | 触发联动的生命周期事件，例如 `onFieldValueChange`。                               |
-| `fulfill.state` / `otherwise.state`   | 应用到字段上的部分 `IGeneralFieldState`。                                         |
-| `fulfill.schema` / `otherwise.schema` | 合并到节点上的 schema 片段。                                                      |
-| `fulfill.run` / `otherwise.run`       | 作为代码执行的表达式字符串。                                                      |
+| Key                                   | Description                                                                                 |
+| ------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `dependencies`                        | Field paths (strings), `{ name, type, source, property }` objects, or a name-to-source map. |
+| `when`                                | Expression string or boolean deciding which branch runs.                                    |
+| `target`                              | Path of another field the reaction writes to.                                               |
+| `effects`                             | Lifecycle events that trigger the reaction, for example `onFieldValueChange`.               |
+| `fulfill.state` / `otherwise.state`   | Partial `IGeneralFieldState` applied to the field.                                          |
+| `fulfill.schema` / `otherwise.schema` | Schema fragment merged onto the node.                                                       |
+| `fulfill.run` / `otherwise.run`       | Expression string executed as code.                                                         |
 
-业务代码优先使用函数形式：它就是普通 TypeScript，不需要表达式字符串，阅读顺序也是自上而下。
+Prefer the function form for application code: it is ordinary TypeScript, needs no expression strings, and reads top-to-bottom.
 
 ## `createExpression`
 
@@ -221,48 +221,48 @@ TypeScript 不支持部分类型参数推断：显式传入组件 map 后，`Def
 function createExpression<T extends object>(expression: string): Expression<T>
 ```
 
-构建带类型提示的表达式字符串。把作用域对象的形状作为泛型传入；不传时 `T` 默认为 `object`，没有任何属性补全。
+Builds type-checked expression strings. Pass the scope object's shape as the generic parameter; without it, `T` defaults to `object` and no property completion is available.
 
 <<< @/snippets/schema/expression.ts#api-expression
 
-### 操作符
+### Operators
 
-| 方法                           | 输出             |
-| ------------------------------ | ---------------- |
-| `eq(value, exp?)` / `neq(...)` | `===` / `!==`    |
-| `gt` / `gte` / `lt` / `lte`    | 大小比较         |
-| `and` / `or`                   | `&&` / `\|\|`    |
-| `not()` / `bool()`             | `!x` / `!!x`     |
-| `ter(a, b, exp?)`              | 三元 `x ? a : b` |
+| Method                         | Output               |
+| ------------------------------ | -------------------- |
+| `eq(value, exp?)` / `neq(...)` | `===` / `!==`        |
+| `gt` / `gte` / `lt` / `lte`    | comparison operators |
+| `and` / `or`                   | `&&` / `\|\|`        |
+| `not()` / `bool()`             | `!x` / `!!x`         |
+| `ter(a, b, exp?)`              | ternary `x ? a : b`  |
 
-最后一个参数传 `true` 时按原始表达式插入，而不是 JSON 编码后的字面量。
+Pass `true` as the last argument to insert a raw expression instead of a JSON-encoded literal.
 
-### `.exp` 与 `.fn`
+### `.exp` and `.fn`
 
-- `exp.exp.a.b` 返回不带 <code v-pre>{{ }}</code> 包裹的原始路径字符串 `$values.a.b`。
-- `exp.fn.handler('$event')` 生成函数包装表达式，例如 <code v-pre>{{function __handler($event) {} return $values.handler($event)}}</code>。用 `'$args'` 表示展开参数（两者不能同时使用），也可以通过 `{ body, expand }` 注入自定义函数体。
+- `exp.exp.a.b` returns the raw path string `$values.a.b` without the <code v-pre>{{ }}</code> wrapper.
+- `exp.fn.handler('$event')` generates a wrapped function expression, for example <code v-pre>{{function __handler($event) {} return $values.handler($event)}}</code>. Use `'$args'` for spread arguments (the two cannot be combined), and `{ body, expand }` to inject a custom function body.
 
-### 表达式作用域
+### Expression scope
 
-表达式与联动的求值作用域包括：`$form`、`$values`、`$self`（当前字段）、`$record` / `$records`（数组项上下文）、`$index`、`$lookup`（最近的 record 或根 values），以及通过 `scope` / `ExpressionScope` 注入的值；联动中还提供 `$dependencies`。
+Expressions and reactions evaluate against: `$form`, `$values`, `$self` (the current field), `$record` / `$records` (array item context), `$index`, `$lookup` (nearest record or root values), and any values provided through `scope` / `ExpressionScope`. Reactions also expose `$dependencies`.
 
-## `Schema` 运行时类
+## `Schema` runtime class
 
-`new Schema(json, parent?)` 会把普通 `ISchema` 解析成相互链接的树（子节点也会变成 `Schema` 实例）。
+`new Schema(json, parent?)` parses a plain `ISchema` into a linked tree (children become `Schema` instances).
 
-| 成员                                                                                 | 说明                                          |
-| ------------------------------------------------------------------------------------ | --------------------------------------------- |
-| `addProperty` / `removeProperty` / `setProperties`                                   | 管理 `properties` 条目。                      |
-| `addPatternProperty` / `setAdditionalProperties` / `setItems` / `setAdditionalItems` | 管理条件子节点与数组子节点。                  |
-| `mapProperties(cb)` / `reduceProperties(cb, init)`                                   | 按顺序遍历属性。                              |
-| `compile(scope?)`                                                                    | 按作用域编译所有表达式字符串，返回新 schema。 |
-| `fromJSON(json)`                                                                     | 用普通对象重新填充当前实例。                  |
-| `Schema.isSchemaInstance(value)`                                                     | 静态实例判断。                                |
-| `Schema.compile` / `Schema.shallowCompile`                                           | 静态表达式编译工具。                          |
-| `Schema.registerCompiler` / `Schema.registerPatches` / `Schema.silent`               | 自定义编译器与 patch 的扩展点。               |
+| Member                                                                               | Description                                                       |
+| ------------------------------------------------------------------------------------ | ----------------------------------------------------------------- |
+| `addProperty` / `removeProperty` / `setProperties`                                   | Manage `properties` entries.                                      |
+| `addPatternProperty` / `setAdditionalProperties` / `setItems` / `setAdditionalItems` | Manage conditional and array children.                            |
+| `mapProperties(cb)` / `reduceProperties(cb, init)`                                   | Iterate ordered properties.                                       |
+| `compile(scope?)`                                                                    | Compile all expression strings against a scope into a new schema. |
+| `fromJSON(json)`                                                                     | Re-populate the instance from a plain object.                     |
+| `Schema.isSchemaInstance(value)`                                                     | Static instance check.                                            |
+| `Schema.compile` / `Schema.shallowCompile`                                           | Static expression compilation helpers.                            |
+| `Schema.registerCompiler` / `Schema.registerPatches` / `Schema.silent`               | Extension points for custom compilers and patches.                |
 
-## 下一步
+## Next steps
 
-- [表单模型与 Effects](/core/) —— `createForm`、字段模型、生命周期钩子与查询。
-- [校验](/core/validation-reference) —— 规则、格式与校验注册中心。
-- [Schema 概览](/schema/) —— schema 与核心概念的对应关系。
+- [Schema overview](/schema/) — how schema nodes map to core field models and the typed DSL in practice.
+- [Form model](/core/) — `createForm`, field models, lifecycle hooks and queries.
+- [Validation reference](/core/validation-reference) — rules, formats and the validator registry.

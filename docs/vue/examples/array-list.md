@@ -1,20 +1,22 @@
-# 数组列表
+# Array List
 
-可重复的字段组就是普通的 `type: 'array'` 节点。数组组件负责布局，并用 `RecursionField` 按各自的 schema 渲染每一项。
+Repeatable field groups are regular `type: 'array'` nodes. The array component owns the layout and uses `RecursionField` to render each item with its own schema.
 
-<demo vue="../../demos/zh/array-list.vue" stackblitz="true" />
+<demo vue="../../demos/array-list.vue" stackblitz="true" />
 
-## 数组组件
+## The array component
 
 <<< @/snippets/vue/array-list.vue
 
-- `field.value` 是数组取值，`schema.items` 是每一项的 schema。
-- `<RecursionField :schema="schema.items" :name="index" />` 会在对应路径（例如 `members.0.name`）创建子字段。
-- 数组字段提供 `push`、`pop`、`insert`、`remove`、`shift`、`unshift`、`move`、`moveUp`、`moveDown`。
+- `field.value` is the array value; `schema.items` is the item schema.
+- `<RecursionField :schema="schema.items" :name="index" />` creates a child field at the item path (for example `members.0.name`).
+- The array field exposes `push`, `pop`, `insert`, `remove`, `shift`, `unshift`, `move`, `moveUp` and `moveDown`.
 
-上面的示例就是这一模式，只是补充了标题与样式。
+The demo above uses exactly this pattern, with labels and styles added.
 
-## 值类型
+## Value shape
+
+The schema
 
 ```ts
 f.ArrayItems(
@@ -25,10 +27,10 @@ f.ArrayItems(
 )
 ```
 
-这段 schema 让 `members` 的类型为 `Array<{ name?: string; email?: string }>`。`createSchema` 会把它汇总进表单值类型，因此 `form.values.members[0].name` 是有类型的。
+produces `Array<{ name?: string; email?: string }>` for the `members` property. `createSchema` collects it into the form value type, so `form.values.members[0].name` is typed.
 
-## 下一步
+## Next steps
 
-- [嵌套对象](/vue/examples/schema-object) —— 对象 schema 与值类型推导。
-- [Vue 绑定](/vue/) —— 一览所有组件。
-- [React 版本](/react/examples/array-list) —— 同一个数组组件的 TSX 实现。
+- [Nested Objects](/vue/examples/schema-object) — object schemas and value inference.
+- [Vue bindings](/vue/) — every component at a glance.
+- [React version](/react/examples/array-list) — the same array component in TSX.
