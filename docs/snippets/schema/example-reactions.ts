@@ -1,8 +1,8 @@
 import { createFragment, createSchema } from '@formvk/schema'
 
 interface FieldComponents {
-  Input: Record<string, unknown>
-  Checkbox: Record<string, unknown>
+  Input: (props: Record<string, unknown>) => any
+  Checkbox: (props: Record<string, unknown>) => any
 }
 
 interface SubscribeValues {

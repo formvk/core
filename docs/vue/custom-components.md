@@ -43,7 +43,7 @@ const { SchemaField, fragment: f } = createSchemaField({
 
 ## Type `componentProps`
 
-Without a component map, `componentProps` is untyped. Pass component props maps to `createFragment` — the first three type arguments are independent maps for field, void / layout and array components — extracting each component's props with the `ComponentProps<T>` helper:
+Without a component map, `componentProps` is untyped. Pass component maps to `createFragment` — the first three type arguments are independent maps from component name to component type, for field, void / layout and array components. Each component's props are extracted automatically:
 
 <<< @/snippets/vue/component-maps.ts#props-map
 
@@ -53,7 +53,7 @@ Layout-only components go in the second map (`V`) and array components in the th
 
 ### Skip the map: let `createSchemaField` infer everything
 
-When the schema lives in the same app as the components, pass a flat runtime component map to `createSchemaField` and classify the special components with `voidComponents` / `arrayComponents` component maps — they are merged into the runtime component map automatically, so no duplicate registration is needed. The factory returns `{ SchemaField, fragment }` and extracts each component's props automatically — no hand-written component props maps, no type arguments:
+When the schema lives in the same app as the components, pass a flat runtime component map to `createSchemaField` and classify the special components with `voidComponents` / `arrayComponents` component maps — they are merged into the runtime component map automatically, so no duplicate registration is needed. The factory returns `{ SchemaField, fragment }` and extracts each component's props automatically — no hand-written component maps, no type arguments:
 
 <<< @/snippets/vue/component-maps.ts#inference
 
@@ -95,12 +95,12 @@ The field is an `ArrayField`, so `push`, `pop`, `insert`, `remove`, `move`, `mov
 
 - **`useField()` returns `null`** outside a `SchemaField` / `RecursionField` subtree — the component must be referenced from a schema, not mounted directly.
 - **Values do not update** when emitting raw values into `onInput`; use `field.setValue(value)` for non-event payloads.
-- **Props are untyped** when no component props map is passed; dynamic creators such as `f.Input` also stop existing as typed symbols.
+- **Props are untyped** when no component map is passed; dynamic creators such as `f.Input` also stop existing as typed symbols.
 - **Pattern flags** (`disabled`, `readOnly`, `readPretty`) are inherited from the form and parent fields, so components should read them from the field model rather than hard-coding them.
 
 ## Next steps
 
 - [Hooks & component helpers](/vue/hooks) — every hook and helper signature.
 - [Validation](/core/validation) — rules and error display inside custom components.
-- [Schema reference](/schema/reference) — component props maps, creators and field schema fields.
+- [Schema reference](/schema/reference) — component maps, creators and field schema fields.
 - [React custom components](/react/custom-components) — the same contract in TSX.

@@ -3,15 +3,16 @@ import type { ArrayField, Field, ObjectField, VoidField } from '@formvk/core'
 import type { ExpressionProps, ISchema, SchemaExpression, SchemaPatch, SchemaReactions } from './types'
 
 /**
- * 三个独立的组件 props map，泛型顺序与运行时分类通道一致：
+ * 三个独立的组件 map（name → 组件类型），泛型顺序与运行时分类通道一致：
  * - F：数据字段组件（string / number 等，也是动态组件的默认分类）
  * - V：无值组件（void 字段、object 字段、decorator）
  * - A：数组组件（array 字段）
+ * 组件 props 不再由 map 直接承载，而是通过 TComponentProps 从组件类型中提取。
  */
-export type FragmentPropsMap = Record<string, any>
+export type FragmentComponentMap = Record<string, any>
 
 export interface FragmentOptions<
-  V extends FragmentPropsMap = {},
+  V extends FragmentComponentMap = {},
   DefaultDecorator extends AnyComponent<V> = AnyComponent<V>,
 > {
   patches?: SchemaPatchInput | SchemaPatchInput[]
@@ -38,7 +39,7 @@ type ComponentName<Map> = [Map] extends [never] ? never : keyof Map & string
  * 注意：object 成员不校验组件具体形状（跨 Vue 选项式 / 函数组件的宽松约束），非组件对象也能通过类型检查，
  * 其合法性最终交给渲染层 h() 兜底。
  */
-export type AnyComponent<Map extends FragmentPropsMap> =
+export type AnyComponent<Map extends FragmentComponentMap> =
   | ComponentName<Map>
   | (string & {})
   | ((...args: any[]) => any)
@@ -58,13 +59,14 @@ export type TPropsOfComponent<Component> = Component extends abstract new (...ar
       ? Props
       : Record<string, unknown>
 
+/** 从组件 map 中按名字取出组件类型，再提取它的 props；名字未声明或不是可识别的组件形状时退化为宽松 record。 */
 type TComponentProps<Map, Component> = [Component] extends [never]
   ? Record<string, unknown>
   : Component extends string
     ? [Map] extends [never]
       ? Record<string, unknown>
       : Component extends keyof Map
-        ? Map[Component]
+        ? TPropsOfComponent<Map[Component]>
         : Record<string, unknown>
     : TPropsOfComponent<Component>
 
@@ -179,8 +181,8 @@ export type SchemaPropertiesValues<P extends Record<string, any>> = {
 }
 
 export type FieldSchema<
-  F extends FragmentPropsMap,
-  V extends FragmentPropsMap,
+  F extends FragmentComponentMap,
+  V extends FragmentComponentMap,
   Component extends AnyComponent<F> = ComponentName<F>,
   Decorator extends AnyComponent<V> = ComponentName<V>,
   Value = any,
@@ -207,7 +209,7 @@ export type FieldSchema<
 }
 
 export type ObjectSchema<
-  V extends FragmentPropsMap,
+  V extends FragmentComponentMap,
   Component extends AnyComponent<V> = ComponentName<V>,
   Decorator extends AnyComponent<V> = ComponentName<V>,
   Value extends object = any,
@@ -232,8 +234,8 @@ export type ObjectSchema<
 }
 
 export type ArraySchema<
-  A extends FragmentPropsMap,
-  V extends FragmentPropsMap,
+  A extends FragmentComponentMap,
+  V extends FragmentComponentMap,
   Component extends AnyComponent<A> = ComponentName<A>,
   Decorator extends AnyComponent<V> = ComponentName<V>,
   Value extends any[] = any[],
@@ -261,7 +263,7 @@ export type ArraySchema<
 }
 
 export type VoidSchema<
-  V extends FragmentPropsMap,
+  V extends FragmentComponentMap,
   Component extends AnyComponent<V> = ComponentName<V>,
   Decorator extends AnyComponent<V> = ComponentName<V>,
   IRecord extends object = any,
@@ -283,8 +285,8 @@ export type VoidSchema<
 }
 
 export interface FieldFragment<
-  F extends FragmentPropsMap,
-  V extends FragmentPropsMap,
+  F extends FragmentComponentMap,
+  V extends FragmentComponentMap,
   Scope extends object = {},
   DefaultDecorator extends AnyComponent<V> = ComponentName<V>,
 > {
@@ -317,7 +319,7 @@ export interface FieldFragment<
 }
 
 export interface ObjectFragment<
-  V extends FragmentPropsMap,
+  V extends FragmentComponentMap,
   Scope extends object = {},
   DefaultDecorator extends AnyComponent<V> = ComponentName<V>,
 > {
@@ -362,8 +364,8 @@ export type SchemaCreatorValue<T> = T extends SchemaCreator<infer Value, any, an
 type TRecordOfItem<Item> = Item extends object ? Item : any
 
 export interface ArrayFragment<
-  A extends FragmentPropsMap,
-  V extends FragmentPropsMap,
+  A extends FragmentComponentMap,
+  V extends FragmentComponentMap,
   Scope extends object = {},
   DefaultDecorator extends AnyComponent<V> = ComponentName<V>,
 > {
@@ -408,7 +410,7 @@ export interface ArrayFragment<
 }
 
 export interface VoidFragment<
-  V extends FragmentPropsMap,
+  V extends FragmentComponentMap,
   Scope extends object = {},
   DefaultDecorator extends AnyComponent<V> = ComponentName<V>,
 > {
@@ -441,9 +443,9 @@ export interface VoidFragment<
 }
 
 export interface FragmentBase<
-  F extends FragmentPropsMap,
-  V extends FragmentPropsMap,
-  A extends FragmentPropsMap,
+  F extends FragmentComponentMap,
+  V extends FragmentComponentMap,
+  A extends FragmentComponentMap,
   Scope extends object = {},
   DefaultDecorator extends AnyComponent<V> = ComponentName<V>,
 > {
@@ -455,8 +457,8 @@ export interface FragmentBase<
 }
 
 export interface FieldFragmentItem<
-  F extends FragmentPropsMap,
-  V extends FragmentPropsMap,
+  F extends FragmentComponentMap,
+  V extends FragmentComponentMap,
   K extends ComponentName<F>,
   Scope extends object = {},
   DefaultDecorator extends AnyComponent<V> = ComponentName<V>,
@@ -486,7 +488,7 @@ export interface FieldFragmentItem<
 }
 
 export interface VoidFragmentItem<
-  V extends FragmentPropsMap,
+  V extends FragmentComponentMap,
   K extends ComponentName<V>,
   Scope extends object = {},
   DefaultDecorator extends AnyComponent<V> = ComponentName<V>,
@@ -506,8 +508,8 @@ export interface VoidFragmentItem<
 }
 
 export interface ArrayFragmentItem<
-  A extends FragmentPropsMap,
-  V extends FragmentPropsMap,
+  A extends FragmentComponentMap,
+  V extends FragmentComponentMap,
   K extends ComponentName<A>,
   Scope extends object = {},
   DefaultDecorator extends AnyComponent<V> = ComponentName<V>,
@@ -538,8 +540,8 @@ export interface ArrayFragmentItem<
 }
 
 export type FieldFragmentMapping<
-  F extends FragmentPropsMap,
-  V extends FragmentPropsMap,
+  F extends FragmentComponentMap,
+  V extends FragmentComponentMap,
   Scope extends object = {},
   DefaultDecorator extends AnyComponent<V> = ComponentName<V>,
 > = {
@@ -547,7 +549,7 @@ export type FieldFragmentMapping<
 }
 
 export type VoidFragmentMapping<
-  V extends FragmentPropsMap,
+  V extends FragmentComponentMap,
   Scope extends object = {},
   DefaultDecorator extends AnyComponent<V> = ComponentName<V>,
 > = {
@@ -555,8 +557,8 @@ export type VoidFragmentMapping<
 }
 
 export type ArrayFragmentMapping<
-  A extends FragmentPropsMap,
-  V extends FragmentPropsMap,
+  A extends FragmentComponentMap,
+  V extends FragmentComponentMap,
   Scope extends object = {},
   DefaultDecorator extends AnyComponent<V> = ComponentName<V>,
 > = {
@@ -564,9 +566,9 @@ export type ArrayFragmentMapping<
 }
 
 export type Fragment<
-  F extends FragmentPropsMap = {},
-  V extends FragmentPropsMap = {},
-  A extends FragmentPropsMap = {},
+  F extends FragmentComponentMap = {},
+  V extends FragmentComponentMap = {},
+  A extends FragmentComponentMap = {},
   Scope extends object = {},
   DefaultDecorator extends AnyComponent<V> = ComponentName<V>,
 > = FragmentBase<F, V, A, Scope, DefaultDecorator> &

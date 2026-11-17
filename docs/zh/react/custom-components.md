@@ -43,7 +43,7 @@ const { SchemaField, fragment: f } = createSchemaField({
 
 ## 为 `componentProps` 提供类型
 
-不传组件 map 时 `componentProps` 没有类型。给 `createFragment` 传入组件 props map——前三个类型参数分别是 field、void / 布局与 array 组件的独立映射——用 `ComponentProps<T>` 提取每个组件的 props：
+不传组件 map 时 `componentProps` 没有类型。给 `createFragment` 传入组件 map（组件名 → 组件类型）——前三个类型参数分别是 field、void / 布局与 array 组件的独立映射——组件 props 会自动从组件类型中提取：
 
 <<< @/snippets/react/component-maps.tsx#props-map
 
@@ -53,7 +53,7 @@ const { SchemaField, fragment: f } = createSchemaField({
 
 ### 省掉 map：让 `createSchemaField` 自动推断
 
-当 schema 与组件在同一应用内时，给 `createSchemaField` 传一份扁平的运行时组件映射，并用 `voidComponents` / `arrayComponents` 两个组件 map 标注特殊组件——它们会自动合并进运行时组件映射，无需重复注册。工厂返回 `{ SchemaField, fragment }` 并自动提取每个组件的 props——不亲手写组件 props map，也不传类型参数：
+当 schema 与组件在同一应用内时，给 `createSchemaField` 传一份扁平的运行时组件映射，并用 `voidComponents` / `arrayComponents` 两个组件 map 标注特殊组件——它们会自动合并进运行时组件映射，无需重复注册。工厂返回 `{ SchemaField, fragment }` 并自动提取每个组件的 props——不亲手写组件 map，也不传类型参数：
 
 <<< @/snippets/react/component-maps.tsx#inference
 
@@ -99,12 +99,12 @@ React 没有 `v-show` 指令——把可见性映射成普通 prop（或收进�
 - **直接给 `onInput` 传原始值时取值不更新**：改用 `field.setValue(value)`，或调用注入的 `onChange(value)`。
 - **组件读取了状态但不重渲染**：缺少 `@formvk/reactive-react` 的 `observer` 包裹。
 - **具名插槽 prop 落到原生元素上**：带 `slot: 'header'` 的子节点会以普通 `header` prop（React 节点）传入，而不是放在 `slots` 映射里。透传到原生标签前要显式解构插槽 props，不要整体展开。
-- **没有传组件 props map 时 props 无类型**，`f.Input` 之类的动态构造器也不会以类型符号形式存在。
+- **没有传组件 map 时 props 无类型**，`f.Input` 之类的动态构造器也不会以类型符号形式存在。
 - **pattern 标记**（`disabled`、`readOnly`、`readPretty`）会从表单与父字段继承，组件应从字段模型读取，而不是硬编码。
 
 ## 下一步
 
 - [Hooks 与组件工具](/zh/react/hooks) —— 所有 hook 与工具签名。
 - [校验](/zh/core/validation) —— 自定义组件中的规则与错误展示。
-- [Schema 参考](/zh/schema/reference) —— 组件 props map、构造器与字段 schema。
+- [Schema 参考](/zh/schema/reference) —— 组件 map、构造器与字段 schema。
 - [Vue 自定义组件](/zh/vue/custom-components) —— Vue 单文件组件中的同一套契约。

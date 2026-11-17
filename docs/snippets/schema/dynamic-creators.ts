@@ -2,13 +2,13 @@ import { createFragment } from '@formvk/schema'
 
 // #region maps
 interface FieldComponents {
-  Input: { placeholder?: string }
+  Input: (props: { placeholder?: string }) => any
 }
 interface VoidComponents {
-  Card: { title?: string }
+  Card: (props: { title?: string }) => any
 }
 interface ArrayComponents {
-  ArrayItems: { maxItems?: number }
+  ArrayItems: (props: { maxItems?: number }) => any
 }
 // #endregion
 

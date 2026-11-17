@@ -55,7 +55,7 @@ Schema 使用小驼峰命名：Formily 的 `x-component` 对应 `component`，`x
 
 ### 组件 props 类型
 
-给 `createFragment` 传入组件 props map，即可获得 `componentProps` 类型与动态构造器。前三个类型参数是相互独立的 map —— `F` 对应 field 组件、`V` 对应 void / 布局组件、`A` 对应 array 组件：
+给 `createFragment` 传入组件 map（组件名 → 组件类型），即可获得 `componentProps` 类型与动态构造器。前三个类型参数是相互独立的组件 map —— `F` 对应 field 组件、`V` 对应 void / 布局组件、`A` 对应 array 组件：
 
 <<< @/snippets/schema/component-maps.ts#creators
 
@@ -67,7 +67,7 @@ Schema 使用小驼峰命名：Formily 的 `x-component` 对应 `component`，`x
 
 <<< @/snippets/schema/component-maps.ts#runtime-names
 
-两个绑定包都提供 `createSchemaField`：它接收扁平组件映射，自动推断三份 props map —— 见 [Vue](/zh/vue/#createschemafield) 与 [React](/zh/react/#createschemafield)。
+两个绑定包都提供 `createSchemaField`：它接收扁平组件映射，自动推断三份组件 map —— 见 [Vue](/zh/vue/#createschemafield) 与 [React](/zh/react/#createschemafield)。
 
 ### Patches
 

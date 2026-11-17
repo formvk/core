@@ -1,14 +1,15 @@
 import { createFragment } from '@formvk/schema'
 
+// Framework-agnostic component types: props are the first parameter of the function.
 interface MyFieldComponents {
-  Input: { placeholder?: string; maxLength?: number }
-  NumberPicker: { min?: number; max?: number }
+  Input: (props: { placeholder?: string; maxLength?: number }) => any
+  NumberPicker: (props: { min?: number; max?: number }) => any
 }
 interface MyVoidComponents {
-  Card: { title?: string }
+  Card: (props: { title?: string }) => any
 }
 interface MyArrayComponents {
-  ArrayTable: { columns?: string[] }
+  ArrayTable: (props: { columns?: string[] }) => any
 }
 
 // #region creators

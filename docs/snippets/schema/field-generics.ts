@@ -1,12 +1,12 @@
 import { createFragment } from '@formvk/schema'
 
 interface MyFieldComponents {
-  Input: { placeholder?: string }
+  Input: (props: { placeholder?: string }) => any
 }
 interface MyVoidComponents {
-  FormLayout: Record<string, never>
+  FormLayout: (props: Record<string, never>) => any
 }
-type MyArrayComponents = Record<string, never>
+type MyArrayComponents = {}
 
 interface MyScope {
   $moment: (value: string) => string

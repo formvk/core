@@ -61,7 +61,7 @@ const form = createForm<TeamInviteValues>({
 
 ## 2. 用组件映射构建 schema
 
-`createSchemaField` 只做一次组件归类，返回带类型的 `fragment`，不需要手写组件 props map：
+`createSchemaField` 只做一次组件归类，返回带类型的 `fragment`，不需要手写组件 map：
 
 ```ts
 const { SchemaField, fragment: f } = createSchemaField({

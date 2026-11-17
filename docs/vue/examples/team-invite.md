@@ -61,7 +61,7 @@ const form = createForm<TeamInviteValues>({
 
 ## 2. Build the schema with the component map
 
-`createSchemaField` classifies components once and returns a typed `fragment`, so no component props map is written by hand:
+`createSchemaField` classifies components once and returns a typed `fragment`, so no component map is written by hand:
 
 ```ts
 const { SchemaField, fragment: f } = createSchemaField({

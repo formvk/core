@@ -23,11 +23,11 @@ export const schema = createSchema({
 })
 ```
 
-Register component props to get full type inference for `componentProps`:
+Register components (name → component type) to get full type inference for `componentProps`:
 
 ```ts
 const f = createFragment<{
-  Input: { placeholder?: string; value?: string }
+  Input: (props: { placeholder?: string; value?: string }) => any
 }>()
 
 const schema = createSchema({

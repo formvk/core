@@ -12,16 +12,19 @@ declare module '../types' {
   }
 }
 
+/** 组件 map 的取值是组件类型，props 由 fragment 层从组件类型中提取。 */
+type StubComponent<Props> = (props: Props) => any
+
 interface FieldMap {
-  Input: { maxLength?: number }
-  Select: { options?: Array<{ label: string; value: any }> }
+  Input: StubComponent<{ maxLength?: number }>
+  Select: StubComponent<{ options?: Array<{ label: string; value: any }> }>
 }
 interface VoidMap {
-  FormItem: { label?: string }
-  FormLayout: { colon?: boolean }
+  FormItem: StubComponent<{ label?: string }>
+  FormLayout: StubComponent<{ colon?: boolean }>
 }
 interface ArrayMap {
-  ArrayItems: { maxItems?: number }
+  ArrayItems: StubComponent<{ maxItems?: number }>
 }
 
 const f = createFragment<FieldMap, VoidMap, ArrayMap>()
@@ -87,7 +90,7 @@ describe('fragment types', () => {
     f.Field({ component: 'Select', componentProps: { options: [{ label: 'a', value: 1 }] } })
     f.Input({ componentProps: { maxLength: 10 } })
     f.Input({ title: '姓名' })
-    // @ts-expect-error componentProps 由分类 props map 推导
+    // @ts-expect-error componentProps 由组件 map 中的组件类型推导
     f.Input({ componentProps: { maxLength: '10' } })
     // @ts-expect-error componentProps 由 component 名推导
     f.Field({ component: 'Input', componentProps: { maxLength: '10' } })
@@ -613,7 +616,7 @@ describe('fragment types', () => {
       name: string
     }>()
     f.FormLayout({ componentProps: { colon: true } })
-    // @ts-expect-error componentProps 由分类 props map 推导
+    // @ts-expect-error componentProps 由组件 map 中的组件类型推导
     f.FormLayout({ componentProps: { colon: 'true' } })
   })
 
@@ -623,7 +626,7 @@ describe('fragment types', () => {
     const arrayItems = f.ArrayItems(f.Field({ required: true }))
     expectTypeOf<(typeof arrayItems._$types$_)[0]>().toEqualTypeOf<string[]>()
     f.ArrayItems(f.Field(), { componentProps: { maxItems: 2 } })
-    // @ts-expect-error componentProps 由分类 props map 推导
+    // @ts-expect-error componentProps 由组件 map 中的组件类型推导
     f.ArrayItems(f.Field(), { componentProps: { maxItems: '2' } })
   })
 

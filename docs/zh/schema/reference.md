@@ -51,7 +51,7 @@ const schema = createSchema<InviteValues>({
 
 推断模式下聚合出的每个键都是必填的：字段是否可缺省由值类型承载（非 `required` 字段聚合为 `T | undefined`），而不是可选修饰符。这样推断出的对象构造器可以抽到变量里、回填到显式声明类型的父级中 —— 值形状匹配时 `f.Object<FormValues>({ address })` 直接放行，不匹配则报错。对象值键只校验值槽，因为容器构造器自身的 record 是它的内容类型，而非根 record。`f.Void` 与推断式 `createSchema` 遵循同一聚合规则。
 
-> Vue 用户可以完全跳过手写组件 props map：`@formvk/vue` 的 `createSchemaField` 接收扁平组件映射与可选的 `voidComponents` / `arrayComponents`，返回 `{ SchemaField, fragment }`，无需任何类型参数即可自动推断组件 props、scope 与值类型。参见 [Vue 绑定](/zh/vue/#createschemafield)。
+> Vue 用户可以完全跳过手写组件 map：`@formvk/vue` 的 `createSchemaField` 接收扁平组件映射与可选的 `voidComponents` / `arrayComponents`，返回 `{ SchemaField, fragment }`，无需任何类型参数即可自动推断组件 map、scope 与值类型。参见 [Vue 绑定](/zh/vue/#createschemafield)。
 
 ## `createFragment`
 
@@ -65,7 +65,7 @@ function createFragment<
 >(options?: FragmentOptions<V, DefaultDecorator>): Fragment<F, V, A, Scope, DefaultDecorator>
 ```
 
-前三个类型参数是相互独立的组件 props map —— `F` 对应 field 组件，`V` 对应 void / 布局 / 装饰器组件，`A` 对应 array 组件，各自把组件名映射到它的 props 类型。
+前三个类型参数是相互独立的组件 map —— `F` 对应 field 组件，`V` 对应 void / 布局 / 装饰器组件，`A` 对应 array 组件。每个 map 把组件名映射到组件类型，`componentProps` 与 `decoratorProps` 会自动从组件类型中提取（Vue 组件取 `$props`，函数 / 类组件取第一个参数）。
 
 ### 选项
 
@@ -102,9 +102,9 @@ TypeScript 不支持部分类型参数推断：显式传入组件 map 后，`Def
 
 构造器返回的是函数：无参调用得到普通 `ISchema`；传入额外 patch 则在其基础上叠加。
 
-### 动态构造器与组件 props map
+### 动态构造器与组件 map
 
-三个 map 都是普通的 `name → props` 对象，每个分类一个：
+三个 map 都是普通的 `name → 组件` 对象，每个分类一个：
 
 <<< @/snippets/schema/dynamic-creators.ts#maps
 
@@ -114,7 +114,7 @@ TypeScript 不支持部分类型参数推断：显式传入组件 map 后，`Def
 
 - 声明在 `F` 中的组件名生成字段构造器；`V` / `A` 中的分别生成 void / array 构造器。
 - 使用未在对应 map 中声明的构造器会直接报类型错误；请改用 `f.Field({ component: 'X' })` 或在 map 中声明 `X`。
-- `componentProps` 会按该组件注册的 props 类型做校验；其中任意叶子（或整个 props）都可以写 <code v-pre>{{...}}</code> 表达式，普通错误类型字符串仍会报错，例如 <code v-pre>maxLength: '10'</code> 不合法而 <code v-pre>maxLength: '{{$values.limit}}'</code> 合法。
+- `componentProps` 会按从组件类型中提取的 props 做校验；其中任意叶子（或整个 props）都可以写 <code v-pre>{{...}}</code> 表达式，普通错误类型字符串仍会报错，例如 <code v-pre>maxLength: '10'</code> 不合法而 <code v-pre>maxLength: '{{$values.limit}}'</code> 合法。
 - 严格性刻意不对称：简写构造器（`f.Input`）只对已声明的名字存在，而 `component` / `decorator` 字符串字段接受任意字符串（经 `string & {}`），以兼容仅在运行时注册的组件。未声明的字符串名没有补全，`componentProps` 退化为宽松的 `Record<string, unknown>`；props 校验只对已声明名字生效。
 
 ### 字段级类型参数
@@ -128,7 +128,7 @@ TypeScript 不支持部分类型参数推断：显式传入组件 map 后，`Def
 | `f.Void<Record, Scope, Values>`          | 向子级暴露的 record、字段级 Scope、子级 reactions 的 `$values`。     |
 | `f.Array<Item, Scope, Record, Values>`   | 数组项类型、字段级 Scope、数组自身 record、子级 `$values`。          |
 
-四个构造器的泛型顺序一致：值 / record → 字段级 Scope → 父级 record → `$values` → `Component` → `Decorator`。`Component` / `Decorator` 固定在末尾，容器构造器（Object / Array / Void）同样如此；不传时由组件 props map 推断。
+四个构造器的泛型顺序一致：值 / record → 字段级 Scope → 父级 record → `$values` → `Component` → `Decorator`。`Component` / `Decorator` 固定在末尾，容器构造器（Object / Array / Void）同样如此；不传时由组件 map 推断。
 
 父级声明的类型会自动传递给 `properties` / `items` 中创建的子级：
 
@@ -181,15 +181,15 @@ TypeScript 不支持部分类型参数推断：显式传入组件 map 后，`Def
 
 ### Formvk 扩展字段
 
-| 字段                           | 说明                                                                                                                                           |
-| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `component`                    | 组件名，从 `components` 映射中解析；也可以是组件定义本身，或求值结果为组件名/组件引用的表达式。                                                |
-| `componentProps`               | 传给组件的 props，类型由 fragment 的组件 props map 约束；任意层级的字符串叶子（或整个 props）都支持表达式，严格类型由 `ExpressionProps` 承载。 |
-| `decorator` / `decoratorProps` | 装饰器组件（例如表单项包装器）及其 props；表达式规则与 `component` / `componentProps` 一致。                                                   |
-| `validator`                    | 校验描述符、规则对象或数组；支持整体表达式，也支持规则对象内的叶子表达式。                                                                     |
-| `reactions`                    | 单个联动或联动数组，见[联动](#联动)。                                                                                                          |
-| `slot` / `slotNode`            | 把节点渲染到父组件的具名插槽中。                                                                                                               |
-| `compileOmitted`               | 指定不做表达式编译的字段路径。                                                                                                                 |
+| 字段                           | 说明                                                                                                                                     |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `component`                    | 组件名，从 `components` 映射中解析；也可以是组件定义本身，或求值结果为组件名/组件引用的表达式。                                          |
+| `componentProps`               | 传给组件的 props，类型由 fragment 的组件 map 约束；任意层级的字符串叶子（或整个 props）都支持表达式，严格类型由 `ExpressionProps` 承载。 |
+| `decorator` / `decoratorProps` | 装饰器组件（例如表单项包装器）及其 props；表达式规则与 `component` / `componentProps` 一致。                                             |
+| `validator`                    | 校验描述符、规则对象或数组；支持整体表达式，也支持规则对象内的叶子表达式。                                                               |
+| `reactions`                    | 单个联动或联动数组，见[联动](#联动)。                                                                                                    |
+| `slot` / `slotNode`            | 把节点渲染到父组件的具名插槽中。                                                                                                         |
+| `compileOmitted`               | 指定不做表达式编译的字段路径。                                                                                                           |
 
 所有支持表达式的字段都可以填写 <code v-pre>{{ ... }}</code> 字符串，编译时按字段作用域求值。完整的表达式能力字段包括：交互展示字段（`title`、`visible` 等）、全部校验键、`component` / `decorator` 引用、`componentProps` / `decoratorProps` 的任意层级叶子，以及 `enum` / `pattern` / `required`。
 

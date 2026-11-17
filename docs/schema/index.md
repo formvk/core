@@ -55,7 +55,7 @@ If the values interface already exists (it usually does, since the form is typed
 
 ### Component props typing
 
-Pass component props maps to `createFragment` to type `componentProps` and get dynamic creators. The first three type arguments are independent maps — `F` for field components, `V` for void / layout components and `A` for array components:
+Pass component maps to `createFragment` to type `componentProps` and get dynamic creators. The first three type arguments are independent maps from component name to component type — `F` for field components, `V` for void / layout components and `A` for array components:
 
 <<< @/snippets/schema/component-maps.ts#creators
 
@@ -67,7 +67,7 @@ The component category is type-level information: at runtime the fragment is a P
 
 <<< @/snippets/schema/component-maps.ts#runtime-names
 
-Both bindings also offer `createSchemaField`, which takes a flat component map and infers all three props maps for you — see [Vue](/vue/#createschemafield) and [React](/react/#createschemafield).
+Both bindings also offer `createSchemaField`, which takes a flat component map and infers all three component maps for you — see [Vue](/vue/#createschemafield) and [React](/react/#createschemafield).
 
 ### Patches
 

@@ -2,7 +2,7 @@ import { FormPath, getLocaleByPath, registerValidateLocale, registerValidateMess
 import { createFragment, createSchema } from '@formvk/schema'
 
 interface FieldComponents {
-  Input: Record<string, unknown>
+  Input: (props: Record<string, unknown>) => any
 }
 
 const f = createFragment<FieldComponents>()

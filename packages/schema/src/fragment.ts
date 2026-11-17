@@ -3,8 +3,8 @@ import type {
   AnyComponent,
   ArraySchema,
   Fragment,
+  FragmentComponentMap,
   FragmentOptions,
-  FragmentPropsMap,
   ObjectSchema,
   SchemaCreator,
   SchemaPatchInput,
@@ -97,12 +97,12 @@ function createDefaultDecoratorPatch(decorator: any) {
 
 /**
  * 底层 schema 构造器。
- * 默认不内置任何 patch，组件 props 类型由 F / V / A 三个独立 map 注入。
+ * 默认不内置任何 patch，组件类型由 F / V / A 三个独立组件 map 注入，props 从组件类型中自动提取。
  */
 export function createFragment<
-  F extends FragmentPropsMap = {},
-  V extends FragmentPropsMap = {},
-  A extends FragmentPropsMap = {},
+  F extends FragmentComponentMap = {},
+  V extends FragmentComponentMap = {},
+  A extends FragmentComponentMap = {},
   Scope extends object = {},
   DefaultDecorator extends AnyComponent<V> = AnyComponent<V>,
 >(options: FragmentOptions<V, DefaultDecorator> = {}): Fragment<F, V, A, Scope, DefaultDecorator> {

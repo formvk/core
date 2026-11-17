@@ -23,11 +23,11 @@ export const schema = createSchema({
 })
 ```
 
-注册组件 props 后，`componentProps` 可以获得完整的类型推导：
+注册组件（组件名 → 组件类型）后，`componentProps` 可以获得完整的类型推导：
 
 ```ts
 const f = createFragment<{
-  Input: { placeholder?: string; value?: string }
+  Input: (props: { placeholder?: string; value?: string }) => any
 }>()
 
 const schema = createSchema({

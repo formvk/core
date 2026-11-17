@@ -11,9 +11,9 @@ import { useField } from '../hooks/useField'
 import { useForm } from '../hooks/useForm'
 import { SchemaExpressionScopeSymbol, SchemaOptionsSymbol } from '../shared/context'
 import type {
-  InferArrayProps,
-  InferFieldProps,
-  InferVoidProps,
+  InferArrayComponents,
+  InferFieldComponents,
+  InferVoidComponents,
   ISchemaFieldFactoryOptions,
   ISchemaFieldProps,
   ISchemaFieldRuntimeOptions,
@@ -202,7 +202,7 @@ export function createSchemaField<
   V extends SchemaVueComponents = {},
   A extends SchemaVueComponents = {},
   Scope extends object = Record<string, any>,
-  Decorator extends AnyComponent<InferVoidProps<V, A>> = AnyComponent<InferVoidProps<V, A>>,
+  Decorator extends AnyComponent<InferVoidComponents<V, A>> = AnyComponent<InferVoidComponents<V, A>>,
 >(
   options: ISchemaFieldFactoryOptions<F, V, A, Scope, Decorator> = {}
 ): SchemaFieldFactoryResult<F, V, A, Scope, Decorator> {
@@ -214,14 +214,18 @@ export function createSchemaField<
     ...arrayComponents,
   }
 
-  const fragment = createFragment<InferFieldProps<F, V, A>, InferVoidProps<V, A>, InferArrayProps<A>, Scope, Decorator>(
-    {
-      patches: options.patches,
-      voidComponentNames: Object.keys(voidComponents),
-      arrayComponentNames: Object.keys(arrayComponents),
-      defaultDecorator: options.defaultDecorator,
-    }
-  )
+  const fragment = createFragment<
+    InferFieldComponents<F, V, A>,
+    InferVoidComponents<V, A>,
+    InferArrayComponents<A>,
+    Scope,
+    Decorator
+  >({
+    patches: options.patches,
+    voidComponentNames: Object.keys(voidComponents),
+    arrayComponentNames: Object.keys(arrayComponents),
+    defaultDecorator: options.defaultDecorator,
+  })
 
   const prebound: ISchemaFieldRuntimeOptions = {
     components: flatComponents,

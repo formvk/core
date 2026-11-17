@@ -1,4 +1,3 @@
-import type { ComponentProps } from '@formvk/react'
 import { createFragment, createSchemaField } from '@formvk/react'
 
 function MyInput(props: { placeholder?: string }) {
@@ -7,14 +6,18 @@ function MyInput(props: { placeholder?: string }) {
 function MySelect(_props: { placeholder?: string }) {
   return <select />
 }
+function MyCard(props: { title?: string }) {
+  return <section>{props.title}</section>
+}
 function MyArrayItems(props: { maxItems?: number }) {
   return <div>{props.maxItems}</div>
 }
 
 // #region props-map
+// Component map: name → component type. Props are extracted from the component itself.
 interface FieldMap {
-  Input: ComponentProps<typeof MyInput>
-  Select: ComponentProps<typeof MySelect>
+  Input: typeof MyInput
+  Select: typeof MySelect
 }
 
 const f = createFragment<FieldMap>()
@@ -25,10 +28,10 @@ f.Input({ componentProps: { placeholder: 'Name' } })
 
 // #region void-array
 interface VoidMap {
-  Card: { title?: string }
+  Card: typeof MyCard
 }
 interface ArrayMap {
-  ArrayItems: ComponentProps<typeof MyArrayItems>
+  ArrayItems: typeof MyArrayItems
 }
 
 const f2 = createFragment<FieldMap, VoidMap, ArrayMap>({

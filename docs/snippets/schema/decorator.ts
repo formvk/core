@@ -1,12 +1,12 @@
 import { createFragment } from '@formvk/schema'
 
 interface FieldComponents {
-  Input: Record<string, never>
+  Input: (props: Record<string, never>) => any
 }
 interface VoidComponents {
-  FormItem: { label?: string }
+  FormItem: (props: { label?: string }) => any
 }
-type ArrayComponents = Record<string, never>
+type ArrayComponents = {}
 
 // #region basic
 const f = createFragment<FieldComponents, VoidComponents, ArrayComponents>({

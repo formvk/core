@@ -1,13 +1,5 @@
 import type { Form, GeneralField, IFieldFactoryProps } from '@formvk/core'
-import type {
-  AnyComponent,
-  Fragment,
-  ISchema,
-  Schema,
-  SchemaKey,
-  SchemaPatchInput,
-  TPropsOfComponent,
-} from '@formvk/schema'
+import type { AnyComponent, Fragment, ISchema, Schema, SchemaKey, SchemaPatchInput } from '@formvk/schema'
 import type { FormPathPattern } from '@formvk/shared'
 import type { Component } from 'vue'
 
@@ -22,26 +14,25 @@ export type ComponentProps<T> = T extends abstract new (...args: any) => { $prop
 export type SchemaVueComponents = Record<string, VueComponent>
 
 /**
- * 从扁平 components 与两个分类组件 map 分别推断 fragment 的三个 props map，组件 props 自动提取。
+ * 从扁平 components 与两个分类组件 map 提取 fragment 的三个组件 map（name → 组件类型）。
  * 分类优先级与运行时 Proxy 一致：array > void > field，已分类的名字不会出现在 field 映射中，
  * 避免同一组件名同时命中 field / void / array 多个动态构造器重载。
+ * props 不在这里提取，交给 fragment 层按组件类型统一推导。
  * 分类泛型默认空 map，keyof 结果为 never，省略分类时不会污染 field 推断。
  */
-export type InferFieldProps<
+export type InferFieldComponents<
   F extends SchemaVueComponents,
   V extends SchemaVueComponents,
   A extends SchemaVueComponents,
 > = {
-  [K in keyof F as K extends keyof V | keyof A ? never : K]: TPropsOfComponent<F[K]>
+  [K in keyof F as K extends keyof V | keyof A ? never : K]: F[K]
 }
 
-export type InferVoidProps<V extends SchemaVueComponents, A extends SchemaVueComponents> = {
-  [K in keyof V as K extends keyof A ? never : K]: TPropsOfComponent<V[K]>
+export type InferVoidComponents<V extends SchemaVueComponents, A extends SchemaVueComponents> = {
+  [K in keyof V as K extends keyof A ? never : K]: V[K]
 }
 
-export type InferArrayProps<A extends SchemaVueComponents> = {
-  [K in keyof A]: TPropsOfComponent<A[K]>
-}
+export type InferArrayComponents<A extends SchemaVueComponents> = A
 
 export interface IProviderProps {
   form: Form
@@ -62,7 +53,7 @@ export interface ISchemaFieldFactoryOptions<
   V extends SchemaVueComponents = {},
   A extends SchemaVueComponents = {},
   Scope extends object = Record<string, any>,
-  Decorator extends AnyComponent<InferVoidProps<V, A>> = AnyComponent<InferVoidProps<V, A>>,
+  Decorator extends AnyComponent<InferVoidComponents<V, A>> = AnyComponent<InferVoidComponents<V, A>>,
 > {
   /** 扁平 name → component 映射，未声明分类的组件默认按 field 处理 */
   components?: F
@@ -88,10 +79,16 @@ export type SchemaFieldFactoryResult<
   V extends SchemaVueComponents,
   A extends SchemaVueComponents,
   Scope extends object,
-  Decorator extends AnyComponent<InferVoidProps<V, A>>,
+  Decorator extends AnyComponent<InferVoidComponents<V, A>>,
 > = {
   SchemaField: typeof SchemaField
-  fragment: Fragment<InferFieldProps<F, V, A>, InferVoidProps<V, A>, InferArrayProps<A>, Scope, Decorator>
+  fragment: Fragment<
+    InferFieldComponents<F, V, A>,
+    InferVoidComponents<V, A>,
+    InferArrayComponents<A>,
+    Scope,
+    Decorator
+  >
 }
 
 export interface ISchemaMapper {

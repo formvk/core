@@ -51,7 +51,7 @@ The `_$types$_` marker carries the form value type (for example `{ name: string;
 
 In inferred mode every aggregated key is required: whether a field can be absent is carried by its value type (a non-`required` field contributes `T | undefined`), not by an optional modifier. This lets an inferred object creator be extracted to a variable and reused under an explicitly typed parent — `f.Object<FormValues>({ address })` accepts it when the value shapes match and rejects mismatches. Object-valued keys are checked on their value slot only, because a container creator's own record is its content type rather than the root record. `f.Void` and inferred `createSchema` follow the same aggregation rule.
 
-> Vue users can skip the hand-written component props maps entirely: `createSchemaField` from `@formvk/vue` takes a flat component map plus optional `voidComponents` / `arrayComponents`, returns `{ SchemaField, fragment }`, and infers the component props, scope and value types with no type arguments. See [Vue bindings](/vue/#schemafield).
+> Vue users can skip the hand-written component maps entirely: `createSchemaField` from `@formvk/vue` takes a flat component map plus optional `voidComponents` / `arrayComponents`, returns `{ SchemaField, fragment }`, and infers the component maps, scope and value types with no type arguments. See [Vue bindings](/vue/#schemafield).
 
 ## `createFragment`
 
@@ -65,7 +65,7 @@ function createFragment<
 >(options?: FragmentOptions<V, DefaultDecorator>): Fragment<F, V, A, Scope, DefaultDecorator>
 ```
 
-The first three type arguments are independent component props maps — `F` for field components, `V` for void / layout / decorator components, and `A` for array components. Each maps a component name to its props type.
+The first three type arguments are independent component maps — `F` for field components, `V` for void / layout / decorator components, and `A` for array components. Each maps a component name to the component type; `componentProps` and `decoratorProps` are extracted from it automatically (`$props` for Vue components, the first parameter for function and class components).
 
 ### Options
 
@@ -102,9 +102,9 @@ TypeScript does not support partial type argument inference: once the component 
 
 Creators return a function. Calling it with no arguments yields the plain `ISchema`; calling it with extra patches applies them on top.
 
-### Dynamic creators and the component props maps
+### Dynamic creators and component maps
 
-The three maps are plain `name → props` objects, one per category:
+The three maps are plain `name → component` objects, one per category:
 
 <<< @/snippets/schema/dynamic-creators.ts#maps
 
@@ -114,7 +114,7 @@ Passing them to `createFragment` generates one shorthand creator per declared co
 
 - Names declared in `F` generate field creators; names in `V` and `A` generate void / array creators.
 - A creator that is not declared in the matching map is a type error. Use `f.Field({ component: 'X' })` or declare `X` in the map.
-- `componentProps` is checked against the props type registered for that component; any leaf (or the whole props object) may be a <code v-pre>{{...}}</code> expression. Ordinary mistyped strings are still rejected — <code v-pre>maxLength: '10'</code> is invalid while <code v-pre>maxLength: '{{$values.limit}}'</code> is allowed.
+- `componentProps` is checked against the props extracted from that component; any leaf (or the whole props object) may be a <code v-pre>{{...}}</code> expression. Ordinary mistyped strings are still rejected — <code v-pre>maxLength: '10'</code> is invalid while <code v-pre>maxLength: '{{$values.limit}}'</code> is allowed.
 - Strictness is intentionally asymmetric: shorthand creators (`f.Input`) only exist for declared names, while the `component` / `decorator` string fields accept any string (via `string & {}`) so components registered only at runtime stay usable. An undeclared string name gets no autocomplete and falls back to a loose `Record<string, unknown>` for `componentProps`; props checking applies only to declared names.
 
 ### Field-level type parameters
@@ -128,7 +128,7 @@ Passing them to `createFragment` generates one shorthand creator per declared co
 | `f.Void<Record, Scope, Values>`          | Record exposed to children, field-level scope, child reactions' `$values`.       |
 | `f.Array<Item, Scope, Record, Values>`   | Item type, field-level scope, array's own record, child `$values`.               |
 
-All four creators share the same parameter order: value / record → field-level scope → parent record → `$values` → `Component` → `Decorator`. `Component` and `Decorator` always come last — container creators (Object / Array / Void) follow the same rule — and are inferred from the component props maps when omitted.
+All four creators share the same parameter order: value / record → field-level scope → parent record → `$values` → `Component` → `Decorator`. `Component` and `Decorator` always come last — container creators (Object / Array / Void) follow the same rule — and are inferred from the component maps when omitted.
 
 Types declared on a parent flow into the children created inside `properties` / `items`:
 
@@ -181,15 +181,15 @@ Every validation key above accepts a <code v-pre>{{...}}</code> expression (incl
 
 ### Formvk extensions
 
-| Field                          | Description                                                                                                                                                                                              |
-| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `component`                    | Component name resolved from the `components` map, a component definition, or an expression evaluating to a component name / definition.                                                                 |
-| `componentProps`               | Props passed to the component. Typed via the fragment's component props maps; any nested string leaf (or the whole props object) accepts an expression, with strict typing carried by `ExpressionProps`. |
-| `decorator` / `decoratorProps` | Decorator component (for example a form-item wrapper) and its props; the same expression rules as `component` / `componentProps` apply.                                                                  |
-| `validator`                    | Validator descriptor, rule object or array; accepts a whole-value expression or leaf expressions inside rule objects.                                                                                    |
-| `reactions`                    | One reaction or an array; see [Reactions](#reactions).                                                                                                                                                   |
-| `slot` / `slotNode`            | Render the node into a named slot of its parent component.                                                                                                                                               |
-| `compileOmitted`               | Field paths that must not be compiled as expressions.                                                                                                                                                    |
+| Field                          | Description                                                                                                                                                                                        |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `component`                    | Component name resolved from the `components` map, a component definition, or an expression evaluating to a component name / definition.                                                           |
+| `componentProps`               | Props passed to the component. Typed via the fragment's component maps; any nested string leaf (or the whole props object) accepts an expression, with strict typing carried by `ExpressionProps`. |
+| `decorator` / `decoratorProps` | Decorator component (for example a form-item wrapper) and its props; the same expression rules as `component` / `componentProps` apply.                                                            |
+| `validator`                    | Validator descriptor, rule object or array; accepts a whole-value expression or leaf expressions inside rule objects.                                                                              |
+| `reactions`                    | One reaction or an array; see [Reactions](#reactions).                                                                                                                                             |
+| `slot` / `slotNode`            | Render the node into a named slot of its parent component.                                                                                                                                         |
+| `compileOmitted`               | Field paths that must not be compiled as expressions.                                                                                                                                              |
 
 Any field marked as expression-capable accepts a <code v-pre>{{ ... }}</code> string compiled against the field scope. The full set covers interaction / presentation fields (`title`, `visible`, ...), every validation key, the `component` / `decorator` references, any nested leaf of `componentProps` / `decoratorProps`, plus `enum` / `pattern` / `required`.
 
