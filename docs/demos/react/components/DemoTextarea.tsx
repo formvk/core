@@ -10,12 +10,10 @@ export interface DemoTextareaProps {
   onChange?: (value: string) => void
   onFocus?: (event: FocusEvent<HTMLTextAreaElement>) => void
   onBlur?: (event: FocusEvent<HTMLTextAreaElement>) => void
-  slots?: Record<string, unknown>
 }
 
 export const DemoTextarea = observer((props: DemoTextareaProps) => {
   const { value, placeholder, rows, disabled, readOnly, onChange, onFocus, onBlur, ...rest } = props
-  delete rest.slots
 
   function handleChange(event: ChangeEvent<HTMLTextAreaElement>) {
     onChange?.(event.target.value)

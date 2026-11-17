@@ -168,7 +168,7 @@ The component that creates and attaches a field model for one schema node. It is
 - `value` — the current field value (omitted for void fields).
 - `onChange` / `onFocus` / `onBlur` — wired to the field's `onInput` / `onFocus` / `onBlur`. `onChange` accepts either a DOM event or a raw value, so a controlled input can call it directly with the extracted value.
 - `disabled` / `readOnly` — derived from the field pattern (`disabled` and `readPretty` both map to `disabled`).
-- `slots` — a map of named slot nodes (with `default` also passed as `children`). It is not a valid DOM attribute; strip it before spreading props onto native elements.
+- Named slots — child schema nodes carrying `slot: 'name'` are passed as same-name props (for example `header`), while the default slot is passed as `children`. There is no aggregated `slots` prop; native tag names flatten every slot into `children`.
 
 ### `ExpressionScope`
 

@@ -10,13 +10,10 @@ export interface DemoInputProps {
   onChange?: (value: unknown) => void
   onFocus?: (event: FocusEvent<HTMLInputElement>) => void
   onBlur?: (event: FocusEvent<HTMLInputElement>) => void
-  slots?: Record<string, unknown>
 }
 
 export const DemoInput = observer((props: DemoInputProps) => {
   const { value, type, placeholder, disabled, readOnly, onChange, onFocus, onBlur, ...rest } = props
-  // slots is the named-slot map injected by the React binding, not a native input attribute
-  delete rest.slots
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
     const raw = event.target.value

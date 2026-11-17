@@ -144,12 +144,14 @@ export const ReactiveField = observer((props: IReactiveFieldProps) => {
       }
 
       if (isStr(Component)) {
-        // 原生标签不接收 slots 对象，所有具名插槽拍平成 children
+        // 原生标签不接收具名 props，所有插槽内容拍平成 children
         const slotChildren = Object.keys(mergedSlots).flatMap(name => toArray(mergedSlots[name]))
         return createElement(Component, componentProps, ...slotChildren)
       }
-      // React 组件通过 props.slots 读取具名插槽，default 同时作为 children 透传
-      return createElement(Component, { ...componentProps, slots: mergedSlots }, mergedSlots.default)
+      // React 组件：具名插槽拍平为同名 props，default 作为 children 透传，不再注入 slots prop。
+      // componentProps 为显式声明通道，与插槽同名时优先于插槽。
+      const { default: defaultSlot, ...namedSlots } = mergedSlots
+      return createElement(Component, { ...namedSlots, ...componentProps }, defaultSlot)
     }
 
     content = renderDecorator(renderComponent())

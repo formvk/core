@@ -5,7 +5,6 @@ import { observer } from '@formvk/reactive-react'
 export interface DemoArrayItemsProps {
   addText?: string
   removeText?: string
-  slots?: Record<string, unknown>
 }
 
 export const DemoArrayItems = observer((props: DemoArrayItemsProps) => {

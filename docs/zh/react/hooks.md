@@ -32,7 +32,7 @@ React hooks 返回的是**裸值**，不是 Vue 风格的 ref，不需要 `.valu
 
 所有 hook 都返回裸值。读取它的组件必须用 `observer` 包裹，否则工具栏按钮不会响应 `form.submitting` 的变化。
 
-直接读取字段的自定义输入组件。注意 `observer` 包裹与 `slots` 清理：
+直接读取字段的自定义输入组件。注意 `observer` 包裹与显式的 props 解构：
 
 <<< @/snippets/react/custom-input.tsx
 

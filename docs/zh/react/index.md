@@ -160,7 +160,7 @@ render props 组件，通过 `children` 函数拿到表单。它内部已包裹 
 - `value` —— 当前字段值（void 字段不注入）。
 - `onChange` / `onFocus` / `onBlur` —— 分别接到字段的 `onInput` / `onFocus` / `onBlur`。`onChange` 同时接受 DOM 事件或原始值，受控 input 可以直接把提取出的值传给它。
 - `disabled` / `readOnly` —— 由字段 pattern 推导（`disabled` 与 `readPretty` 都会映射为 `disabled`）。
-- `slots` —— 具名插槽节点映射（`default` 同时作为 `children` 透传）。它不是合法的 DOM 属性，透传原生元素前必须剔除。
+- 具名插槽 —— 带 `slot: 'name'` 的子 schema 节点会以同名 props 传入（例如 `header`），默认插槽作为 `children` 传入。不存在聚合的 `slots` prop；原生标签名会把所有插槽拍平进 `children`。
 
 ### `ExpressionScope`
 

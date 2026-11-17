@@ -19,8 +19,8 @@ afterEach(cleanup)
 function SlotContainer(props: any) {
   return (
     <div className="slot-container">
-      <div className="header">{props.slots?.header}</div>
-      <div className="default">{props.slots?.default}</div>
+      <div className="header">{props.header}</div>
+      <div className="default">{props.children}</div>
     </div>
   )
 }

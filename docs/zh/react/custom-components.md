@@ -98,7 +98,7 @@ React 没有 `v-show` 指令——把可见性映射成普通 prop（或收进�
 - **`useField()` 返回 `undefined`**：组件不在 `SchemaField` / `RecursionField` 子树内——它必须由 schema 引用，而不是直接挂载。
 - **直接给 `onInput` 传原始值时取值不更新**：改用 `field.setValue(value)`，或调用注入的 `onChange(value)`。
 - **组件读取了状态但不重渲染**：缺少 `@formvk/reactive-react` 的 `observer` 包裹。
-- **未知的 `slots` prop 落到 DOM 上**：绑定会把具名插槽节点注入为 `props.slots`；透传给原生标签前要剔除（`delete rest.slots`）。
+- **具名插槽 prop 落到原生元素上**：带 `slot: 'header'` 的子节点会以普通 `header` prop（React 节点）传入，而不是放在 `slots` 映射里。透传到原生标签前要显式解构插槽 props，不要整体展开。
 - **没有传组件 props map 时 props 无类型**，`f.Input` 之类的动态构造器也不会以类型符号形式存在。
 - **pattern 标记**（`disabled`、`readOnly`、`readPretty`）会从表单与父字段继承，组件应从字段模型读取，而不是硬编码。
 

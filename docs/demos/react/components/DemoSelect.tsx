@@ -17,7 +17,6 @@ export interface DemoSelectProps {
   onChange?: (value: unknown) => void
   onFocus?: (event: FocusEvent<HTMLSelectElement>) => void
   onBlur?: (event: FocusEvent<HTMLSelectElement>) => void
-  slots?: Record<string, unknown>
 }
 
 function normalize(source: unknown): DemoOption[] {
@@ -37,7 +36,6 @@ function normalize(source: unknown): DemoOption[] {
 export const DemoSelect = observer((props: DemoSelectProps) => {
   const field = useDemoField()
   const { value, options, placeholder, disabled, onChange, onFocus, onBlur, ...rest } = props
-  delete rest.slots
 
   const resolvedOptions = options?.length ? options : normalize(field?.dataSource)
 

@@ -23,8 +23,8 @@ function ReadPretty() {
 function SlotViewer(props: any) {
   return (
     <div className="slot-viewer">
-      <div className="named">{props.slots?.label}</div>
-      <div className="default">{props.slots?.default}</div>
+      <div className="named">{props.label}</div>
+      <div className="default">{props.children}</div>
     </div>
   )
 }
@@ -315,6 +315,38 @@ describe('schema 驱动的字段渲染', () => {
     expect(viewers[1].querySelector('.named')!.textContent).toBe('LBL')
     expect(viewers[1].querySelector('.default')!.textContent).toBe('DEF')
     expect(viewers[2].querySelector('.vnode-content')!.textContent).toBe('V')
+  })
+
+  test('具名插槽以同名 props 传递，且不再注入 slots prop', () => {
+    const SlotProbe = (props: any) => (
+      <div className="slot-probe">
+        <div className="has-slots">{String('slots' in props)}</div>
+        <div className="named">{props.label}</div>
+        <div className="default">{props.children}</div>
+      </div>
+    )
+    const form = createForm()
+    const view = mountWithForm(
+      form,
+      <SchemaField
+        components={{ SlotProbe }}
+        schema={{
+          type: 'object',
+          properties: {
+            target: {
+              type: 'string',
+              component: 'SlotProbe',
+              content: { label: 'LBL', default: 'DEF' },
+            },
+          },
+        }}
+      />
+    )
+
+    const probe = view.container.querySelector('.slot-probe')!
+    expect(probe.querySelector('.has-slots')!.textContent).toBe('false')
+    expect(probe.querySelector('.named')!.textContent).toBe('LBL')
+    expect(probe.querySelector('.default')!.textContent).toBe('DEF')
   })
 
   test('connect + mapProps（含 value 删除分支）与 mapReadPretty', async () => {

@@ -32,7 +32,7 @@ A footer toolbar is the typical `useForm()` case — it sits below the fields an
 
 Every hook returns a bare value. The component that reads it must be wrapped with `observer`, otherwise the toolbar button will not reflect `form.submitting`.
 
-A custom input that reads the field directly. Note the `observer` wrapper and the `slots` cleanup:
+A custom input that reads the field directly. Note the `observer` wrapper and the explicit prop destructuring:
 
 <<< @/snippets/react/custom-input.tsx
 

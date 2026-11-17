@@ -8,12 +8,10 @@ export interface DemoCheckboxProps {
   onChange?: (value: boolean) => void
   onFocus?: (event: FocusEvent<HTMLInputElement>) => void
   onBlur?: (event: FocusEvent<HTMLInputElement>) => void
-  slots?: Record<string, unknown>
 }
 
 export const DemoCheckbox = observer((props: DemoCheckboxProps) => {
   const { value, disabled, readOnly, onChange, onFocus, onBlur, ...rest } = props
-  delete rest.slots
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
     onChange?.(event.target.checked)

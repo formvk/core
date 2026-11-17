@@ -8,8 +8,6 @@ import { FormProvider, useField } from '..'
 export function Input(props: any) {
   const field = useField()
   const { value, onChange, onFocus, onBlur, ...rest } = props
-  // slots 是 React 适配层注入的具名插槽映射，不属于原生 input 属性
-  delete rest.slots
   return (
     <input
       {...rest}
@@ -27,7 +25,7 @@ Input.displayName = 'Input'
 export function Decorator(props: any) {
   return (
     <div className="decorator">
-      {props.slots?.label}
+      {props.label}
       {props.children}
     </div>
   )

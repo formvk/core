@@ -98,7 +98,7 @@ The field is an `ArrayField`, so `push`, `pop`, `insert`, `remove`, `move`, `mov
 - **`useField()` returns `undefined`** outside a `SchemaField` / `RecursionField` subtree — the component must be referenced from a schema, not mounted directly.
 - **Values do not update** when emitting raw values into `onInput`; use `field.setValue(value)`, or call the injected `onChange(value)` with a raw value.
 - **A component reads state but never re-renders** — it is missing the `observer` wrapper from `@formvk/reactive-react`.
-- **Unknown `slots` prop reaches a DOM element** — the binding injects named slot nodes as `props.slots`; strip it (`delete rest.slots`) before spreading props onto native tags.
+- **Named slot props land on native elements** — child nodes with `slot: 'header'` arrive as a regular `header` prop (a React node), not inside a `slots` map. Destructure slot props explicitly instead of spreading the whole props object onto a native tag.
 - **Props are untyped** when no component props map is passed; dynamic creators such as `f.Input` also stop existing as typed symbols.
 - **Pattern flags** (`disabled`, `readOnly`, `readPretty`) are inherited from the form and parent fields, so components should read them from the field model rather than hard-coding them.
 
