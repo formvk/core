@@ -17,6 +17,18 @@ pnpm add @formvk/vue vue
 pnpm add @formvk/react @formvk/reactive-react react react-dom
 ```
 
+## 配合 AI Agent 使用
+
+仓库内置两个 [Agent Skill](https://github.com/formvk/core/tree/main/skills)：`formvk-form-dev` 用于写表单，`formvk-component-bridge` 用于适配 UI 库。用 [skills CLI](https://skills.sh) 安装，它会自动识别本机已安装的 Agent，并把文件写入对应的 skills 目录：
+
+```bash
+npx skills add formvk/core
+# 只安装其中一个
+npx skills add formvk/core --skill formvk-form-dev
+```
+
+安装后，直接让 Agent「用 formvk 写一个带邮箱校验的 Vue 表单」即可，不需要把文档贴进对话 —— skill 会引导它读取本站生成的 AI 可读 Markdown。
+
 ## 第一个表单
 
 下面的例子创建一个表单模型，用 schema DSL 描述一个字段，并用示例中的 `Input` 组件渲染。

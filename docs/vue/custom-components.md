@@ -83,6 +83,14 @@ Composes mappers into one component. In Vue the result is marked `markRaw`:
 
 Register the connected component under the same map key you reference from the schema.
 
+### Map `dataSource` to `options`
+
+A schema declares a field's option list with `enum`. At runtime it is stored on `field.dataSource`, while most select components expect an `options` prop instead. Rename it in the mapper — the component itself stays untouched:
+
+<<< @/snippets/vue/component-helpers.ts#data-source
+
+With this mapping, `f.Select({ enum: [...] })` feeds the component's `options` directly.
+
 ## Array components
 
 An array component owns the layout of repeated items and renders each item with `RecursionField`:

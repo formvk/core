@@ -162,16 +162,16 @@ Rules of thumb:
 
 ### Structure
 
-| Field                                                            | Description                                                                                                      |
-| ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `type`                                                           | `'string' \| 'number' \| 'boolean' \| 'object' \| 'array' \| 'void' \| 'date' \| 'datetime'` or a custom string. |
-| `name`                                                           | Field key; normally derived from the parent's `properties`.                                                      |
-| `properties`                                                     | Child nodes of an object / void node.                                                                            |
-| `items`                                                          | Item schema (or tuple of schemas) of an array node.                                                              |
-| `additionalProperties` / `patternProperties` / `additionalItems` | Conditional child definitions.                                                                                   |
-| `definitions` / `$ref`                                           | Reusable schema definitions referenced by `#/...` paths.                                                         |
-| `default`                                                        | Default value used when the field initializes.                                                                   |
-| `enum`                                                           | Allowed values, optionally `{ label, value }` entries.                                                           |
+| Field                                                            | Description                                                                                                                                                                                                         |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `type`                                                           | `'string' \| 'number' \| 'boolean' \| 'object' \| 'array' \| 'void' \| 'date' \| 'datetime'` or a custom string.                                                                                                    |
+| `name`                                                           | Field key; normally derived from the parent's `properties`.                                                                                                                                                         |
+| `properties`                                                     | Child nodes of an object / void node.                                                                                                                                                                               |
+| `items`                                                          | Item schema (or tuple of schemas) of an array node.                                                                                                                                                                 |
+| `additionalProperties` / `patternProperties` / `additionalItems` | Conditional child definitions.                                                                                                                                                                                      |
+| `definitions` / `$ref`                                           | Reusable schema definitions referenced by `#/...` paths.                                                                                                                                                            |
+| `default`                                                        | Default value used when the field initializes.                                                                                                                                                                      |
+| `enum`                                                           | Allowed values, optionally `{ label, value }` entries. At runtime it is stored on `field.dataSource`; select components that expect an `options` prop need a mapping such as `mapProps({ dataSource: 'options' })`. |
 
 ### Validation fields
 

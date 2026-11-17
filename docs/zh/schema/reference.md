@@ -162,16 +162,16 @@ TypeScript 不支持部分类型参数推断：显式传入组件 map 后，`Def
 
 ### 结构
 
-| 字段                                                             | 说明                                                                                                          |
-| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `type`                                                           | `'string' \| 'number' \| 'boolean' \| 'object' \| 'array' \| 'void' \| 'date' \| 'datetime'` 或自定义字符串。 |
-| `name`                                                           | 字段名，通常由父级 `properties` 的键推导。                                                                    |
-| `properties`                                                     | object / void 节点的子节点。                                                                                  |
-| `items`                                                          | array 节点的单项 schema（或元组形式的多个 schema）。                                                          |
-| `additionalProperties` / `patternProperties` / `additionalItems` | 条件子节点定义。                                                                                              |
-| `definitions` / `$ref`                                           | 可复用 schema 定义，通过 `#/...` 路径引用。                                                                   |
-| `default`                                                        | 字段初始化时使用的默认值。                                                                                    |
-| `enum`                                                           | 允许的取值，可使用 `{ label, value }` 形式。                                                                  |
+| 字段                                                             | 说明                                                                                                                                                                   |
+| ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `type`                                                           | `'string' \| 'number' \| 'boolean' \| 'object' \| 'array' \| 'void' \| 'date' \| 'datetime'` 或自定义字符串。                                                          |
+| `name`                                                           | 字段名，通常由父级 `properties` 的键推导。                                                                                                                             |
+| `properties`                                                     | object / void 节点的子节点。                                                                                                                                           |
+| `items`                                                          | array 节点的单项 schema（或元组形式的多个 schema）。                                                                                                                   |
+| `additionalProperties` / `patternProperties` / `additionalItems` | 条件子节点定义。                                                                                                                                                       |
+| `definitions` / `$ref`                                           | 可复用 schema 定义，通过 `#/...` 路径引用。                                                                                                                            |
+| `default`                                                        | 字段初始化时使用的默认值。                                                                                                                                             |
+| `enum`                                                           | 允许的取值，可使用 `{ label, value }` 形式。运行时存放在 `field.dataSource`；若 Select 类组件用的是 `options`，需要 `mapProps({ dataSource: 'options' })` 之类的映射。 |
 
 ### 校验字段
 

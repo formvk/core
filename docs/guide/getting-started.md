@@ -17,6 +17,18 @@ React users install the React binding and the `observer` helper instead:
 pnpm add @formvk/react @formvk/reactive-react react react-dom
 ```
 
+## Use with AI agents
+
+The repository ships two [Agent Skills](https://github.com/formvk/core/tree/main/skills) that teach coding agents how to use formvk: `formvk-form-dev` for building forms and `formvk-component-bridge` for adapting a UI library. Install them with the [skills CLI](https://skills.sh), which detects your agent and writes the files to the right directory:
+
+```bash
+npx skills add formvk/core
+# install a single skill
+npx skills add formvk/core --skill formvk-form-dev
+```
+
+Once installed, prompts such as "build a Vue form with formvk and validate the email" work without pasting documentation into the chat — the skill points the agent at the AI-readable Markdown on this site.
+
 ## Your first form
 
 The example below creates a form model, describes one field with the schema DSL and renders it with the demo `Input` component.

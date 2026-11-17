@@ -85,6 +85,14 @@ React 没有 `v-show` 指令——把可见性映射成普通 prop（或收进�
 
 注册时使用的 key 要与 schema 中引用的名字一致。
 
+### 把 `dataSource` 映射为 `options`
+
+schema 里用 `enum` 声明字段的数据源，运行时它存放在 `field.dataSource`；而多数 Select 类组件的 prop 名是 `options`。在 mapper 里做一次重命名即可，组件本身不用改：
+
+<<< @/snippets/react/component-helpers.tsx#data-source
+
+映射后 `f.Select({ enum: [...] })` 会直接喂给组件的 `options`。
+
 ## 数组组件
 
 数组组件负责重复项的布局，并用 `RecursionField` 渲染每一项：
