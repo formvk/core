@@ -5,6 +5,7 @@ import react from '@vitejs/plugin-react'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 import { withFilter } from 'vite'
 import { defineConfig } from 'vitepress'
+import llmstxt from 'vitepress-plugin-llms'
 
 // 文档直接消费 workspace 包源码：下面把 @formvk/* 通过 alias 指向 packages/*/src，
 // 因此 docs:dev / docs:build 不依赖预先构建的 dist 产物
@@ -257,6 +258,12 @@ export default defineConfig({
       ),
       react({ include: /\.[jt]sx$/, exclude: [/packages[\\/]vue[\\/]/] }),
       vueJsx({ include: [/packages[\\/]vue[\\/]src[\\/].*\.tsx$/] }),
+      // 产出 llms.txt / llms-full.txt 与每页 Markdown 副本，供 AI 直接读取；
+      // 默认扫描整个 docs 目录，因此英文与 /zh 中文文档都会进入索引。
+      // 顶层首页默认已排除，中文首页只有 hero 区块，同样不进入索引
+      ...llmstxt({
+        ignoreFiles: ['zh/index.md'],
+      }),
     ],
     resolve: {
       // 直接使用 workspace 包源码，docs 无需先执行 pnpm build
