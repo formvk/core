@@ -131,6 +131,17 @@ export default defineConfig({
           { text: 'Schema', link: '/en/schema/', activeMatch: '^/en/schema/' },
           { text: 'Vue', link: '/en/vue/', activeMatch: '^/en/vue/' },
           { text: 'React', link: '/en/react/', activeMatch: '^/en/react/' },
+          {
+            text: 'Component Ecosystem',
+            items: [
+              {
+                text: 'Ant Design',
+                link: 'https://formvk.github.io/antd/',
+                target: '_blank',
+                rel: 'noreferrer',
+              },
+            ],
+          },
         ],
       },
     },
@@ -142,6 +153,18 @@ export default defineConfig({
       { text: 'Schema', link: '/schema/', activeMatch: '^/schema/' },
       { text: 'Vue', link: '/vue/', activeMatch: '^/vue/' },
       { text: 'React', link: '/react/', activeMatch: '^/react/' },
+      {
+        text: '组件生态',
+        // 后续新增组件库（如 Arco、Element Plus）时在这里追加，统一走下拉菜单
+        items: [
+          {
+            text: 'Ant Design',
+            link: 'https://formvk.github.io/antd/',
+            target: '_blank',
+            rel: 'noreferrer',
+          },
+        ],
+      },
     ],
     sidebar: {
       '/guide/': [
