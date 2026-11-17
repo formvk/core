@@ -1,0 +1,84 @@
+.dr-search {
+  display: flex;
+  flex: 1;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* Schema field laid out horizontally in the toolbar: the docs theme supplies
+   the base styles on site, repeated here so the sandbox matches */
+.dr-search .demo-field {
+  display: grid;
+  flex: 1;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+  margin-bottom: 0;
+}
+
+.dr-search .demo-field__label {
+  padding-top: 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--vp-c-text-1, #1e293b);
+  white-space: nowrap;
+}
+
+.dr-search .demo-field__control {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.dr-search .demo-field__error {
+  font-size: 12px;
+  color: #e5484d;
+}
+
+.dr-search .demo-input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 7px 12px;
+  border: 1px solid var(--vp-c-divider, #e2e8f0);
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--vp-c-text-1, #1e293b);
+  background-color: var(--vp-c-bg, #fff);
+  outline: none;
+}
+
+.dr-search .demo-input:focus {
+  border-color: var(--vp-c-brand-1, #2563eb);
+  box-shadow: 0 0 0 3px var(--vp-c-brand-soft, rgb(37 99 235 / 14%));
+}
+
+.dr-search__btn {
+  padding: 7px 16px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #fff;
+  cursor: pointer;
+  background-color: var(--vp-c-brand-1, #2563eb);
+  transition:
+    opacity 0.2s,
+    border-color 0.2s,
+    color 0.2s;
+}
+
+.dr-search__btn:hover {
+  opacity: 0.88;
+}
+
+.dr-search__btn--ghost {
+  color: var(--vp-c-text-1, #1e293b);
+  background-color: transparent;
+  border-color: var(--vp-c-divider, #e2e8f0);
+}

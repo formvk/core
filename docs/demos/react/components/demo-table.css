@@ -1,0 +1,88 @@
+.dr-table {
+  margin-top: 16px;
+  font-size: 14px;
+  color: var(--vp-c-text-1, #1e293b);
+}
+
+.dr-table__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.dr-table__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.dr-table__table th,
+.dr-table__table td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--vp-c-divider, #e2e8f0);
+}
+
+.dr-table__table th {
+  font-weight: 500;
+  color: var(--vp-c-text-2, #64748b);
+}
+
+.dr-table__actions {
+  white-space: nowrap;
+}
+
+.dr-table__empty {
+  color: var(--vp-c-text-2, #64748b);
+}
+
+.dr-table__footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--vp-c-text-2, #64748b);
+}
+
+.dr-table__btn {
+  padding: 7px 16px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #fff;
+  cursor: pointer;
+  background-color: var(--vp-c-brand-1, #2563eb);
+  transition:
+    opacity 0.2s,
+    border-color 0.2s,
+    color 0.2s;
+}
+
+.dr-table__btn:hover {
+  opacity: 0.88;
+}
+
+.dr-table__btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.dr-table__btn--ghost {
+  color: var(--vp-c-text-1, #1e293b);
+  background-color: transparent;
+  border-color: var(--vp-c-divider, #e2e8f0);
+}
+
+.dr-table__btn--danger {
+  color: #e5484d;
+  background-color: transparent;
+}
+
+.dr-table__create {
+  margin-left: auto;
+}

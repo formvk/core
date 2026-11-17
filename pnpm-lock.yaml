@@ -275,6 +275,24 @@ importers:
         specifier: ^0.5.24
         version: 0.5.24
 
+  packages/models:
+    dependencies:
+      '@formvk/core':
+        specifier: workspace:~
+        version: link:../core
+      '@formvk/reactive':
+        specifier: workspace:~
+        version: link:../reactive
+      '@formvk/schema':
+        specifier: workspace:~
+        version: link:../schema
+      '@formvk/shared':
+        specifier: workspace:~
+        version: link:../shared
+      '@swc/helpers':
+        specifier: ^0.5.24
+        version: 0.5.24
+
   packages/path: {}
 
   packages/react:

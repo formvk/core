@@ -1,0 +1,32 @@
+{
+  "name": "@formvk/models",
+  "version": "1.1.1",
+  "description": "Formvk application models",
+  "keywords": [
+    "crud",
+    "form",
+    "formvk",
+    "formvk-models",
+    "models"
+  ],
+  "license": "MIT",
+  "author": "yiyunwan",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc --noEmit && vite build"
+  },
+  "dependencies": {
+    "@formvk/core": "workspace:~",
+    "@formvk/reactive": "workspace:~",
+    "@formvk/schema": "workspace:~",
+    "@formvk/shared": "workspace:~",
+    "@swc/helpers": "^0.5.24"
+  },
+  "devDependencies": {}
+}

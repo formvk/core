@@ -1,0 +1,120 @@
+.dr-popup {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background-color: rgb(0 0 0 / 45%);
+}
+
+.dr-popup__body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(360px, 100%);
+  padding: 20px;
+  color: var(--vp-c-text-1, #1e293b);
+  background-color: var(--vp-c-bg, #fff);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgb(0 0 0 / 20%);
+}
+
+.dr-popup__title {
+  margin: 0;
+  font-size: 16px;
+}
+
+/* Schema field layout: provided by the docs theme on site, repeated here so the
+   online sandbox renders the same layout without the VitePress theme CSS */
+.dr-popup .demo-field {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: 2px 10px;
+  align-items: start;
+  margin-bottom: 0;
+}
+
+.dr-popup .demo-field__label {
+  padding-top: 7px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--vp-c-text-1, #1e293b);
+}
+
+.dr-popup .demo-field__required {
+  margin-left: 2px;
+  font-style: normal;
+  color: #e5484d;
+}
+
+.dr-popup .demo-field__control {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.dr-popup .demo-field__description {
+  font-size: 12px;
+  color: var(--vp-c-text-2, #64748b);
+}
+
+.dr-popup .demo-field__error {
+  font-size: 12px;
+  color: #e5484d;
+}
+
+.dr-popup .demo-input,
+.dr-popup .demo-select {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 7px 12px;
+  border: 1px solid var(--vp-c-divider, #e2e8f0);
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--vp-c-text-1, #1e293b);
+  background-color: var(--vp-c-bg, #fff);
+  outline: none;
+}
+
+.dr-popup .demo-input:focus,
+.dr-popup .demo-select:focus {
+  border-color: var(--vp-c-brand-1, #2563eb);
+  box-shadow: 0 0 0 3px var(--vp-c-brand-soft, rgb(37 99 235 / 14%));
+}
+
+.dr-popup__actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.dr-popup__btn {
+  padding: 7px 16px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #fff;
+  cursor: pointer;
+  background-color: var(--vp-c-brand-1, #2563eb);
+  transition:
+    opacity 0.2s,
+    border-color 0.2s,
+    color 0.2s;
+}
+
+.dr-popup__btn:hover {
+  opacity: 0.88;
+}
+
+.dr-popup__btn--ghost {
+  color: var(--vp-c-text-1, #1e293b);
+  background-color: transparent;
+  border-color: var(--vp-c-divider, #e2e8f0);
+}

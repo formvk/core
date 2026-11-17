@@ -14,6 +14,7 @@ import llmstxt from 'vitepress-plugin-llms'
 // 因此 docs:dev / docs:build 不依赖预先构建的 dist 产物
 const workspacePackages = [
   'core',
+  'models',
   'path',
   'react',
   'reactive',
@@ -91,7 +92,7 @@ const stackblitzTemplates = [
   },
   {
     scope: 'react',
-    files: sandboxComponentFiles(reactDemoComponentsDir, /\.(tsx|ts)$/),
+    files: sandboxComponentFiles(reactDemoComponentsDir, /\.(tsx|ts|css)$/),
   },
 ]
 
@@ -131,6 +132,7 @@ export default defineConfig({
           { text: 'Schema', link: '/en/schema/', activeMatch: '^/en/schema/' },
           { text: 'Vue', link: '/en/vue/', activeMatch: '^/en/vue/' },
           { text: 'React', link: '/en/react/', activeMatch: '^/en/react/' },
+          { text: 'Models', link: '/en/models/', activeMatch: '^/en/models/' },
           {
             text: 'Component Ecosystem',
             items: [
@@ -153,6 +155,7 @@ export default defineConfig({
       { text: 'Schema', link: '/schema/', activeMatch: '^/schema/' },
       { text: 'Vue', link: '/vue/', activeMatch: '^/vue/' },
       { text: 'React', link: '/react/', activeMatch: '^/react/' },
+      { text: '模型', link: '/models/', activeMatch: '^/models/' },
       {
         text: '组件生态',
         // 后续新增组件库（如 Arco、Element Plus）时在这里追加，统一走下拉菜单
@@ -242,6 +245,15 @@ export default defineConfig({
           ],
         },
       ],
+      '/models/': [
+        {
+          text: '模型',
+          items: [
+            { text: '概览', link: '/models/' },
+            { text: 'API 参考', link: '/models/reference' },
+          ],
+        },
+      ],
       '/en/guide/': [
         {
           text: 'Guide',
@@ -314,6 +326,15 @@ export default defineConfig({
             { text: 'Array List', link: '/en/react/examples/array-list' },
             { text: 'Nested Objects', link: '/en/react/examples/schema-object' },
             { text: 'Team Invitation', link: '/en/react/examples/team-invite' },
+          ],
+        },
+      ],
+      '/en/models/': [
+        {
+          text: 'Models',
+          items: [
+            { text: 'Overview', link: '/en/models/' },
+            { text: 'API Reference', link: '/en/models/reference' },
           ],
         },
       ],
