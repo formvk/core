@@ -1,3 +1,5 @@
+import { readFileSync, readdirSync } from 'node:fs'
+import path from 'node:path'
 import { fileURLToPath, URL } from 'node:url'
 
 import swc from '@rollup/plugin-swc'
@@ -5,6 +7,7 @@ import react from '@vitejs/plugin-react'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 import { withFilter } from 'vite'
 import { defineConfig } from 'vitepress'
+import { vitepressDemoPlugin } from 'vitepress-demo-plugin/markdown'
 import llmstxt from 'vitepress-plugin-llms'
 
 // 文档直接消费 workspace 包源码：下面把 @formvk/* 通过 alias 指向 packages/*/src，
@@ -30,37 +33,112 @@ const aliases = workspacePackages.map(name => ({
 const docsBase =
   (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env?.DOCS_BASE ?? '/'
 
+// Demo 源文件里的本地组件依赖不会自动进入在线沙箱（StackBlitz / CodeSandbox），
+// 按 demo 文件的实际相对路径（英文 ./components、中文 ../components）同时放入
+// src/components 与 components。这样打开沙箱后相对导入仍能解析，不需要为每个 demo 单独配置模板。
+function sandboxComponentFiles(dir: string, pattern: RegExp) {
+  const files = readdirSync(dir)
+    .filter(file => pattern.test(file))
+    .map(file => [file, readFileSync(path.join(dir, file), 'utf8')] as const)
+
+  return Object.fromEntries(
+    files.flatMap(([file, code]) => [
+      [`src/components/${file}`, code],
+      [`components/${file}`, code],
+    ])
+  )
+}
+
+const demoComponentsDir = fileURLToPath(new URL('../demos/components', import.meta.url))
+const reactDemoComponentsDir = fileURLToPath(new URL('../demos/react/components', import.meta.url))
+const demosDir = fileURLToPath(new URL('../demos', import.meta.url))
+
+// CodeSandbox 的 Vue 预设把 typescript 写成 latest，而 TS 7 不再提供 lib/typescript.js，
+// 沙箱加载编译器时会直接报错；覆盖 package.json 把版本钉在 5.x。
+// 覆盖后插件不再按 import 自动补依赖，因此在构建期扫描 Vue demo 的裸导入生成依赖表。
+function vueSandboxDependencies(dir: string) {
+  const names = new Set<string>()
+  for (const entry of readdirSync(dir, { recursive: true })) {
+    const file = String(entry)
+    if (file.startsWith('react/') || !/\.(vue|ts)$/.test(file)) continue
+    const code = readFileSync(path.join(dir, file), 'utf8')
+    for (const match of code.matchAll(/from\s+['"]([^.'"][^'"]*)['"]/g)) {
+      const [first, second] = match[1].split('/')
+      names.add(match[1].startsWith('@') ? `${first}/${second}` : first)
+    }
+  }
+  return Object.fromEntries([...names].sort().map(name => [name, 'latest']))
+}
+
+const codesandboxVuePackageJson = JSON.stringify(
+  {
+    version: '0.0.0',
+    private: true,
+    dependencies: vueSandboxDependencies(demosDir),
+    devDependencies: {
+      '@vue/cli-plugin-babel': 'latest',
+      typescript: '5.9.3',
+    },
+  },
+  null,
+  2
+)
+
+const stackblitzTemplates = [
+  {
+    scope: 'vue',
+    files: sandboxComponentFiles(demoComponentsDir, /\.(vue|ts)$/),
+  },
+  {
+    scope: 'react',
+    files: sandboxComponentFiles(reactDemoComponentsDir, /\.(tsx|ts)$/),
+  },
+]
+
+// CodeSandbox 与 StackBlitz 共用模板，仅 Vue 需要额外覆盖 package.json
+const codesandboxTemplates = [
+  {
+    scope: 'vue',
+    files: {
+      ...sandboxComponentFiles(demoComponentsDir, /\.(vue|ts)$/),
+      'package.json': codesandboxVuePackageJson,
+    },
+  },
+  stackblitzTemplates[1],
+]
+
 export default defineConfig({
   title: 'Formvk',
-  description: 'Schema-first reactive form engine for Vue 3 and React',
-  lang: 'en',
+  description: '面向 Vue 3 与 React 的 Schema 驱动表单引擎',
+  lang: 'zh-CN',
   base: docsBase,
   cleanUrls: true,
   head: [['meta', { name: 'theme-color', content: '#2563eb' }]],
   locales: {
     root: {
-      label: 'English',
-      lang: 'en',
-    },
-    zh: {
       label: '简体中文',
       lang: 'zh-CN',
-      link: '/zh/',
+    },
+    en: {
+      label: 'English',
+      lang: 'en',
+      link: '/en/',
+      description: 'Schema-first reactive form engine for Vue 3 and React',
       themeConfig: {
         nav: [
-          { text: '指南', link: '/zh/guide/', activeMatch: '^/zh/guide/' },
-          { text: '核心', link: '/zh/core/', activeMatch: '^/zh/core/' },
-          { text: 'Schema', link: '/zh/schema/', activeMatch: '^/zh/schema/' },
-          { text: 'Vue', link: '/zh/vue/', activeMatch: '^/zh/vue/' },
-          { text: 'React', link: '/zh/react/', activeMatch: '^/zh/react/' },
+          { text: 'Guide', link: '/en/guide/', activeMatch: '^/en/guide/' },
+          { text: 'Core', link: '/en/core/', activeMatch: '^/en/core/' },
+          { text: 'Schema', link: '/en/schema/', activeMatch: '^/en/schema/' },
+          { text: 'Vue', link: '/en/vue/', activeMatch: '^/en/vue/' },
+          { text: 'React', link: '/en/react/', activeMatch: '^/en/react/' },
         ],
       },
     },
   },
   themeConfig: {
     nav: [
-      { text: 'Guide', link: '/guide/', activeMatch: '^/guide/' },
-      { text: 'Core', link: '/core/', activeMatch: '^/core/' },
+      { text: '指南', link: '/guide/', activeMatch: '^/guide/' },
+      { text: '核心', link: '/core/', activeMatch: '^/core/' },
       { text: 'Schema', link: '/schema/', activeMatch: '^/schema/' },
       { text: 'Vue', link: '/vue/', activeMatch: '^/vue/' },
       { text: 'React', link: '/react/', activeMatch: '^/react/' },
@@ -68,27 +146,27 @@ export default defineConfig({
     sidebar: {
       '/guide/': [
         {
-          text: 'Guide',
+          text: '指南',
           items: [
-            { text: 'Introduction', link: '/guide/' },
-            { text: 'Getting Started', link: '/guide/getting-started' },
+            { text: '介绍', link: '/guide/' },
+            { text: '快速开始', link: '/guide/getting-started' },
           ],
         },
       ],
       '/core/': [
         {
-          text: 'Core',
+          text: '核心',
           items: [
-            { text: 'Form Model & Effects', link: '/core/' },
-            { text: 'Path System', link: '/core/paths' },
-            { text: 'Reactivity', link: '/core/reactivity' },
+            { text: '表单模型与 Effects', link: '/core/' },
+            { text: '路径系统', link: '/core/paths' },
+            { text: '响应式', link: '/core/reactivity' },
           ],
         },
         {
-          text: 'Validation',
+          text: '校验',
           items: [
-            { text: 'Configuring Validation', link: '/core/validation' },
-            { text: 'Rule Reference', link: '/core/validation-reference' },
+            { text: '配置校验', link: '/core/validation' },
+            { text: '规则参考', link: '/core/validation-reference' },
           ],
         },
       ],
@@ -96,8 +174,8 @@ export default defineConfig({
         {
           text: 'Schema',
           items: [
-            { text: 'Overview', link: '/schema/' },
-            { text: 'DSL Reference', link: '/schema/reference' },
+            { text: '概览', link: '/schema/' },
+            { text: 'DSL 参考', link: '/schema/reference' },
           ],
         },
       ],
@@ -105,19 +183,19 @@ export default defineConfig({
         {
           text: 'Vue',
           items: [
-            { text: 'Bindings Overview', link: '/vue/' },
-            { text: 'Hooks & Component Helpers', link: '/vue/hooks' },
-            { text: 'Custom Components', link: '/vue/custom-components' },
+            { text: '绑定概览', link: '/vue/' },
+            { text: 'Hooks 与组件辅助', link: '/vue/hooks' },
+            { text: '自定义组件', link: '/vue/custom-components' },
           ],
         },
         {
-          text: 'Examples',
+          text: '示例',
           items: [
-            { text: 'Basic Form', link: '/vue/examples/basic-form' },
-            { text: 'Dynamic Reactions', link: '/vue/examples/reactions' },
-            { text: 'Array List', link: '/vue/examples/array-list' },
-            { text: 'Nested Objects', link: '/vue/examples/schema-object' },
-            { text: 'Team Invitation', link: '/vue/examples/team-invite' },
+            { text: '基础表单', link: '/vue/examples/basic-form' },
+            { text: '动态联动', link: '/vue/examples/reactions' },
+            { text: '数组列表', link: '/vue/examples/array-list' },
+            { text: '嵌套对象', link: '/vue/examples/schema-object' },
+            { text: '团队邀请', link: '/vue/examples/team-invite' },
           ],
         },
       ],
@@ -125,94 +203,94 @@ export default defineConfig({
         {
           text: 'React',
           items: [
-            { text: 'Bindings Overview', link: '/react/' },
-            { text: 'Hooks & Component Helpers', link: '/react/hooks' },
-            { text: 'Custom Components', link: '/react/custom-components' },
+            { text: '绑定概览', link: '/react/' },
+            { text: 'Hooks 与组件辅助', link: '/react/hooks' },
+            { text: '自定义组件', link: '/react/custom-components' },
+          ],
+        },
+        {
+          text: '示例',
+          items: [
+            { text: '基础表单', link: '/react/examples/basic-form' },
+            { text: '动态联动', link: '/react/examples/reactions' },
+            { text: '数组列表', link: '/react/examples/array-list' },
+            { text: '嵌套对象', link: '/react/examples/schema-object' },
+            { text: '团队邀请', link: '/react/examples/team-invite' },
+          ],
+        },
+      ],
+      '/en/guide/': [
+        {
+          text: 'Guide',
+          items: [
+            { text: 'Introduction', link: '/en/guide/' },
+            { text: 'Getting Started', link: '/en/guide/getting-started' },
+          ],
+        },
+      ],
+      '/en/core/': [
+        {
+          text: 'Core',
+          items: [
+            { text: 'Form Model & Effects', link: '/en/core/' },
+            { text: 'Path System', link: '/en/core/paths' },
+            { text: 'Reactivity', link: '/en/core/reactivity' },
+          ],
+        },
+        {
+          text: 'Validation',
+          items: [
+            { text: 'Configuring Validation', link: '/en/core/validation' },
+            { text: 'Rule Reference', link: '/en/core/validation-reference' },
+          ],
+        },
+      ],
+      '/en/schema/': [
+        {
+          text: 'Schema',
+          items: [
+            { text: 'Overview', link: '/en/schema/' },
+            { text: 'DSL Reference', link: '/en/schema/reference' },
+          ],
+        },
+      ],
+      '/en/vue/': [
+        {
+          text: 'Vue',
+          items: [
+            { text: 'Bindings Overview', link: '/en/vue/' },
+            { text: 'Hooks & Component Helpers', link: '/en/vue/hooks' },
+            { text: 'Custom Components', link: '/en/vue/custom-components' },
           ],
         },
         {
           text: 'Examples',
           items: [
-            { text: 'Basic Form', link: '/react/examples/basic-form' },
-            { text: 'Dynamic Reactions', link: '/react/examples/reactions' },
-            { text: 'Array List', link: '/react/examples/array-list' },
-            { text: 'Nested Objects', link: '/react/examples/schema-object' },
-            { text: 'Team Invitation', link: '/react/examples/team-invite' },
+            { text: 'Basic Form', link: '/en/vue/examples/basic-form' },
+            { text: 'Dynamic Reactions', link: '/en/vue/examples/reactions' },
+            { text: 'Array List', link: '/en/vue/examples/array-list' },
+            { text: 'Nested Objects', link: '/en/vue/examples/schema-object' },
+            { text: 'Team Invitation', link: '/en/vue/examples/team-invite' },
           ],
         },
       ],
-      '/zh/guide/': [
-        {
-          text: '指南',
-          items: [
-            { text: '介绍', link: '/zh/guide/' },
-            { text: '快速开始', link: '/zh/guide/getting-started' },
-          ],
-        },
-      ],
-      '/zh/core/': [
-        {
-          text: '核心',
-          items: [
-            { text: '表单模型与 Effects', link: '/zh/core/' },
-            { text: '路径系统', link: '/zh/core/paths' },
-            { text: '响应式', link: '/zh/core/reactivity' },
-          ],
-        },
-        {
-          text: '校验',
-          items: [
-            { text: '配置校验', link: '/zh/core/validation' },
-            { text: '规则参考', link: '/zh/core/validation-reference' },
-          ],
-        },
-      ],
-      '/zh/schema/': [
-        {
-          text: 'Schema',
-          items: [
-            { text: '概览', link: '/zh/schema/' },
-            { text: 'DSL 参考', link: '/zh/schema/reference' },
-          ],
-        },
-      ],
-      '/zh/vue/': [
-        {
-          text: 'Vue',
-          items: [
-            { text: '绑定概览', link: '/zh/vue/' },
-            { text: 'Hooks 与组件辅助', link: '/zh/vue/hooks' },
-            { text: '自定义组件', link: '/zh/vue/custom-components' },
-          ],
-        },
-        {
-          text: '示例',
-          items: [
-            { text: '基础表单', link: '/zh/vue/examples/basic-form' },
-            { text: '动态联动', link: '/zh/vue/examples/reactions' },
-            { text: '数组列表', link: '/zh/vue/examples/array-list' },
-            { text: '嵌套对象', link: '/zh/vue/examples/schema-object' },
-            { text: '团队邀请', link: '/zh/vue/examples/team-invite' },
-          ],
-        },
-      ],
-      '/zh/react/': [
+      '/en/react/': [
         {
           text: 'React',
           items: [
-            { text: '绑定概览', link: '/zh/react/' },
-            { text: 'Hooks 与组件辅助', link: '/zh/react/hooks' },
-            { text: '自定义组件', link: '/zh/react/custom-components' },
+            { text: 'Bindings Overview', link: '/en/react/' },
+            { text: 'Hooks & Component Helpers', link: '/en/react/hooks' },
+            { text: 'Custom Components', link: '/en/react/custom-components' },
           ],
         },
         {
-          text: '示例',
+          text: 'Examples',
           items: [
-            { text: '基础表单', link: '/zh/react/examples/basic-form' },
-            { text: '动态联动', link: '/zh/react/examples/reactions' },
-            { text: '数组列表', link: '/zh/react/examples/array-list' },
-            { text: '嵌套对象', link: '/zh/react/examples/schema-object' },
-            { text: '团队邀请', link: '/zh/react/examples/team-invite' },
+            { text: 'Basic Form', link: '/en/react/examples/basic-form' },
+            { text: 'Dynamic Reactions', link: '/en/react/examples/reactions' },
+            { text: 'Array List', link: '/en/react/examples/array-list' },
+            { text: 'Nested Objects', link: '/en/react/examples/schema-object' },
+            { text: 'Team Invitation', link: '/en/react/examples/team-invite' },
           ],
         },
       ],
@@ -230,6 +308,22 @@ export default defineConfig({
     footer: {
       message: 'Released under the MIT License.',
       copyright: 'Copyright © Formvk contributors',
+    },
+  },
+  markdown: {
+    config(md) {
+      md.use(vitepressDemoPlugin, {
+        // 站点 locales 的 lang：英文 'en'、中文 'zh-CN'，对应插件内置文案
+        locale: { en: 'en-US', 'zh-CN': 'zh-CN' },
+        stackblitz: {
+          show: true,
+          templates: stackblitzTemplates,
+        },
+        codesandbox: {
+          show: true,
+          templates: codesandboxTemplates,
+        },
+      })
     },
   },
   vite: {
@@ -259,10 +353,10 @@ export default defineConfig({
       react({ include: /\.[jt]sx$/, exclude: [/packages[\\/]vue[\\/]/] }),
       vueJsx({ include: [/packages[\\/]vue[\\/]src[\\/].*\.tsx$/] }),
       // 产出 llms.txt / llms-full.txt 与每页 Markdown 副本，供 AI 直接读取；
-      // 默认扫描整个 docs 目录，因此英文与 /zh 中文文档都会进入索引。
-      // 顶层首页默认已排除，中文首页只有 hero 区块，同样不进入索引
+      // 默认扫描整个 docs 目录，因此中文（根路径）与 /en 英文文档都会进入索引。
+      // 顶层首页默认已排除，英文首页只有 hero 区块，同样不进入索引
       ...llmstxt({
-        ignoreFiles: ['zh/index.md'],
+        ignoreFiles: ['en/index.md'],
       }),
     ],
     resolve: {

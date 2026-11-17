@@ -1,67 +1,67 @@
-# Hooks & Component Helpers
+# Hooks 与组件工具
 
-Hooks expose the current form and field to components rendered through `SchemaField` / `RecursionField`. Component helpers (`mapProps`, `mapReadPretty`, `connect`) adapt ordinary Vue components to the field model — useful when wrapping an existing UI library.
+Hooks 用于在 `SchemaField` / `RecursionField` 渲染的组件中读取当前表单与字段。组件工具（`mapProps`、`mapReadPretty`、`connect`）把普通 Vue 组件适配到字段模型，适合封装既有组件库。
 
 ## Hooks
 
-| Hook                           | Returns        | Description                                                               |
-| ------------------------------ | -------------- | ------------------------------------------------------------------------- |
-| `useForm<T>()`                 | `Ref<Form<T>>` | The nearest form from `FormProvider`                                      |
-| `useField<T>()`                | `Ref<T>`       | The current field, provided by `SchemaField` / `RecursionField`           |
-| `useFieldSchema()`             | `Ref<Schema>`  | The schema of the current field                                           |
-| `useFormEffects(fn)`           | `void`         | Registers `fn(form)` for the lifetime of the component                    |
-| `useParentForm()`              | `Ref<Form>`    | The form attached to the nearest field                                    |
-| `useAttach(ref)`               | `Ref<T>`       | Calls `onMount` / `onUnmount` of a model ref with the component lifecycle |
-| `useInjectionCleaner(symbols)` | `void`         | Clears provided injections from parent scopes                             |
+| Hook                           | 返回           | 说明                                                  |
+| ------------------------------ | -------------- | ----------------------------------------------------- |
+| `useForm<T>()`                 | `Ref<Form<T>>` | `FormProvider` 提供的最近表单                         |
+| `useField<T>()`                | `Ref<T>`       | `SchemaField` / `RecursionField` 提供的当前字段       |
+| `useFieldSchema()`             | `Ref<Schema>`  | 当前字段的 schema                                     |
+| `useFormEffects(fn)`           | `void`         | 在组件生命周期内注册 `fn(form)`                       |
+| `useParentForm()`              | `Ref<Form>`    | 最近字段所属的表单                                    |
+| `useAttach(ref)`               | `Ref<T>`       | 让模型 ref 随组件生命周期调用 `onMount` / `onUnmount` |
+| `useInjectionCleaner(symbols)` | `void`         | 清理父级作用域的注入                                  |
 
-`useField()` returns a ref: read it through `.value` in `<script setup>`, while templates unwrap it automatically. It returns `null` outside a field subtree.
+`useField()` 返回 ref：`<script setup>` 里通过 `.value` 读取，模板自动解包。在字段子树之外调用时返回 `null`。
 
-## Which hook for which job
+## 每个 hook 用在什么场景
 
-| You are building…                                                  | Use                | Why                                                 |
-| ------------------------------------------------------------------ | ------------------ | --------------------------------------------------- |
-| A footer / toolbar inside `FormProvider` but outside `SchemaField` | `useForm()`        | Reads and drives the same form model                |
-| A custom control rendered by `SchemaField`                         | `useField()`       | Gives you `value`, `onInput`, `selfErrors`          |
-| A component whose rendering depends on schema metadata             | `useFieldSchema()` | Read slots, `componentProps` or custom `x-*` fields |
-| A block that registers form-level effects                          | `useFormEffects()` | Cleaned up with the component lifecycle             |
-| Something inside a field subtree that must reach the form          | `useParentForm()`  | Walks up object-field parents                       |
-| Binding an externally created model to a component                 | `useAttach(ref)`   | Calls `onMount` / `onUnmount` with the lifecycle    |
+| 你要构建…                                         | 使用               | 原因                                            |
+| ------------------------------------------------- | ------------------ | ----------------------------------------------- |
+| `FormProvider` 内、`SchemaField` 外的页脚或工具栏 | `useForm()`        | 读写同一个表单模型                              |
+| 由 `SchemaField` 渲染的自定义控件                 | `useField()`       | 直接拿到 `value`、`onInput`、`selfErrors`       |
+| 渲染依赖 schema 元数据的组件                      | `useFieldSchema()` | 读取 slot、`componentProps` 或自定义 `x-*` 字段 |
+| 需要注册表单级 effects 的区块                     | `useFormEffects()` | 随组件生命周期自动清理                          |
+| 字段子树内需要访问所属表单                        | `useParentForm()`  | 沿 object 字段父级向上查找                      |
+| 把外部创建的模型绑定到组件生命周期                | `useAttach(ref)`   | 随组件调用 `onMount` / `onUnmount`              |
 
-A footer toolbar is the typical `useForm()` case — it sits below the fields and drives submit or a partial validation. Templates unwrap the ref automatically, so no `.value` is needed:
+页脚工具栏是 `useForm()` 的典型场景 —— 它位于字段下方，负责提交或局部校验。模板会自动解包 ref，因此不需要写 `.value`：
 
 <<< @/snippets/vue/use-form-toolbar.vue
 
-A custom input that reads the field directly:
+直接读取字段的自定义输入组件：
 
 <<< @/snippets/vue/custom-input.vue
 
-See [Custom components](/vue/custom-components) for the full field component contract.
+完整的字段组件契约见[自定义组件](/vue/custom-components)。
 
-## Component helpers
+## 组件工具
 
 ### `mapProps`
 
-Maps field state onto component props:
+把字段状态映射到组件 props：
 
 <<< @/snippets/vue/component-helpers.ts#map-props
 
-Object keys are read paths on the field, string values are the target props. A `true` value keeps the same prop name.
+对象的键是字段上的读取路径，字符串值是目标 prop；值为 `true` 时保持同名。
 
 ### `mapReadPretty`
 
-Switches to a read-only component when the field pattern is `readPretty`:
+当字段 pattern 为 `readPretty` 时切换到只读组件：
 
 <<< @/snippets/vue/component-helpers.ts#read-pretty
 
 ### `connect`
 
-Composes both helpers:
+组合上述工具：
 
 <<< @/snippets/vue/component-helpers.ts#connect
 
-The connected component is marked `markRaw` and passes props through unchanged when rendered outside a field subtree.
+连接后的组件会被 `markRaw` 标记；在字段子树之外使用时原样透传 props。
 
-## Next steps
+## 下一步
 
-- [Vue bindings](/vue/) — `createForm`, `createSchemaField` and the rendering components.
-- [Custom components](/vue/custom-components) — field and array component contracts.
+- [Vue 绑定](/vue/) —— `createForm`、`createSchemaField` 与渲染组件。
+- [自定义组件](/vue/custom-components) —— 字段组件与数组组件契约。

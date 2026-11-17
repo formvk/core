@@ -1,37 +1,31 @@
-# Business Scenario: Team Invitation
+# 业务实战：团队邀请
 
-Every other example isolates one feature. This one is a complete product flow: a SaaS onboarding form where an admin creates a team, picks a plan and invites members. It is built the way a real feature is built — business rules first, then the schema — so it answers the question reference pages cannot: **when should I reach for each capability?**
+其他示例都在单独演示一个能力，这个示例是一条完整的产品流程：SaaS 的 onboarding 表单，管理员创建团队、选择套餐、邀请成员。它按照真实功能的开发顺序编写——先列业务规则，再写 schema——用来回答参考页回答不了的问题：**每个能力到底什么时候该用？**
 
-<ReactMount :component="ReactTeamInviteDemo" />
+<demo react="../../demos/react/zh/team-invite.tsx" stackblitz="true" />
 
-The demo is a single TSX component; its full source follows. Each section below points at the part of the file that implements the rule.
+下文每一节都会指出实现对应规则的位置。
 
-<<< @/demos/react/team-invite.tsx
+## 这个功能需要什么
 
-<script setup lang="ts">
-import ReactTeamInviteDemo from '../../demos/react/team-invite'
-</script>
+| #   | 业务规则                                         | 用到的能力                           | 参考                                    |
+| --- | ------------------------------------------------ | ------------------------------------ | --------------------------------------- |
+| 1   | 一份类型化的取值模型，schema、校验与提交共用     | `createForm<TeamInviteValues>`       | [表单模型](/core/)                      |
+| 2   | 团队名必填，长度 3–30                            | 规则数组                             | [校验](/core/validation)                |
+| 3   | 席位与账单邮箱只在付费套餐存在，且变为必填       | `reactions`                          | [动态联动](/schema/#reactions)          |
+| 4   | 勾选“立即发送邀请”时才显示邀请文案               | `reactions`                          | [Schema 概览](/schema/#reactions)       |
+| 5   | 成员是可增删的可重复分组                         | `ArrayField` + `ArrayItems`          | [数组列表](/react/examples/array-list)  |
+| 6   | 席位数不能少于已邀请人数，也不能超过套餐上限     | 读取 `ctx.form` 的自定义 `validator` | [校验](/core/validation#编写自定义规则) |
+| 7   | 同一邮箱不能重复邀请；已被占用的邮箱在失焦时校验 | 跨字段 + 异步校验                    | [校验](/core/validation#控制校验时机)   |
+| 8   | 删掉最后一行成员时自动补一行；关闭邮件时清空文案 | `effects`                            | [Effects](/core/#effects)               |
+| 9   | 工具栏按钮把所有人的角色批量设为「成员」         | 路径通配符 + `form.setFieldState`    | [路径系统](/core/paths)                 |
+| 10  | 底部实时汇总“已就绪的邀请数”                     | 在 `observer` 内读取可观察值         | [响应式](/core/reactivity)              |
 
-## What the feature needs
+下面按顺序拆解。
 
-| #   | Business rule                                                                    | Capability used                       | Reference                                                   |
-| --- | -------------------------------------------------------------------------------- | ------------------------------------- | ----------------------------------------------------------- |
-| 1   | One typed value model shared by the schema, validators and the submit handler    | `createForm<TeamInviteValues>`        | [Form model](/core/)                                        |
-| 2   | Team name is required and 3–30 characters                                        | rule array                            | [Validation](/core/validation)                              |
-| 3   | Seats and billing email only exist on paid plans, and become required            | `reactions`                           | [Reactions](/schema/#reactions)                             |
-| 4   | The invitation message only appears when emails are sent immediately             | `reactions`                           | [Schema overview](/schema/#reactions)                       |
-| 5   | Members are a repeatable group with add / remove                                 | `ArrayField` + `ArrayItems`           | [Array list](/react/examples/array-list)                    |
-| 6   | Seats must cover every invited member and stay inside the plan limit             | custom `validator` reading `ctx.form` | [Validation](/core/validation#write-a-custom-rule)          |
-| 7   | The same email cannot be invited twice, and taken emails are rejected on blur    | cross-field + async validators        | [Validation](/core/validation#control-when-validation-runs) |
-| 8   | Removing the last member row keeps one empty row; switching emails off clears it | `effects`                             | [Effects](/core/#effects)                                   |
-| 9   | A toolbar action assigns a role to every member                                  | path wildcard + `form.setFieldState`  | [Path system](/core/paths)                                  |
-| 10  | A live summary counts ready invitations                                          | observable values inside `observer`   | [Reactivity](/core/reactivity)                              |
+## 1. 先定义取值类型
 
-The rest of the page walks through these in order.
-
-## 1. Model the value type once
-
-Start with the shape of what the API receives, not with the schema. `createForm<T>` makes `form.values` typed everywhere, and the same interface documents the payload:
+先写接口，再写 schema。`createForm<T>` 让 `form.values` 在所有地方都有类型，同时这份接口本身就是提交给后端的 payload 说明：
 
 ```ts
 interface TeamInviteValues {
@@ -45,14 +39,14 @@ interface TeamInviteValues {
 }
 ```
 
-**Why not derive the type from the schema?** You can (`createSchema` carries `_$types$_`), but the form value type is also used by validators and by the submit handler. Declaring it first keeps the schema honest: a typo in a field name shows up as a type error instead of a silently missing value.
+**为什么不从 schema 反推类型？** 可以（`createSchema` 会携带 `_$types$_`），但这份类型还要给校验函数和提交逻辑用。先声明它，schema 里的字段名写错会直接变成类型错误，而不是运行时悄无声息地少一个值。
 
-## 2. Create the factory once, the form per instance
+## 2. 工厂建一次，form 按实例创建
 
-React function components re-run their body on every render, so the two kinds of state are split by lifetime:
+React 函数组件每次渲染都会重跑函数体，所以两类状态按生命周期拆开：
 
 ```tsx
-// static: built once for the whole module
+// 静态：整个模块只构建一次
 const { SchemaField, fragment: f } = createSchemaField({
   components: demoComponents,
   voidComponents: { FormItem },
@@ -63,7 +57,7 @@ const { SchemaField, fragment: f } = createSchemaField({
 const schema = createSchema({ ... })
 
 export default observer(function TeamInviteDemo() {
-  // per instance: lazily created once, disposed by FormProvider on unmount
+  // 按实例：惰性创建一次，卸载时由 FormProvider 清理
   const [form] = useState(() => createForm<TeamInviteValues>({ ... }))
 
   return (
@@ -74,13 +68,13 @@ export default observer(function TeamInviteDemo() {
 })
 ```
 
-A bare `createForm()` in the body would rebuild the model on every render; a module-level form would share one model across every mounted instance. See [React bindings](/react/#createform) for the full explanation.
+在函数体里直接 `createForm()` 会每次渲染都重建模型；放在模块级则会让所有挂载实例共享同一份状态。完整说明见 [React 绑定](/react/#createform)。
 
-## 3. Conditional sections: `reactions`
+## 3. 条件区块：`reactions`
 
-**When to use it:** a field's visibility, required flag, title or component props depend on other values. This is the everyday case.
+**什么时候用：** 字段的显隐、必填、标题或组件 props 依赖其他字段的值。这是最常见的场景。
 
-The paid-only block (`seats`, `billingEmail`) shares one reaction shape:
+付费专属区块（`seats`、`billingEmail`）共用同一个联动形态：
 
 ```ts
 seats: f.NumberInput({
@@ -93,16 +87,16 @@ seats: f.NumberInput({
 })
 ```
 
-- A reaction is a plain function `(field) => void`. Reading `field.form.values.plan` inside it makes `plan` a dependency — there is no path list to keep in sync with the code.
-- Assigning `field.visible` / `field.required` is the whole update. The function re-runs automatically whenever `plan` changes.
-- `visible: false` sets `display: 'none'`. The field is not rendered, is skipped by `form.validate()`, **and its value leaves `form.values`** — a free-plan submit never carries `seats` or `billingEmail`. That is usually what you want for “this section does not exist on this plan”.
-- If the field should keep its value, use `hidden: true` instead: the node disappears but the value stays in the payload.
+- reaction 就是一个普通函数 `(field) => void`。函数里读取 `field.form.values.plan` 就把 `plan` 变成了依赖 —— 不需要再维护一份与代码同步的路径列表。
+- 给 `field.visible` / `field.required` 赋值就是全部更新。`plan` 变化时函数会自动重跑。
+- `visible: false` 等价于 `display: 'none'`：节点不渲染、`form.validate()` 跳过它，**它的值也会从 `form.values` 中移除**——免费套餐提交时不会带 `seats` 和 `billingEmail`。通常这正是“这个套餐里没有这个区块”的语义。
+- 如果希望隐藏但保留值，用 `hidden: true`：节点不显示，值仍在 payload 里。
 
-The invitation message is the same function with `inviteNow` as its only read, without touching `required`.
+邀请文案是同一个函数，只读取 `inviteNow`，并且不碰 `required`。
 
-## 4. Members: the repeatable group
+## 4. 成员：可重复分组
 
-An array node is a normal field whose value is an array. The `ArrayItems` component owns the layout and renders each item with `RecursionField`; the schema only describes the item shape:
+数组节点就是一个值为数组的普通字段。`ArrayItems` 组件负责布局，并用 `RecursionField` 渲染每一项；schema 只描述每一项的形状：
 
 ```ts
 members: f.ArrayItems(
@@ -115,11 +109,11 @@ members: f.ArrayItems(
 )
 ```
 
-- The value type is inferred as `Member[]`; `form.values.members[0].email` is typed.
-- `push`, `insert`, `remove`, `move` and friends live on the `ArrayField` — see the [array list example](/react/examples/array-list) for the component implementation. In React, `field.push({})` updates the observable array and the `observer`-wrapped array component re-renders.
-- Every item field has the same address and path (`members.0.email`) because there are no `void` nodes in between.
+- 取值类型被推断为 `Member[]`，`form.values.members[0].email` 有类型。
+- `push`、`insert`、`remove`、`move` 等方法在 `ArrayField` 上；组件实现见[数组列表](/react/examples/array-list)。在 React 里，`field.push({})` 更新可观察数组后，被 `observer` 包裹的数组组件会重新渲染。
+- 每一项字段的 address 与 path 相同（`members.0.email`），因为中间没有 `void` 节点。
 
-**Bulk updates.** The toolbar button shows why paths matter: a wildcard reaches every item without iterating fields yourself.
+**批量更新。** 工具栏按钮演示了路径的价值：一个通配符就能触达所有项，不需要自己遍历字段。
 
 ```ts
 form.setFieldState('members.*.role', field => {
@@ -127,62 +121,62 @@ form.setFieldState('members.*.role', field => {
 })
 ```
 
-Use `form.query('members.*.email').map(field => field.value)` when you need to read across the group, for example to check duplicates or build the summary.
+需要跨分组读取时，用 `form.query('members.*.email').map(field => field.value)`，例如查重或生成汇总。
 
-## 5. Validation that depends on other fields
+## 5. 依赖其他字段的校验
 
-Static rule keys (`minLength`, `format`, `maximum`) cover single-field checks. The business rules here need context, so they use custom validator functions. The third argument carries `{ field, form }`:
+静态规则键（`minLength`、`format`、`maximum`）覆盖单字段校验。这里的业务规则需要上下文，所以用自定义校验函数。第三个参数带有 `{ field, form }`：
 
 ```ts
-// Seats cannot exceed the plan limit
+// 席位数不能超过套餐上限
 {
   validator: (value, _rule, { form }) => {
     const plan = (form.values.plan ?? 'free') as Plan
-    return typeof value !== 'number' || value <= PLAN_SEATS[plan] || `The ${plan} plan includes at most ${PLAN_SEATS[plan]} seats`
+    return typeof value !== 'number' || value <= PLAN_SEATS[plan] || `${plan} 套餐最多包含 ${PLAN_SEATS[plan]} 个席位`
   },
 },
-// Seats cannot be fewer than the members already invited
+// 席位数不能少于已邀请人数
 {
   validator: (value, _rule, { form }) => {
     const invited = (form.values.members ?? []).length
-    return typeof value !== 'number' || value >= invited || `You already invited ${invited} members`
+    return typeof value !== 'number' || value >= invited || `你已经邀请了 ${invited} 名成员`
   },
 },
 ```
 
-Two more shapes are worth copying:
+另外两种值得直接抄的形态：
 
-- **Duplicates inside an array.** Compare against sibling items by filtering `form.values.members`; the rule runs on the field and can flag both duplicates.
-- **Expensive checks.** The availability rule is marked `triggerType: 'onBlur'`, so it runs when the user leaves the field instead of on every keystroke. `form.submit()` still runs it.
+- **数组内查重。** 过滤 `form.values.members` 与兄弟项比较；规则挂在该字段上，可以同时标红两条重复记录。
+- **开销大的校验。** 邮箱可用性规则标记了 `triggerType: 'onBlur'`，用户离开字段时才执行，而不是每次按键都发请求。`form.submit()` 仍然会执行它。
 
 ```ts
 { triggerType: 'onBlur', validator: ensureEmailAvailable }
 ```
 
-Empty values skip every non-`required` rule, so a cleared optional field never triggers a format error. Array-level rules (the plan limit) go on the `members` node itself — its `value` is the whole array.
+空值会跳过除 `required` 之外的所有规则，所以清空的选填字段不会报格式错误。数组级规则（套餐人数上限）挂在 `members` 节点本身——它的 `value` 就是整个数组。
 
-## 6. Cross-field side effects: `effects`
+## 6. 跨字段副作用：`effects`
 
-**When to use it:** the outcome is not just field state, but another field's **value**, or code with branches. Reactions patch state declaratively; effects are plain callbacks. They are framework-agnostic — import them from `@formvk/core`, since the binding packages do not re-export the hooks.
+**什么时候用：** 结果不只是字段状态，而是另一个字段的**值**，或者需要写分支逻辑。联动用声明式补状态，effects 就是普通回调。它与框架无关，要从 `@formvk/core` 导入——绑定包不会重新导出这些 hooks。
 
 ```ts
 const [form] = useState(() =>
   createForm<TeamInviteValues>({
     values: { ... },
     effects() {
-      // Keep at least one editable row
+      // 保证至少有一行可编辑
       onFieldValueChange('members', (_field, form) => {
         if (form.values.members.length === 0) {
           form.setValuesIn('members', [{}])
         }
       })
-      // Cross-field rules only run when their own field is validated,
-      // so a plan change re-checks the limits that depend on it
+      // 跨字段规则只在自己的字段被校验时执行，
+      // 所以切换套餐后要重新检查依赖它的上限
       onFieldValueChange('plan', (_field, form) => {
         form.validate('seats')
         form.validate('members')
       })
-      // Turning invitations off clears the drafted message
+      // 关闭邀请邮件时清空草稿文案
       onFieldValueChange('inviteNow', (field, form) => {
         if (!field.value) {
           form.setValuesIn('message', '')
@@ -193,33 +187,33 @@ const [form] = useState(() =>
 )
 ```
 
-Rules of thumb:
+判断准则：
 
-- Use a **reaction** when the requirement reads “when X, this field becomes visible / required / disabled”.
-- Use an **effect** when the requirement reads “when X, do Y to something else” — clear a value, add a row, call an API, update a store.
-- A cross-field **validator** does not re-run when its dependency changes. If the dependency is another field, call `form.validate(pattern)` for that field in an effect, as the plan change above does.
-- Effects registered in `createForm` live as long as the form. For component-scoped effects, call `useFormEffects` inside an `observer` component — see [Hooks](/react/hooks).
+- 需求读起来是“当 X 时，这个字段变成可见 / 必填 / 禁用”——用**联动**。
+- 需求读起来是“当 X 时，对别的东西做 Y”——清值、加行、调接口、更新 store——用 **effects**。
+- 跨字段**校验器**不会因为依赖字段变化而自动重跑。若依赖是另一个字段，就在 effect 中针对该字段调用 `form.validate(pattern)`，如上面对 `plan` 的处理。
+- 注册在 `createForm` 里的 effects 与表单同生命周期；组件级 effects 在 `observer` 组件里调用 `useFormEffects`，见 [Hooks](/react/hooks)。
 
-## 7. Submit, reset and feedback
+## 7. 提交、重置与反馈
 
 ```ts
 async function onSubmit() {
   try {
     setSubmitted(JSON.stringify(await form.submit(), null, 2))
   } catch {
-    setError('Please fix the highlighted fields.')
+    setError('请先修正高亮的字段。')
   }
 }
 ```
 
-- `form.submit()` validates every editable field, resolves with plain values (hidden-by-`none` fields excluded), and rejects with the error list.
-- `form.submitting` is `true` while the promise is pending. Reading it inside the `observer`-wrapped component re-renders the button automatically.
-- `form.reset()` restores the initial values, including the initial member row.
-- To send the user to the first problem, read `form.errors[0].path` and focus that field. To validate one group instead of the whole form, pass a pattern: `form.validate('members.*.email')`.
+- `form.submit()` 校验所有可编辑字段，成功时 resolve 普通取值（`display: 'none'` 的字段会被排除），失败时 reject 错误列表。
+- `form.submitting` 在 Promise 未完成时为 `true`。在被 `observer` 包裹的组件里读取它，按钮会自动重渲染。
+- `form.reset()` 恢复初始值，包括初始的那一行成员。
+- 想把用户带到第一个错误，读 `form.errors[0].path` 并聚焦该字段；只想校验一组字段，用模式参数：`form.validate('members.*.email')`。
 
-## 8. Read live state in the UI
+## 8. 在 UI 中读取实时状态
 
-React does not track observable reads, so the component is wrapped with `observer`. Inside it, reading `form.values` is enough:
+React 不会自动追踪可观察读取，所以组件要用 `observer` 包裹。包裹之后，直接读 `form.values` 就够了：
 
 ```tsx
 const plan = form.values.plan ?? 'free'
@@ -228,27 +222,27 @@ const ready = members.filter(member => member?.email).length
 const summary = `${ready}/${members.length} invitations ready · ${plan} allows ${PLAN_SEATS[plan]} members`
 ```
 
-Two alternatives:
+两个替代方案：
 
-- `<FormConsumer>{({ form }) => ...}</FormConsumer>` keeps the reactive read local to a small subtree — useful for a debug panel or a footer outside the schema.
-- Components produced by `connect` / `mapProps` / `mapReadPretty` are wrapped with `observer` for you; hand-written components that read field state must wrap themselves.
+- `<FormConsumer>{({ form }) => ...}</FormConsumer>` 把响应式读取限制在一小块子树里，适合调试面板或 schema 之外的页脚。
+- `connect` / `mapProps` / `mapReadPretty` 生成的组件会自动包 `observer`；手写组件只要读取字段状态，就必须自己包。
 
-## Choosing the right mechanism
+## 能力选型对照
 
-| Requirement                                           | Use                                               |
-| ----------------------------------------------------- | ------------------------------------------------- |
-| Show / hide / require a field based on other values   | `reactions`                                       |
-| Rewrite a value, add a row, call an API on a change   | `effects`                                         |
-| Check one value against static constraints            | built-in rule keys                                |
-| Check a value against siblings, arrays or remote data | custom `validator` with `ctx.form`                |
-| Compute a title, placeholder or disabled flag         | schema expressions (<code v-pre>{{ ... }}</code>) |
-| Update many fields at once                            | path wildcards + `setFieldState` / `query`        |
-| Show read-only summary of submitted values            | `mapReadPretty` / `FormConsumer`                  |
+| 需求                            | 使用方式                                      |
+| ------------------------------- | --------------------------------------------- |
+| 根据其他字段显示 / 隐藏 / 必填  | `reactions`                                   |
+| 改值、加行、变更时调接口        | `effects`                                     |
+| 用静态约束校验单个值            | 内置规则键                                    |
+| 与兄弟字段、数组或远端数据比较  | 带 `ctx.form` 的自定义 `validator`            |
+| 计算标题、placeholder、禁用标记 | schema 表达式（<code v-pre>{{ ... }}</code>） |
+| 一次更新很多字段                | 路径通配符 + `setFieldState` / `query`        |
+| 只读展示已提交的值              | `mapReadPretty` / `FormConsumer`              |
 
-## Next steps
+## 下一步
 
-- [Dynamic reactions](/react/examples/reactions) — the minimal reaction example.
-- [Array list](/react/examples/array-list) — the array component in isolation.
-- [Validation](/core/validation) — every rule shape and trigger.
-- [Path system](/core/paths) — patterns, `address` vs `path`, wildcard queries.
-- [Vue version](/vue/examples/team-invite) — the same feature with the Vue binding.
+- [动态联动](/react/examples/reactions) —— 最小化的联动示例。
+- [数组列表](/react/examples/array-list) —— 单独拆出来的数组组件。
+- [校验](/core/validation) —— 每种规则形态与触发时机。
+- [路径系统](/core/paths) —— 模式语法、`address` 与 `path`、通配查询。
+- [Vue 版本](/vue/examples/team-invite) —— 同一个功能的 Vue 实现。

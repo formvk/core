@@ -1,21 +1,21 @@
-# Introduction
+# 介绍
 
-Formvk is a schema-first form engine for Vue 3 and React. A form is described as a JSON schema; the engine turns it into a tree of reactive fields, renders it with your own components and validates values as the user types.
+Formvk 是一个面向 Vue 3 与 React 的 Schema 驱动表单引擎。表单被描述为一份 JSON schema，引擎将它转换成响应式的字段树，用你自己的组件渲染，并在用户输入时完成校验。
 
-## Packages
+## 包结构
 
-| Package                           | Responsibility                                                       |
-| --------------------------------- | -------------------------------------------------------------------- |
-| `@formvk/reactive`                | Observable state, `autorun`, `computed`, `batch`, `action`, `toJS`   |
-| `@formvk/reactive-react`          | React `observer` built on the same reactive core                     |
-| `@formvk/core`                    | `Form` / `Field` models, effects, validation lifecycle               |
-| `@formvk/schema`                  | `Schema`, `createFragment`, `createSchema`, `createExpression`       |
-| `@formvk/validator`               | Validation rules, formats and locale registry                        |
-| `@formvk/vue`                     | Vue bindings: `FormProvider`, `SchemaField`, `RecursionField`, hooks |
-| `@formvk/react`                   | React bindings: the same component and hook surface as TSX           |
-| `@formvk/shared` / `@formvk/path` | Shared utilities and form path resolution                            |
+| 包                                | 职责                                                               |
+| --------------------------------- | ------------------------------------------------------------------ |
+| `@formvk/reactive`                | 可观察状态、`autorun`、`computed`、`batch`、`action`、`toJS`       |
+| `@formvk/reactive-react`          | 基于同一响应式内核的 React `observer`                              |
+| `@formvk/core`                    | `Form` / `Field` 模型、effects、校验生命周期                       |
+| `@formvk/schema`                  | `Schema`、`createFragment`、`createSchema`、`createExpression`     |
+| `@formvk/validator`               | 校验规则、format 与多语言注册表                                    |
+| `@formvk/vue`                     | Vue 绑定：`FormProvider`、`SchemaField`、`RecursionField` 与 hooks |
+| `@formvk/react`                   | React 绑定：以 TSX 提供同构的组件与 hooks 接口                     |
+| `@formvk/shared` / `@formvk/path` | 公共工具与表单路径解析                                             |
 
-## How the layers fit together
+## 分层关系
 
 ```
 @formvk/vue    ┐
@@ -23,21 +23,21 @@ Formvk is a schema-first form engine for Vue 3 and React. A form is described as
 @formvk/react  ┘
 ```
 
-- **Reactive** provides `observable` objects and dependency tracking.
-- **Core** owns the `Form` and `Field` models. Every field is an observable node with state, values, validation and effects.
-- **Schema** compiles plain JSON into field props and patches, and offers a typed DSL for authoring schemas.
-- **Vue / React** bind the same models to components: a provider supplies the form, `SchemaField` renders a schema tree and hooks such as `useField` expose the current field. The two binding packages are isomorphic and share every type.
+- **Reactive** 提供 `observable` 对象与依赖追踪能力。
+- **Core** 持有 `Form` 与 `Field` 模型。每个字段都是可观察节点，包含状态、取值、校验与 effects。
+- **Schema** 把普通 JSON 编译成字段 props 与 patches，并提供类型安全的 DSL 来编写 schema。
+- **Vue / React** 把同一套模型绑定到组件：Provider 提供表单，`SchemaField` 渲染 schema 树，`useField` 等 hooks 暴露当前字段。两个绑定包同构，且共享全部类型。
 
-## Design principles
+## 设计原则
 
-1. **Schema is data.** A schema is a plain object. It can be stored, sent over the wire and transformed before it reaches the engine.
-2. **Fine-grained updates.** Fields are observable nodes, so an input only re-renders when the state it reads changes.
-3. **Types where they matter.** `createFragment` keeps value types, array item types and component props in sync with the schema you wrote.
-4. **Small, composable packages.** Use only the layers you need. The schema package imports neither Vue nor React.
+1. **Schema 就是数据。** schema 是普通对象，可以存储、传输，也可以在交给引擎前做任意变换。
+2. **细粒度更新。** 字段是可观察节点，输入框只会在它读取的状态变化时重新渲染。
+3. **该有类型的地方有类型。** `createFragment` 让字段值、数组项与组件 props 类型始终与 schema 保持同步。
+4. **小而可组合的包。** 只使用需要的层。Schema 包本身既不依赖 Vue，也不依赖 React。
 
-## Next steps
+## 下一步
 
-- [Getting Started](/guide/getting-started) — build your first form with Vue.
-- [Core](/core/) — form models, paths, validation and the reactive layer.
-- [Schema](/schema/) — the schema model and the typed DSL.
-- [Vue](/vue/) / [React](/react/) — components, hooks and complete examples.
+- [快速开始](/guide/getting-started) —— 用 Vue 构建第一个表单。
+- [核心](/core/) —— 表单模型、路径、校验与响应式层。
+- [Schema](/schema/) —— schema 模型与类型安全 DSL。
+- [Vue](/vue/) / [React](/react/) —— 组件、hooks 与完整示例。

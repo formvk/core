@@ -1,18 +1,18 @@
 # @formvk/vue
 
-[English](./README.md) | [简体中文](./README.zh-CN.md)
+[English](./README.en.md) | [简体中文](./README.md)
 
-Vue 3 bindings for Formvk. It connects the `@formvk/core` form model and `@formvk/schema` to Vue components through reactive renderers and composables.
+Formvk 的 Vue 3 绑定。它通过响应式渲染器与组合式函数，把 `@formvk/core` 的表单模型和 `@formvk/schema` 连接到 Vue 组件。
 
-## Install
+## 安装
 
 ```bash
 pnpm add @formvk/vue vue
 ```
 
-`vue` (`^3.5.0`) is a peer dependency.
+`vue`（`^3.5.0`）是 peer 依赖。
 
-## Usage
+## 使用
 
 ```vue
 <script setup lang="ts">
@@ -34,7 +34,7 @@ const schema = createSchema({
 </template>
 ```
 
-The schema field can also pre-bind components with `createSchemaField`:
+也可以用 `createSchemaField` 预绑定组件：
 
 ```ts
 import { createSchema, createSchemaField } from '@formvk/vue'
@@ -50,15 +50,15 @@ const schema = createSchema({
 
 ## API
 
-- **Components** — `FormProvider`, `SchemaField`, `createSchemaField`, `RecursionField`, `ExpressionScope`, `FormConsumer`.
-- **Hooks** — `useForm`, `useField`, `useFieldSchema`, `useAttach`, `useFormEffects`, `useInjectionCleaner`, `useParentForm`.
-- **Helpers** — `createForm`, `connect`, `mapProps`, `mapReadPretty`.
-- **Schema** — re-exports `@formvk/schema` (`createFragment`, `createSchema`, `ISchema`, expression types, ...).
+- **组件** — `FormProvider`、`SchemaField`、`createSchemaField`、`RecursionField`、`ExpressionScope`、`FormConsumer`。
+- **Hooks** — `useForm`、`useField`、`useFieldSchema`、`useAttach`、`useFormEffects`、`useInjectionCleaner`、`useParentForm`。
+- **辅助函数** — `createForm`、`connect`、`mapProps`、`mapReadPretty`。
+- **Schema** — 重新导出 `@formvk/schema`（`createFragment`、`createSchema`、`ISchema`、表达式类型等）。
 
-## Documentation
+## 文档
 
-- Vue API: https://formvk.github.io/core/api/vue
-- Getting started: https://formvk.github.io/core/guide/getting-started
+- Vue API：https://formvk.github.io/core/api/vue
+- 快速上手：https://formvk.github.io/core/guide/getting-started
 
 ## License
 

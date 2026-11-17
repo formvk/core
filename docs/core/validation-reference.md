@@ -1,80 +1,80 @@
-# Validation Reference
+# 校验参考
 
-`@formvk/validator` is a rule-based validation engine. Schemas reference it through the `validator` field, and it can also be used standalone. `@formvk/core` re-exports the registry helpers, so registration works from either package.
+`@formvk/validator` 是基于规则的校验引擎。schema 通过 `validator` 字段引用它，也可以独立使用。`@formvk/core` 重新导出了注册中心工具，因此从两个包都能完成注册。
 
 ```bash
 pnpm add @formvk/validator
 ```
 
-## Validator descriptors
+## 校验描述符
 
-A `validator` accepts one descriptor or an array. Arrays run every descriptor in order and collect all feedback.
+`validator` 接收单个描述符或描述符数组；数组会按顺序执行并汇总全部反馈。
 
 ```ts
 type Validator =
-  | ValidatorFormats            // string: a registered format name, e.g. 'email'
-  | ValidatorFunction          // function: a custom rule
-  | IValidatorRules            // object: rule keys + message
-  | Array<the three above>
+  | ValidatorFormats // 字符串：已注册的格式名，例如 'email'
+  | ValidatorFunction // 函数：自定义规则
+  | IValidatorRules // 对象：规则键 + message
+  | Array<上述三种>
 ```
 
-A format string descriptor:
+格式字符串描述符：
 
 <<< @/snippets/validator/descriptors.ts#format
 
-A custom function descriptor:
+自定义函数描述符：
 
 <<< @/snippets/validator/descriptors.ts#fn
 
-A rule object, or an array of them:
+规则对象，或规则对象数组：
 
 <<< @/snippets/validator/descriptors.ts#rules
 
-Each descriptor is normalized into a rule object: a string becomes `{ format: value }`, a function becomes `{ validator: fn }`.
+描述符会被统一归一化为规则对象：字符串转成 `{ format: value }`，函数转成 `{ validator: fn }`。
 
-## Rule keys
+## 规则键
 
-| Key                                     | Applies to               | Fails when                                                                             |
-| --------------------------------------- | ------------------------ | -------------------------------------------------------------------------------------- |
-| `required`                              | any                      | The value is empty (`null` / `undefined` / `''` / empty array).                        |
-| `format`                                | strings                  | It does not match a registered [format](#built-in-formats).                            |
-| `pattern`                               | strings                  | It fails the `RegExp` / regex string test.                                             |
-| `min` / `max`                           | numbers, strings, arrays | Below / above the value or length boundary.                                            |
-| `minimum` / `maximum`                   | same as `min` / `max`    | Aliases.                                                                               |
-| `minLength` / `maxLength`               | strings                  | Length aliases of `min` / `max`.                                                       |
-| `minItems` / `maxItems`                 | arrays                   | Length aliases of `min` / `max`.                                                       |
-| `exclusiveMinimum` / `exclusiveMaximum` | numbers, strings, arrays | Strictly outside the boundary (equal fails).                                           |
-| `len`                                   | strings, arrays          | Length differs from `len`.                                                             |
-| `whitespace`                            | strings                  | The value is whitespace only.                                                          |
-| `enum`                                  | any                      | Not included in the allowed list.                                                      |
-| `const`                                 | any                      | Not strictly equal to the constant.                                                    |
-| `multipleOf`                            | numbers                  | Not divisible by the given factor.                                                     |
-| `uniqueItems`                           | arrays                   | Contains duplicate items.                                                              |
-| `minProperties` / `maxProperties`       | objects                  | Key count outside the boundary.                                                        |
-| `validator`                             | any                      | The custom function returns a failure (see below).                                     |
-| `triggerType`                           | —                        | When the rule runs: `'onInput'` (default), `'onFocus'`, `'onBlur'` or a custom string. |
-| `message`                               | —                        | Override the locale message for this rule.                                             |
+| 键                                      | 适用对象           | 失败条件                                                                    |
+| --------------------------------------- | ------------------ | --------------------------------------------------------------------------- |
+| `required`                              | 任意类型           | 值为空（`null` / `undefined` / `''` / 空数组）。                            |
+| `format`                                | 字符串             | 不匹配已注册的[内置格式](#内置格式)。                                       |
+| `pattern`                               | 字符串             | 未通过 `RegExp` / 正则字符串测试。                                          |
+| `min` / `max`                           | 数字、字符串、数组 | 低于 / 高于数值或长度边界。                                                 |
+| `minimum` / `maximum`                   | 同 `min` / `max`   | 别名。                                                                      |
+| `minLength` / `maxLength`               | 字符串             | `min` / `max` 的长度别名。                                                  |
+| `minItems` / `maxItems`                 | 数组               | `min` / `max` 的长度别名。                                                  |
+| `exclusiveMinimum` / `exclusiveMaximum` | 数字、字符串、数组 | 严格越界（相等也算失败）。                                                  |
+| `len`                                   | 字符串、数组       | 长度不等于 `len`。                                                          |
+| `whitespace`                            | 字符串             | 值为纯空白字符。                                                            |
+| `enum`                                  | 任意类型           | 不在允许列表中。                                                            |
+| `const`                                 | 任意类型           | 与常量不严格相等。                                                          |
+| `multipleOf`                            | 数字               | 不能被给定因子整除。                                                        |
+| `uniqueItems`                           | 数组               | 存在重复项。                                                                |
+| `minProperties` / `maxProperties`       | 对象               | 键数量越界。                                                                |
+| `validator`                             | 任意类型           | 自定义函数返回失败（见下文）。                                              |
+| `triggerType`                           | ——                 | 规则执行时机：`'onInput'`（默认）、`'onFocus'`、`'onBlur'` 或自定义字符串。 |
+| `message`                               | ——                 | 覆盖该规则的本地化消息。                                                    |
 
-Empty values skip every rule except `required`, so optional fields do not produce format errors while blank.
+除 `required` 外，空值会跳过所有规则，因此可选字段在留空时不会触发格式错误。
 
-### Pick a rule by requirement
+### 按需求选择规则
 
-| Requirement                            | Rule                          | Note                                                     |
-| -------------------------------------- | ----------------------------- | -------------------------------------------------------- |
-| The field must be filled               | `required: true`              | Also drives the required marker in components            |
-| Email / URL / phone / ID card          | `format: 'email'` and friends | Prefer a built-in format over a hand-written regex       |
-| Must match a custom shape              | `pattern`                     | Accepts a `RegExp` or a regex string                     |
-| Amount must be a multiple of something | `multipleOf`                  | Combine with `min` / `max` for a range                   |
-| Exact length                           | `len`                         | Or `minLength` / `maxLength`                             |
-| At most N rows                         | `maxItems`                    | Put it on the array field                                |
-| No duplicate primitive items           | `uniqueItems: true`           | Objects need a custom validator                          |
-| Value must be one of a list            | `enum`                        | Good for select-like values                              |
-| Must equal another field               | custom `validator`            | Built-ins only see the current value                     |
-| Must be available on the server        | async custom `validator`      | Add `triggerType: 'onBlur'` to avoid per-keystroke calls |
+| 需求                         | 规则                         | 说明                                  |
+| ---------------------------- | ---------------------------- | ------------------------------------- |
+| 字段必填                     | `required: true`             | 同时驱动组件中的必填标记              |
+| 邮箱 / URL / 手机号 / 身份证 | `format: 'email'` 等内置格式 | 优先用内置格式，而不是手写正则        |
+| 必须匹配自定义格式           | `pattern`                    | 接受 `RegExp` 或正则字符串            |
+| 金额必须能被某数整除         | `multipleOf`                 | 与 `min` / `max` 组合表示范围         |
+| 长度必须精确                 | `len`                        | 或用 `minLength` / `maxLength`        |
+| 最多 N 行                    | `maxItems`                   | 写在数组字段上                        |
+| 基础类型数组不能重复         | `uniqueItems: true`          | 对象数组需要自定义校验器              |
+| 值必须在候选列表中           | `enum`                       | 适合选择类取值                        |
+| 必须与另一个字段相等         | 自定义 `validator`           | 内置规则只能看到当前值                |
+| 需要服务端判断是否可用       | 异步自定义 `validator`       | 配合 `triggerType: 'onBlur'` 避免连击 |
 
-The pattern: use a declarative rule when the requirement can be checked from the value alone, and a custom validator as soon as it needs sibling values, the whole row or the network.
+选择思路：只依赖当前值就能判断的需求用声明式规则；一旦需要同级字段、整行数据或网络请求，就改用自定义校验器。
 
-## Custom validator functions
+## 自定义校验函数
 
 ```ts
 type ValidatorFunction = (
@@ -85,29 +85,29 @@ type ValidatorFunction = (
 ) => boolean | string | IValidateResult | undefined | null | Promise<...>
 ```
 
-Return semantics:
+返回值语义：
 
-- `true` / `undefined` / `null` — passes.
-- `false` — fails with the rule's `message`.
-- `string` — fails with that message.
-- `{ type: 'error' | 'warning' | 'success', message }` — explicit feedback type.
-- A thrown error is caught and converted into an error feedback with its message.
+- `true` / `undefined` / `null` —— 通过。
+- `false` —— 失败，使用规则上的 `message`。
+- `string` —— 失败，使用该字符串作为消息。
+- `{ type: 'error' | 'warning' | 'success', message }` —— 显式指定反馈类型。
+- 抛出的错误会被捕获，并以其消息转成 error 反馈。
 
-## Built-in formats
+## 内置格式
 
-Registered by default (see `registerValidateFormats` to extend):
+默认已注册（可用 `registerValidateFormats` 扩展）：
 
-| Format    | Pattern intent                      | Format   | Pattern intent                   |
-| --------- | ----------------------------------- | -------- | -------------------------------- |
-| `url`     | HTTP / FTP URL with host validation | `phone`  | Chinese landline / mobile        |
-| `email`   | Email address                       | `idcard` | Chinese ID card (15 / 18 digits) |
-| `ipv4`    | IPv4 address                        | `qq`     | Numeric QQ account               |
-| `ipv6`    | IPv6 address                        | `money`  | Currency amount                  |
-| `number`  | Numeric string, decimals allowed    | `zh`     | Chinese characters only          |
-| `integer` | Integer string                      | `date`   | Date / datetime string           |
-| `zip`     | Chinese 6-digit postal code         |          |                                  |
+| 格式      | 正则意图                    | 格式     | 正则意图               |
+| --------- | --------------------------- | -------- | ---------------------- |
+| `url`     | 带主机校验的 HTTP / FTP URL | `phone`  | 国内座机 / 手机号      |
+| `email`   | 邮箱地址                    | `idcard` | 身份证号（15 / 18 位） |
+| `ipv4`    | IPv4 地址                   | `qq`     | 纯数字 QQ 号           |
+| `ipv6`    | IPv6 地址                   | `money`  | 货币金额               |
+| `number`  | 数字字符串，允许小数        | `zh`     | 仅中文字符             |
+| `integer` | 整数字符串                  | `date`   | 日期 / 日期时间字符串  |
+| `zip`     | 国内 6 位邮编               |          |                        |
 
-## Standalone `validate`
+## 独立使用 `validate`
 
 ```ts
 function validate<Context = any>(
@@ -123,34 +123,34 @@ interface IValidateResults {
 }
 ```
 
-Options: `validateFirst` (stop at the first failure), `triggerType` (only run rules matching this trigger) and `context` (merged into the validator function's third argument).
+选项：`validateFirst`（遇首条失败即停止）、`triggerType`（只执行匹配该触发时机的规则）、`context`（合并进校验函数的第三个参数）。
 
-## Registry
+## 注册中心
 
-The registry is global and mutable; register once at application startup.
+注册中心是全局可变的单例，建议在应用启动时统一注册一次。
 
-| Function                                                                  | Purpose                                                                                                         |
-| ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `registerValidateRules(rules)`                                            | Add named rules; each value is a `ValidatorFunction`.                                                           |
-| `registerValidateFormats(formats)`                                        | Add named regex formats (`string` or `RegExp` values).                                                          |
-| `registerValidateLocale(messages)`                                        | Deep-merge locale message maps, for example `{ zh: { required: '...' } }`.                                      |
-| `setValidateLanguage(lang)` / `getValidateLanguage()`                     | Switch / read the active language (defaults to the browser language).                                           |
-| `registerValidateMessageTemplateEngine(fn)`                               | Replace the message renderer. `fn(message, context)` runs before the built-in <code v-pre>{{path}}</code> pass. |
-| `getValidateRules()` / `getValidateFormats()` / `getValidateLocale(path)` | Read registry entries.                                                                                          |
+| 函数                                                                      | 用途                                                                                     |
+| ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `registerValidateRules(rules)`                                            | 注册具名规则，值为 `ValidatorFunction`。                                                 |
+| `registerValidateFormats(formats)`                                        | 注册具名正则格式（值为 `string` 或 `RegExp`）。                                          |
+| `registerValidateLocale(messages)`                                        | 深度合并本地化消息映射，例如 `{ zh: { required: '...' } }`。                             |
+| `setValidateLanguage(lang)` / `getValidateLanguage()`                     | 切换 / 读取当前语言（默认取浏览器语言）。                                                |
+| `registerValidateMessageTemplateEngine(fn)`                               | 替换消息渲染器。`fn(message, context)` 在内置 <code v-pre>{{path}}</code> 渲染之前执行。 |
+| `getValidateRules()` / `getValidateFormats()` / `getValidateLocale(path)` | 读取注册中心条目。                                                                       |
 
-### Messages and templates
+### 消息与模板
 
-Built-in English and Chinese messages ship with the package, keyed by rule name. Message strings support <code v-pre>{{path}}</code> placeholders resolved against the rule object merged with the validator context — `{ ...rule, field, form, value }` — so <code v-pre>{{minLength}}</code>, <code v-pre>{{value}}</code>, <code v-pre>{{field.title}}</code> and <code v-pre>{{form.values.plan}}</code> all render. Set a per-rule `message` to override, or register a locale map to replace messages globally. Install `registerValidateMessageTemplateEngine(fn)` to support other syntaxes such as `${title}`, or to fall back to a localized label when a field has no title; the engine receives `(message, context)` and runs before the built-in pass. See [how to configure validation](/core/validation#localize-messages-and-extend-the-engine).
+包内自带中英文消息，按规则名建索引。消息字符串支持 <code v-pre>{{path}}</code> 占位符，按「规则对象 + 校验上下文」合并后的作用域解析 —— `{ ...rule, field, form, value }` —— 因此 <code v-pre>{{minLength}}</code>、<code v-pre>{{value}}</code>、<code v-pre>{{field.title}}</code>、<code v-pre>{{form.values.plan}}</code> 都可以渲染。可以通过规则上的 `message` 逐条覆盖，也可以注册 locale 映射做全局替换。需要支持 `${title}` 这类其他语法，或想在字段没有标题时回退到本地化通用名，可安装 `registerValidateMessageTemplateEngine(fn)`；引擎接收 `(message, context)`，在内置渲染之前执行。参见[如何配置校验](/core/validation#本地化与扩展引擎)。
 
-## Integration with schemas and forms
+## 与 schema、表单的集成
 
-- Put descriptors on `ISchema.validator`; field-level `required: true` is sugar that injects a required rule and drives the required marker in components.
-- Field validation triggers follow each rule's `triggerType`; `field.onInput` / `onFocus` / `onBlur` dispatch accordingly.
-- Form-level `validateFirst`, `validatePattern` and `validateDisplay` (on `createForm`) control whether validation short-circuits and which field patterns / displays participate.
-- Read results through `field.selfErrors`, `field.validateStatus`, `form.errors` or the resolved / rejected value of `form.submit()`.
+- 把描述符放在 `ISchema.validator` 上；字段级 `required: true` 是语法糖，会注入必填规则，并驱动组件中的必填标记。
+- 字段校验按每条规则的 `triggerType` 触发，由 `field.onInput` / `onFocus` / `onBlur` 分发。
+- `createForm` 上的表单级 `validateFirst`、`validatePattern`、`validateDisplay` 控制是否短路、以及哪些交互模式 / 展示状态参与校验。
+- 结果可通过 `field.selfErrors`、`field.validateStatus`、`form.errors` 读取，也会体现在 `form.submit()` 的 resolve / reject 中。
 
-## Next steps
+## 下一步
 
-- [How to configure validation](/core/validation) — task-oriented walkthrough with form examples.
-- [Form model](/core/) — feedback state and the submit lifecycle.
-- [Schema reference](/schema/reference) — where validators live inside `ISchema`.
+- [如何配置校验](/core/validation) —— 面向任务的完整表单讲解。
+- [表单模型](/core/) —— 反馈状态与提交流程。
+- [Schema 参考](/schema/reference) —— 校验器在 `ISchema` 中的位置。

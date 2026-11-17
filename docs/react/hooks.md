@@ -1,66 +1,66 @@
-# Hooks & Component Helpers
+# Hooks 与组件工具
 
-React hooks return **bare values**, not Vue-style refs — there is no `.value` to unwrap. Component helpers (`mapProps`, `mapReadPretty`, `connect`) adapt ordinary React components to the field model and wrap the result with `observer` automatically.
+React hooks 返回的是**裸值**，不是 Vue 风格的 ref，不需要 `.value` 解包。组件工具（`mapProps`、`mapReadPretty`、`connect`）把普通 React 组件适配到字段模型，返回结果会自动包裹 `observer`。
 
 ## Hooks
 
-| Hook                 | Returns                            | Description                                                                   |
-| -------------------- | ---------------------------------- | ----------------------------------------------------------------------------- |
-| `useForm()`          | `Form \| undefined`                | The nearest form from `FormProvider`                                          |
-| `useField<T>()`      | `T \| undefined`                   | The current field, provided by `SchemaField` / `RecursionField`               |
-| `useFieldSchema()`   | `Schema \| undefined`              | The schema of the current field                                               |
-| `useFormEffects(fn)` | `void`                             | Registers `fn(form)` for the lifetime of the component, cleaned up on unmount |
-| `useParentForm()`    | `Form \| ObjectField \| undefined` | The form attached to the nearest field, walking up object-field parents       |
-| `useAttach(target)`  | `T \| undefined`                   | Calls `onMount` / `onUnmount` of a model target with the component lifecycle  |
+| Hook                 | 返回                               | 说明                                                     |
+| -------------------- | ---------------------------------- | -------------------------------------------------------- |
+| `useForm()`          | `Form \| undefined`                | `FormProvider` 提供的最近表单                            |
+| `useField<T>()`      | `T \| undefined`                   | `SchemaField` / `RecursionField` 提供的当前字段          |
+| `useFieldSchema()`   | `Schema \| undefined`              | 当前字段的 schema                                        |
+| `useFormEffects(fn)` | `void`                             | 在组件生命周期内注册 `fn(form)`，卸载时自动清理          |
+| `useParentForm()`    | `Form \| ObjectField \| undefined` | 最近字段所属的表单，会沿 object 字段父级向上查找         |
+| `useAttach(target)`  | `T \| undefined`                   | 让模型 target 随组件生命周期调用 `onMount` / `onUnmount` |
 
-There is no `useInjectionCleaner` hook: context isolation is built into `FormProvider`.
+没有 `useInjectionCleaner` hook：上下文隔离已经内建在 `FormProvider` 中。
 
-## Which hook for which job
+## 每个 hook 用在什么场景
 
-| You are building…                                                  | Use                 | Why                                                 |
-| ------------------------------------------------------------------ | ------------------- | --------------------------------------------------- |
-| A footer / toolbar inside `FormProvider` but outside `SchemaField` | `useForm()`         | Reads and drives the same form model                |
-| A custom control rendered by `SchemaField`                         | `useField()`        | Gives you `value`, `onInput`, `selfErrors`          |
-| A component whose rendering depends on schema metadata             | `useFieldSchema()`  | Read slots, `componentProps` or custom `x-*` fields |
-| A block that registers form-level effects                          | `useFormEffects()`  | Automatically cleaned up on unmount                 |
-| Something inside a field subtree that must reach the form          | `useParentForm()`   | Walks up object-field parents                       |
-| Binding an externally created model to a component                 | `useAttach(target)` | Calls `onMount` / `onUnmount` with the lifecycle    |
+| 你要构建…                                         | 使用                | 原因                                            |
+| ------------------------------------------------- | ------------------- | ----------------------------------------------- |
+| `FormProvider` 内、`SchemaField` 外的页脚或工具栏 | `useForm()`         | 读写同一个表单模型                              |
+| 由 `SchemaField` 渲染的自定义控件                 | `useField()`        | 直接拿到 `value`、`onInput`、`selfErrors`       |
+| 渲染依赖 schema 元数据的组件                      | `useFieldSchema()`  | 读取 slot、`componentProps` 或自定义 `x-*` 字段 |
+| 需要注册表单级 effects 的区块                     | `useFormEffects()`  | 卸载时自动清理                                  |
+| 字段子树内需要访问所属表单                        | `useParentForm()`   | 会沿 object 字段父级向上查找                    |
+| 把外部创建的模型绑定到组件生命周期                | `useAttach(target)` | 随组件调用 `onMount` / `onUnmount`              |
 
-A footer toolbar is the typical `useForm()` case — it sits below the fields and drives submit or a partial validation:
+页脚工具栏是 `useForm()` 的典型场景 —— 它位于字段下方，负责提交或局部校验：
 
 <<< @/snippets/react/use-form-toolbar.tsx
 
-Every hook returns a bare value. The component that reads it must be wrapped with `observer`, otherwise the toolbar button will not reflect `form.submitting`.
+所有 hook 都返回裸值。读取它的组件必须用 `observer` 包裹，否则工具栏按钮不会响应 `form.submitting` 的变化。
 
-A custom input that reads the field directly. Note the `observer` wrapper and the explicit prop destructuring:
+直接读取字段的自定义输入组件。注意 `observer` 包裹与显式的 props 解构：
 
 <<< @/snippets/react/custom-input.tsx
 
-See [Custom components](/react/custom-components) for the full field component contract.
+完整字段组件契约见[自定义组件](/react/custom-components)。
 
-## Component helpers
+## 组件工具
 
 ### `mapProps`
 
-Maps field state onto component props:
+把字段状态映射到组件 props：
 
 <<< @/snippets/react/component-helpers.tsx#map-props
 
-Object keys are read paths on the field, string values are the target props. A `true` value keeps the same prop name. The returned component is wrapped with `observer` and passes props through unchanged when no field context is present, so connected components can still be used standalone.
+对象的键是字段上的读取路径，字符串值是目标 prop；值为 `true` 时保持同名。返回的组件会自动包裹 `observer`，且在没有字段上下文时原样透传 props，因此 connect 后的组件也可以脱离表单单独使用。
 
 ### `mapReadPretty`
 
-Switches to a read-only component when the field pattern is `readPretty`:
+当字段 pattern 为 `readPretty` 时切换到只读组件：
 
 <<< @/snippets/react/component-helpers.tsx#read-pretty
 
 ### `connect`
 
-Composes both helpers:
+组合上述工具：
 
 <<< @/snippets/react/component-helpers.tsx#connect
 
-## Next steps
+## 下一步
 
-- [React bindings](/react/) — `createForm`, `createSchemaField` and the rendering components.
-- [Custom components](/react/custom-components) — field and array component contracts.
+- [React 绑定](/react/) —— `createForm`、`createSchemaField` 与渲染组件。
+- [自定义组件](/react/custom-components) —— 字段组件与数组组件契约。

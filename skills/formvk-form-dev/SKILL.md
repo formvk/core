@@ -12,8 +12,8 @@ description: Build forms with formvk in Vue or React apps. Use when creating sch
 文档站已生成 AI 可读的 Markdown，需要细节时直接抓取对应页面，不要凭记忆猜 API：
 
 - 全站索引：[llms.txt](https://formvk.github.io/core/llms.txt)
-- 单页 Markdown：任意文档路径加 `.md`，如 [Vue Custom Components](https://formvk.github.io/core/vue/custom-components.md)
-- 中文页面在路径中加 `zh/`，如 [中文 Custom Components](https://formvk.github.io/core/zh/vue/custom-components.md)
+- 单页 Markdown：任意文档路径加 `.md`，默认即中文，如 [Vue 自定义组件](https://formvk.github.io/core/vue/custom-components.md)
+- 英文页面在路径中加 `en/`，如 [English Custom Components](https://formvk.github.io/core/en/vue/custom-components.md)
 - 全量正文 [llms-full.txt](https://formvk.github.io/core/llms-full.txt) 体积大，只在需要跨页检索时使用
 
 ## 入口包

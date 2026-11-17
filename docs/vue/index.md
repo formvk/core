@@ -1,8 +1,8 @@
-# Vue Bindings
+# Vue 绑定
 
-`@formvk/vue` re-exports `@formvk/schema`, so a single import gives you the form engine, the schema DSL, components and hooks. This page covers `createForm`, `createSchemaField` and the rendering components; hooks and component helpers live in [Hooks](/vue/hooks), and complete runnable forms in [Examples](/vue/examples/basic-form).
+`@formvk/vue` 重新导出了 `@formvk/schema`，因此一次导入即可拿到表单引擎、schema DSL、组件与 hooks。本页介绍 `createForm`、`createSchemaField` 与渲染组件；hooks 与组件工具见 [Hooks](/vue/hooks)，完整可运行表单见[示例](/vue/examples/basic-form)。
 
-> Related references: [Schema](/schema/) — the schema model, DSL and expressions; [Core](/core/) — `createForm`, field models, paths and lifecycle hooks (imported from `@formvk/core`); [Validation](/core/validation) — rules, formats and message localization.
+> 相关参考：[Schema](/schema/) —— schema 模型、DSL 与表达式；[核心](/core/) —— `createForm`、字段模型、路径与生命周期钩子（从 `@formvk/core` 导入）；[校验](/core/validation) —— 规则、格式与消息本地化。
 
 ```ts
 import {
@@ -24,32 +24,32 @@ import {
 function createForm<T extends object = any>(options?: IFormProps<T>): Form<T>
 ```
 
-Creates a form model. It is marked as `markRaw`, so Vue will not turn it into a reactive proxy.
+创建表单模型。它被标记为 `markRaw`，Vue 不会把它转换成响应式代理。
 
-Common form methods:
+常用表单方法：
 
-| Method                           | Description                                                   |
-| -------------------------------- | ------------------------------------------------------------- |
-| `form.values`                    | Observable values object                                      |
-| `form.submit(onSubmit?)`         | Validates, then resolves with values (or rejects with errors) |
-| `form.validate(pattern?)`        | Validates fields, rejects with errors when invalid            |
-| `form.reset(pattern?, options?)` | Resets fields to their initial values                         |
-| `form.submitting`                | `true` while a submit is pending                              |
-| `form.invalid` / `form.errors`   | Current validity flag and error list                          |
+| 方法                             | 说明                                      |
+| -------------------------------- | ----------------------------------------- |
+| `form.values`                    | 可观察的取值对象                          |
+| `form.submit(onSubmit?)`         | 校验后 resolve 取值（失败时 reject 错误） |
+| `form.validate(pattern?)`        | 校验字段，失败时 reject 错误              |
+| `form.reset(pattern?, options?)` | 将字段恢复为初始值                        |
+| `form.submitting`                | 提交进行中为 `true`                       |
+| `form.invalid` / `form.errors`   | 当前是否无效 / 错误列表                   |
 
-## Components
+## 组件
 
 ### `FormProvider`
 
-| Prop   | Type   | Description                            |
-| ------ | ------ | -------------------------------------- |
-| `form` | `Form` | The form model provided to descendants |
+| 属性   | 类型   | 说明                 |
+| ------ | ------ | -------------------- |
+| `form` | `Form` | 提供给后代的表单模型 |
 
-Provides the form through Vue `provide` / `inject` and cleans up stale field / schema injections from parent scopes.
+它通过 Vue 的 `provide` / `inject` 提供表单，并清理父级作用域遗留的字段 / schema 注入。
 
 ### `FormConsumer`
 
-Render-slot component that receives the form:
+通过作用域插槽拿到表单：
 
 ```vue
 <FormConsumer v-slot="{ form }">
@@ -59,77 +59,77 @@ Render-slot component that receives the form:
 
 ### `SchemaField`
 
-Renders a schema tree. `components` is a flat `name → component` map. The `SchemaField` returned by `createSchemaField` is already pre-bound, so this prop is only needed when using the standalone `SchemaField`.
+渲染 schema 树。`components` 是扁平的 `name → component` 映射。`createSchemaField` 返回的 `SchemaField` 已预绑定组件，因此只有使用独立 `SchemaField` 时才需要传这个 prop。
 
-| Prop                   | Type                               | Description                                                     |
-| ---------------------- | ---------------------------------- | --------------------------------------------------------------- |
-| `schema`               | `ISchema \| Schema`                | Schema to render; plain objects get `type: 'object'` by default |
-| `components`           | flat `name → component` map        | Component map for `component: 'Input'` and friends              |
-| `scope`                | `Record<string, any>`              | Extra scope values for expressions                              |
-| `name`                 | `string \| number`                 | Field name when rendering a subtree                             |
-| `basePath`             | `FormPathPattern`                  | Base path used to resolve field addresses                       |
-| `onlyRenderProperties` | `boolean`                          | Render children only, without the node itself                   |
-| `onlyRenderSelf`       | `boolean`                          | Render the node only, without children                          |
-| `mapProperties`        | `(schema, name) => Schema \| void` | Transform child schemas before rendering                        |
-| `filterProperties`     | `(schema, name) => boolean`        | Return `false` to skip a child                                  |
-| `hotReload`            | `boolean`                          | Rebuild fields when the `schema` reference changes (dev only)   |
+| 属性                   | 类型                               | 说明                                              |
+| ---------------------- | ---------------------------------- | ------------------------------------------------- |
+| `schema`               | `ISchema \| Schema`                | 要渲染的 schema；普通对象默认补 `type: 'object'`  |
+| `components`           | 扁平 `name → component` 映射       | `component: 'Input'` 等名称对应的组件             |
+| `scope`                | `Record<string, any>`              | 表达式可用的额外作用域                            |
+| `name`                 | `string \| number`                 | 渲染子树时的字段名                                |
+| `basePath`             | `FormPathPattern`                  | 解析字段地址的基准路径                            |
+| `onlyRenderProperties` | `boolean`                          | 只渲染子节点，不渲染当前节点                      |
+| `onlyRenderSelf`       | `boolean`                          | 只渲染当前节点，不渲染子节点                      |
+| `mapProperties`        | `(schema, name) => Schema \| void` | 渲染前转换子 schema                               |
+| `filterProperties`     | `(schema, name) => boolean`        | 返回 `false` 跳过某个子节点                       |
+| `hotReload`            | `boolean`                          | `schema` 引用变化时重建字段（仅建议开发环境开启） |
 
 ### `createSchemaField`
 
-`createSchemaField(options)` returns a two-key object:
+`createSchemaField(options)` 返回一个双 key 对象：
 
-- `SchemaField` — a render component pre-bound with the flattened component map and `scope`. You can still pass a flat `components` prop to override individual components at render time.
-- `fragment` — the schema builder: the base creators `Field` / `Object` / `Array` / `Void` / `transform`, plus one shorthand creator per component name (for example `Input`, `ArrayItems`).
+- `SchemaField` —— 已预绑定拍平后组件映射与 `scope` 的渲染组件，渲染时仍可传扁平 `components` prop 覆盖同名组件。
+- `fragment` —— schema 构造器集合：基础构造器 `Field` / `Object` / `Array` / `Void` / `transform`，以及按组件名生成的快捷构造器（如 `Input`、`ArrayItems`）。
 
-`components` is a flat `name → component` map; names not listed in a category are treated as field components. `voidComponents` / `arrayComponents` are component maps that classify layout and array components; the factory merges them into the runtime component map automatically, so no duplicate registration is needed. All types are inferred from the options — no type arguments and no hand-written component maps:
+`components` 是扁平的 `name → component` 映射，未声明分类的名字按 field 组件处理。`voidComponents` / `arrayComponents` 是归类布局组件与数组组件的**组件 map**，工厂会自动把它们合并进运行时组件映射，无需重复注册。所有类型都从 options 推断，无需传任何类型参数，也不用手写组件 map：
 
 <<< @/snippets/vue/schema-field.ts#full
 
-Render with the pre-bound component — no `components` prop is needed:
+用预绑定的组件渲染，无需再传 `components` prop：
 
 ```vue
 <SchemaField :schema="schema" />
 ```
 
-| Option             | Type                        | Description                                                                                                           |
-| ------------------ | --------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `components`       | flat `name → component` map | Every component the schema references; unclassified names default to field components.                                |
-| `voidComponents`   | component map               | Void / layout components; merged into the runtime component map automatically.                                        |
-| `arrayComponents`  | component map               | Array components, with the same map-only input form.                                                                  |
-| `scope`            | `Record<string, any>`       | Extra scope values; the object's shape is inferred and flows into every creator's `reactions` typing.                 |
-| `defaultDecorator` | `string \| component`       | Same semantics as the `createFragment` option; its type is inferred so `decoratorProps` is checked against its props. |
-| `patches`          | patch \| patch[]            | Patches applied to every schema the fragment produces.                                                                |
+| 选项               | 类型                         | 说明                                                                                         |
+| ------------------ | ---------------------------- | -------------------------------------------------------------------------------------------- |
+| `components`       | 扁平 `name → component` 映射 | schema 引用到的全部组件；未分类的名字默认按 field 组件处理。                                 |
+| `voidComponents`   | 组件 map                     | void / 布局组件，自动合并进运行时组件映射。                                                  |
+| `arrayComponents`  | 组件 map                     | 数组组件，入参形态同上。                                                                     |
+| `scope`            | `Record<string, any>`        | 额外作用域；对象形状会被推断，并流入每个构造器的 `reactions` 类型。                          |
+| `defaultDecorator` | `string \| 组件引用`         | 语义同 `createFragment` 的同名选项；类型自动推断，`decoratorProps` 按该装饰器的 props 校验。 |
+| `patches`          | patch \| patch[]             | 应用到 fragment 产出的每个 schema 上的 patch。                                               |
 
-> **Name collisions are resolved silently.** The three maps are flattened in the order `components` → `voidComponents` → `arrayComponents`; when the same component name appears in more than one map, the higher-priority entry wins without any warning — `arrayComponents` overrides `voidComponents`, which in turn overrides `components`. The fragment's dynamic creator follows the same priority, so `f.Name()` emits an `array` / `void` / `string` node for the winning category, while the lower-priority component becomes unreachable at runtime. Keep names unique across the three maps if every entry needs to stay available.
+> **同名冲突按固定优先级静默处理，不会有任何警告。** 三个 map 按 `components` → `voidComponents` → `arrayComponents` 的顺序拍平，同一组件名在多个 map 中出现时，由高优先级条目直接胜出：`arrayComponents` 覆盖 `voidComponents`，后者再覆盖 `components`。fragment 的动态构造器遵循同一优先级，`f.Name()` 会按胜出分类产出 `array` / `void` / `string` 节点，低优先级组件在运行时不再可访问。如果需要每个组件都保持可用，请保证三个 map 中的名字互不重复。
 
-The returned creators are the same fragment API documented in the [Schema reference](/schema/reference#field-level-type-parameters), including parent-to-child type inference:
+返回的构造器与 [Schema 参考](/schema/reference#字段级类型参数) 中的 fragment API 完全一致，同样支持父级声明、子级推断：
 
 <<< @/snippets/vue/schema-field.ts#inference
 
-`createFragment` remains available for framework-agnostic schema code that is not tied to a Vue component map.
+`createFragment` 仍然保留，适用于不依赖 Vue 组件映射的、与框架无关的 schema 代码。
 
 ### `RecursionField`
 
-The building block inside `SchemaField`. Use it when you write your own layout components, for example array items:
+`SchemaField` 内部的构建块。编写自定义布局组件（例如数组项）时直接使用：
 
-| Prop       | Type                | Description        |
-| ---------- | ------------------- | ------------------ |
-| `schema`   | `ISchema \| Schema` | The node to render |
-| `name`     | `string \| number`  | Field name         |
-| `basePath` | `FormPathPattern`   | Parent path        |
+| 属性       | 类型                | 说明         |
+| ---------- | ------------------- | ------------ |
+| `schema`   | `ISchema \| Schema` | 要渲染的节点 |
+| `name`     | `string \| number`  | 字段名       |
+| `basePath` | `FormPathPattern`   | 父级路径     |
 
 ### `ExpressionScope`
 
-Adds values to the scope used by <code v-pre>{{ ... }}</code> expressions for its subtree.
+为子树中的 <code v-pre>{{ ... }}</code> 表达式增加作用域变量。
 
 ```vue
-<ExpressionScope :value="{ $locale: 'en' }">
+<ExpressionScope :value="{ $locale: 'zh-CN' }">
   <SchemaField :schema="schema" />
 </ExpressionScope>
 ```
 
-## Next steps
+## 下一步
 
-- [Hooks & component helpers](/vue/hooks) — `useField`, `useForm`, `connect` and friends.
-- [Custom components](/vue/custom-components) — build field and array components against the field model.
-- [Examples](/vue/examples/basic-form) — complete forms with validation, reactions and repeatable groups.
+- [Hooks 与组件工具](/vue/hooks) —— `useField`、`useForm`、`connect` 等。
+- [自定义组件](/vue/custom-components) —— 基于字段模型编写字段组件与数组组件。
+- [示例](/vue/examples/basic-form) —— 校验、联动与可重复字段的完整表单。

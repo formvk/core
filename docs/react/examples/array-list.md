@@ -1,29 +1,23 @@
-# Array List
+# 数组列表
 
-Repeatable field groups are regular `type: 'array'` nodes. The array component owns the layout and uses `RecursionField` to render each item with its own schema.
+可重复的字段组就是普通的 `type: 'array'` 节点。数组组件负责布局，并用 `RecursionField` 按各自的 schema 渲染每一项。
 
-<ReactMount :component="ReactArrayListDemo" />
+<demo react="../../demos/react/zh/array-list.tsx" stackblitz="true" />
 
-The array component reads the field and its schema through `useField<ArrayField>()` and `useFieldSchema()`, then renders each item with `<RecursionField schema={itemSchema} name={index} />`:
+数组组件通过 `useField<ArrayField>()` 与 `useFieldSchema()` 读取字段和 schema，再用 `<RecursionField schema={itemSchema} name={index} />` 渲染每一项：
 
-<<< @/demos/react/array-list.tsx
-
-<script setup lang="ts">
-import ReactArrayListDemo from '../../demos/react/array-list'
-</script>
-
-## The array component
+## 数组组件
 
 <<< @/snippets/react/array-list.tsx
 
-- `field.value` is the array value; `schema.items` is the item schema.
-- `<RecursionField schema={schema.items} name={index} />` creates a child field at the item path (for example `members.0.name`).
-- The array field exposes `push`, `pop`, `insert`, `remove`, `shift`, `unshift`, `move`, `moveUp` and `moveDown`.
-- The component is wrapped with `observer`, which is required because it renders `field.value` reactively.
+- `field.value` 是数组取值，`schema.items` 是每一项的 schema。
+- `<RecursionField schema={schema.items} name={index} />` 会在对应路径（例如 `members.0.name`）创建子字段。
+- 数组字段提供 `push`、`pop`、`insert`、`remove`、`shift`、`unshift`、`move`、`moveUp`、`moveDown`。
+- 组件用 `observer` 包裹是必须的，因为它要响应式地渲染 `field.value`。
 
-## Value shape
+## 值类型
 
-The schema
+这段 schema
 
 ```ts
 f.ArrayItems(
@@ -34,10 +28,10 @@ f.ArrayItems(
 )
 ```
 
-produces `Array<{ name?: string; email?: string }>` for the `members` property. `createSchema` collects it into the form value type, so `form.values.members[0].name` is typed.
+让 `members` 的类型为 `Array<{ name?: string; email?: string }>`。`createSchema` 会把它汇总进表单值类型，因此 `form.values.members[0].name` 是有类型的。
 
-## Next steps
+## 下一步
 
-- [Nested Objects](/react/examples/schema-object) — object schemas and value inference.
-- [React bindings](/react/) — every component at a glance.
-- [Vue version](/vue/examples/array-list) — the same array component in a Vue SFC.
+- [嵌套对象](/react/examples/schema-object) —— 对象 schema 与值类型推导。
+- [React 绑定](/react/) —— 一览所有组件。
+- [Vue 版本](/vue/examples/array-list) —— 同一个数组组件的 Vue 单文件实现。

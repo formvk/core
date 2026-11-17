@@ -1,48 +1,40 @@
-# Basic Form
+# 基础表单
 
-A complete form with initial values, validation rules, submit and reset — the schema is built with the fragment returned by `createSchemaField`, which infers every component prop type from the flat component map.
+一个包含初始值、校验规则、提交与重置的完整表单。schema 由 `createSchemaField` 返回的 fragment 构建，组件 props 类型从扁平组件映射自动推断。
 
-<BasicFormDemo />
+<demo vue="../../demos/zh/basic-form.vue" stackblitz="true" />
 
-The demo is a single Vue component:
-
-<<< @/demos/basic-form.vue
-
-<script setup lang="ts">
-import BasicFormDemo from '../../demos/basic-form.vue'
-</script>
-
-## How it works
+## 实现说明
 
 ```vue
 <script setup lang="ts">
 import { createForm, FormProvider, createSchema, createSchemaField } from '@formvk/vue'
 
-import { DemoArrayItems, demoComponents } from '../demos/components'
+import { DemoArrayItems, demoComponents } from '../../demos/components'
 
 const form = createForm({
   values: { username: '', role: '', subscribe: false, bio: '' },
 })
 
-// The flat component map drives every type: no generic arguments needed
+// 扁平组件映射直接驱动所有类型，无需手写任何泛型
 const { SchemaField, fragment: f } = createSchemaField({
   components: demoComponents,
   arrayComponents: { ArrayItems: DemoArrayItems },
 })
 const schema = createSchema({
   username: f.Input({
-    title: 'Username',
+    title: '用户名',
     required: true,
     validator: [
-      { required: true, message: 'Username is required' },
-      { minLength: 3, message: 'Use at least 3 characters' },
+      { required: true, message: '请输入用户名' },
+      { minLength: 3, message: '至少输入 3 个字符' },
     ],
   }),
-  // ...other fields
+  // ...其他字段
 })
 
 async function onSubmit() {
-  const values = await form.submit() // throws when the form is invalid
+  const values = await form.submit() // 校验失败会抛错
   console.log(values)
 }
 </script>
@@ -50,18 +42,18 @@ async function onSubmit() {
 <template>
   <FormProvider :form="form">
     <SchemaField :schema="schema" />
-    <button @click="onSubmit">Submit</button>
+    <button @click="onSubmit">提交</button>
   </FormProvider>
 </template>
 ```
 
-- `validator` accepts a single rule object or an array of rule descriptions.
-- `required: true` adds the required rule and marks the field as required; rules with an explicit `message` produce stable, locale-independent errors.
-- `form.submit()` validates every editable field, then resolves with a plain values object — or rejects with the form errors.
-- `form.submitting` is `true` while the submit promise is pending, which is handy to disable the button.
-- `form.reset()` restores the initial values.
+- `validator` 支持单个规则对象或规则数组。
+- `required: true` 会添加必填规则并标记字段为必填；规则带显式 `message` 时错误文案稳定、不受语言环境影响。
+- `form.submit()` 会校验所有可编辑字段，成功时 resolve 普通取值对象，失败时 reject 表单错误。
+- `form.submitting` 在提交期间为 `true`，可用于禁用按钮。
+- `form.reset()` 恢复初始值。
 
-## Validate without submitting
+## 仅校验不提交
 
 ```ts
 try {
@@ -72,8 +64,8 @@ try {
 }
 ```
 
-## Next steps
+## 下一步
 
-- [Dynamic Reactions](/vue/examples/reactions) — show and hide fields based on other values.
-- [Array List](/vue/examples/array-list) — repeatable field groups.
-- [React version](/react/examples/basic-form) — the same form with the React binding.
+- [动态联动](/vue/examples/reactions) —— 根据其他字段的值显示或隐藏字段。
+- [数组列表](/vue/examples/array-list) —— 可增删的字段组。
+- [React 版本](/react/examples/basic-form) —— 同一个表单的 React 实现。

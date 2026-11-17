@@ -1,18 +1,18 @@
 # @formvk/react
 
-[English](./README.md) | [简体中文](./README.zh-CN.md)
+[English](./README.en.md) | [简体中文](./README.md)
 
-React bindings for Formvk. It connects the `@formvk/core` form model and `@formvk/schema` to React components, with field updates powered by `@formvk/reactive-react`.
+Formvk 的 React 绑定。它把 `@formvk/core` 的表单模型与 `@formvk/schema` 连接到 React 组件，字段更新由 `@formvk/reactive-react` 驱动。
 
-## Install
+## 安装
 
 ```bash
 pnpm add @formvk/react react react-dom
 ```
 
-`react` and `react-dom` (`>= 18`) are peer dependencies.
+`react` 与 `react-dom`（`>= 18`）是 peer 依赖。
 
-## Usage
+## 使用
 
 ```tsx
 import { createForm, createSchema, createSchemaField, FormProvider } from '@formvk/react'
@@ -22,7 +22,7 @@ function Input(props: { value?: string }) {
   return <input value={props.value ?? ''} readOnly />
 }
 
-// schema and component factory are static: build them once at module scope
+// schema 与组件工厂是静态的：在模块作用域构建一次
 const { SchemaField, fragment: f } = createSchemaField({
   components: { Input },
 })
@@ -32,7 +32,7 @@ const schema = createSchema({
 })
 
 export default function App() {
-  // the form is a stateful model: create it lazily inside the component
+  // form 是有状态模型：在组件内惰性创建
   const [form] = useState(() => createForm({ values: { name: '' } }))
 
   return (
@@ -45,18 +45,18 @@ export default function App() {
 
 ## API
 
-- **Components** — `FormProvider`, `SchemaField`, `createSchemaField`, `RecursionField`, `ExpressionScope`, `FormConsumer`, `ReactiveField`.
-- **Hooks** — `useForm`, `useField`, `useFieldSchema`, `useAttach`, `useFormEffects`, `useParentForm`.
-- **Helpers** — `createForm`, `connect`, `mapProps`, `mapReadPretty`.
-- **Schema** — re-exports `@formvk/schema` (`createFragment`, `createSchema`, `ISchema`, expression types, ...).
-- **Reactivity** — re-exports `@formvk/reactive-react` (`observer`, `Observer`, `useObserver`, `useForceUpdate`).
+- **组件** — `FormProvider`、`SchemaField`、`createSchemaField`、`RecursionField`、`ExpressionScope`、`FormConsumer`、`ReactiveField`。
+- **Hooks** — `useForm`、`useField`、`useFieldSchema`、`useAttach`、`useFormEffects`、`useParentForm`。
+- **辅助函数** — `createForm`、`connect`、`mapProps`、`mapReadPretty`。
+- **Schema** — 重新导出 `@formvk/schema`（`createFragment`、`createSchema`、`ISchema`、表达式类型等）。
+- **响应式** — 重新导出 `@formvk/reactive-react`（`observer`、`Observer`、`useObserver`、`useForceUpdate`）。
 
-Components that read observable state directly should be wrapped with `observer`, re-exported here from `@formvk/reactive-react`. `FormConsumer` exposes form state through a render prop.
+直接读取可观察状态的组件需要用 `observer` 包裹（本包已从 `@formvk/reactive-react` 重新导出）。`FormConsumer` 通过 render prop 暴露表单状态。
 
-## Documentation
+## 文档
 
-- React API: https://formvk.github.io/core/api/react
-- Getting started: https://formvk.github.io/core/guide/getting-started
+- React API：https://formvk.github.io/core/api/react
+- 快速上手：https://formvk.github.io/core/guide/getting-started
 
 ## License
 

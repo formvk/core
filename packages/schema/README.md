@@ -1,16 +1,16 @@
 # @formvk/schema
 
-[English](./README.md) | [简体中文](./README.zh-CN.md)
+[English](./README.en.md) | [简体中文](./README.md)
 
-Schema-first layer for Formvk. `createFragment` turns registered components into typed schema constructors, `createSchema` assembles a typed object schema, and `{{ ... }}` expressions are compiled into reactive field state when the schema is rendered by `@formvk/react` or `@formvk/vue`.
+Formvk 的 Schema 优先层。`createFragment` 把已注册的组件转换为带类型的 schema 构造器，`createSchema` 组装带类型的对象 schema；当 schema 被 `@formvk/react` 或 `@formvk/vue` 渲染时，`{{ ... }}` 表达式会编译为响应式字段状态。
 
-## Install
+## 安装
 
 ```bash
 pnpm add @formvk/schema
 ```
 
-## Usage
+## 使用
 
 ```ts
 import { createFragment, createSchema } from '@formvk/schema'
@@ -23,7 +23,7 @@ export const schema = createSchema({
 })
 ```
 
-Register components (name → component type) to get full type inference for `componentProps`:
+注册组件（组件名 → 组件类型）后，`componentProps` 可以获得完整的类型推导：
 
 ```ts
 const f = createFragment<{
@@ -35,7 +35,7 @@ const schema = createSchema({
 })
 ```
 
-Expressions use the `{{ ... }}` syntax and are evaluated against form values and scope:
+表达式使用 `{{ ... }}` 语法，基于表单值与 scope 求值：
 
 ```ts
 const schema = createSchema({
@@ -49,19 +49,19 @@ const schema = createSchema({
 
 ## API
 
-- `createFragment(options?)` — returns `Field`, `Object`, `Array`, `Void`, `transform`, plus one constructor per registered component name.
-- `createSchema(properties, patches?)` — builds a typed `object` schema.
-- `Schema` — imperative schema tree; `ISchema` is the plain-object form.
-- Expressions — `SchemaExpression`, `ExpressionProps`, `createExpression`, `createExpressionFn`, `getExpression`.
-- Compiler — `compile`, `shallowCompile`, `registerCompiler`, `silent`.
-- Types — `FieldSchema`, `ObjectSchema`, `ArraySchema`, `VoidSchema`, `Fragment`, `SchemaCreator`.
+- `createFragment(options?)` — 返回 `Field`、`Object`、`Array`、`Void`、`transform`，以及每个已注册组件名对应的构造器。
+- `createSchema(properties, patches?)` — 构建带类型的 `object` schema。
+- `Schema` — 命令式 schema 树；`ISchema` 是它的纯对象形态。
+- 表达式 — `SchemaExpression`、`ExpressionProps`、`createExpression`、`createExpressionFn`、`getExpression`。
+- 编译器 — `compile`、`shallowCompile`、`registerCompiler`、`silent`。
+- 类型 — `FieldSchema`、`ObjectSchema`、`ArraySchema`、`VoidSchema`、`Fragment`、`SchemaCreator`。
 
-In Vue/React apps, `createSchemaField` from `@formvk/vue` / `@formvk/react` binds component maps to a fragment and renders the schema.
+在 Vue/React 应用中，`@formvk/vue` / `@formvk/react` 的 `createSchemaField` 会把组件映射绑定到 fragment 并渲染 schema。
 
-## Documentation
+## 文档
 
-- Schema guide: https://formvk.github.io/core/guide/schema
-- Schema API: https://formvk.github.io/core/api/schema
+- Schema 指南：https://formvk.github.io/core/guide/schema
+- Schema API：https://formvk.github.io/core/api/schema
 
 ## License
 

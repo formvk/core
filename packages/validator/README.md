@@ -1,16 +1,16 @@
 # @formvk/validator
 
-[English](./README.md) | [简体中文](./README.zh-CN.md)
+[English](./README.en.md) | [简体中文](./README.md)
 
-Standalone validation engine used by Formvk, with a rule registry, format validators, localized messages and validator description parsing.
+Formvk 使用的独立校验引擎，包含规则注册表、格式校验器、多语言消息与校验器描述解析。
 
-## Install
+## 安装
 
 ```bash
 pnpm add @formvk/validator
 ```
 
-## Usage
+## 使用
 
 ```ts
 import { validate } from '@formvk/validator'
@@ -23,7 +23,7 @@ const results = await validate('alice', [
 results.error.length === 0 // true
 ```
 
-Register custom rules and formats:
+注册自定义规则与格式：
 
 ```ts
 import { registerValidateFormats, registerValidateRules } from '@formvk/validator'
@@ -37,7 +37,7 @@ registerValidateFormats({
 })
 ```
 
-Switch the built-in language (`en`, `zh`, `ja`):
+切换内置语言（`en`、`zh`、`ja`）：
 
 ```ts
 import { setValidateLanguage } from '@formvk/validator'
@@ -47,19 +47,19 @@ setValidateLanguage('zh')
 
 ## API
 
-- **Validate** — `validate(value, validator, options?)` → `{ error, success, warning }`.
-- **Parse** — `parseValidator`, `parseValidatorRules`, `parseValidatorDescription`, `parseValidatorDescriptions`.
-- **Registry** — `registerValidateRules`, `registerValidateFormats`, `registerValidateLocale`, `registerValidateMessageTemplateEngine`, `getValidateRules`, `getValidateFormats`, `getValidateLocale`.
-- **Language** — `setValidateLanguage`, `getValidateLanguage`, `getLocaleByPath`.
-- **Built-in rules** — `required`, `max`, `min`, `exclusiveMaximum`, `exclusiveMinimum`, `len`, `pattern`, `whitespace`, `enum`, `const`, `multipleOf`, `uniqueItems`, `maxProperties`, `minProperties`, plus aliases such as `maxLength`, `minLength`, `maxItems`, `minItems`, `maximum`, `minimum`.
-- **Built-in formats** — `url`, `email`, `number`, `integer`, `qq`, `phone`, `idcard`, `money`, `zh`, `date`, `zip`.
+- **校验** — `validate(value, validator, options?)` → `{ error, success, warning }`。
+- **解析** — `parseValidator`、`parseValidatorRules`、`parseValidatorDescription`、`parseValidatorDescriptions`。
+- **注册表** — `registerValidateRules`、`registerValidateFormats`、`registerValidateLocale`、`registerValidateMessageTemplateEngine`、`getValidateRules`、`getValidateFormats`、`getValidateLocale`。
+- **语言** — `setValidateLanguage`、`getValidateLanguage`、`getLocaleByPath`。
+- **内置规则** — `required`、`max`、`min`、`exclusiveMaximum`、`exclusiveMinimum`、`len`、`pattern`、`whitespace`、`enum`、`const`、`multipleOf`、`uniqueItems`、`maxProperties`、`minProperties`，以及 `maxLength`、`minLength`、`maxItems`、`minItems`、`maximum`、`minimum` 等别名。
+- **内置格式** — `url`、`email`、`number`、`integer`、`qq`、`phone`、`idcard`、`money`、`zh`、`date`、`zip`。
 
-`@formvk/schema` accepts these rules directly on schema fields through `validator`.
+`@formvk/schema` 允许通过字段上的 `validator` 直接使用这些规则。
 
-## Documentation
+## 文档
 
-- Validator API: https://formvk.github.io/core/api/validator
-- Validation guide: https://formvk.github.io/core/guide/validation
+- Validator API：https://formvk.github.io/core/api/validator
+- 校验指南：https://formvk.github.io/core/guide/validation
 
 ## License
 

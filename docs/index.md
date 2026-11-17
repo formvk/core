@@ -3,30 +3,30 @@ layout: home
 
 hero:
   name: Formvk
-  text: Schema-first forms for Vue 3 and React
-  tagline: A typed schema DSL, a fine-grained reactive core and ready-to-use Vue and React bindings — all in one engine.
+  text: 面向 Vue 3 与 React 的 Schema 表单引擎
+  tagline: 类型安全的 Schema DSL、细粒度响应式内核，以及开箱即用的 Vue / React 绑定，统一在一个引擎里。
   actions:
     - theme: brand
-      text: Get Started
+      text: 快速开始
       link: /guide/getting-started
     - theme: alt
-      text: Live Examples
+      text: 在线示例
       link: /vue/examples/basic-form
     - theme: alt
-      text: 简体中文
-      link: /zh/
+      text: English
+      link: /en/
 
 features:
-  - title: Schema-first
-    details: Describe a form as a JSON schema and let the engine create fields, validate values and react to changes.
-  - title: Fine-grained reactivity
-    details: Built on top of Vue reactivity. Components re-render only when the state they read actually changes.
-  - title: Typed schema DSL
-    details: createFragment infers field values, array items and component props from the schema you write.
-  - title: Composable packages
-    details: Reactive core, form models, schema tools and isomorphic Vue / React bindings live in separate packages you can mix and match.
-  - title: Validation built in
-    details: Declarative rules, async validators and localized messages through a small registry.
-  - title: Framework-agnostic core
-    details: The schema layer has no framework dependency — the same schema powers the Vue and React bindings unchanged.
+  - title: Schema 驱动
+    details: 用 JSON schema 描述表单，引擎负责创建字段、校验取值并响应变化。
+  - title: 细粒度响应式
+    details: 基于 Vue 响应式实现，组件只在读取到的状态真正变化时重新渲染。
+  - title: 类型安全的 DSL
+    details: createFragment 会从你写的 schema 推导字段值、数组项类型与组件 props 类型。
+  - title: 可组合的包
+    details: 响应式内核、表单模型、Schema 工具与同构的 Vue / React 绑定各自独立，可按需组合。
+  - title: 内置校验
+    details: 声明式规则、异步校验与多语言消息注册表。
+  - title: 框架无关内核
+    details: Schema 层不依赖任何框架，同一份 schema 可以原样驱动 Vue 与 React 两套绑定。
 ---

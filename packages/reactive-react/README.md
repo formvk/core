@@ -1,18 +1,18 @@
 # @formvk/reactive-react
 
-[English](./README.md) | [简体中文](./README.zh-CN.md)
+[English](./README.en.md) | [简体中文](./README.md)
 
-React bindings for `@formvk/reactive`. Wrap a component with `observer` and it re-renders whenever observable data read during render changes.
+`@formvk/reactive` 的 React 绑定。用 `observer` 包裹组件后，组件在渲染期间读取的可观察数据发生变化时会自动重新渲染。
 
-## Install
+## 安装
 
 ```bash
 pnpm add @formvk/reactive-react
 ```
 
-`react` and `react-dom` (`>= 18`) are peer dependencies.
+`react` 与 `react-dom`（`>= 18`）是 peer 依赖。
 
-## Usage
+## 使用
 
 ```tsx
 import { observable } from '@formvk/reactive'
@@ -23,7 +23,7 @@ const state = observable({ count: 0 })
 export const Counter = observer(() => <button onClick={() => (state.count += 1)}>count: {state.count}</button>)
 ```
 
-Render-prop form for local subscriptions:
+用于局部订阅的 render-prop 形式：
 
 ```tsx
 import { Observer } from '@formvk/reactive-react'
@@ -33,7 +33,7 @@ function Count() {
 }
 ```
 
-`observer` accepts `{ forwardRef, displayName, scheduler }` options:
+`observer` 支持 `{ forwardRef, displayName, scheduler }` 选项：
 
 ```tsx
 const Input = observer(MyInput, { forwardRef: true, displayName: 'Input' })
@@ -41,13 +41,13 @@ const Input = observer(MyInput, { forwardRef: true, displayName: 'Input' })
 
 ## API
 
-- `observer(Component, options?)` — memoized wrapper that tracks observable reads and re-renders.
-- `Observer` — component with a render-prop `children`.
-- `useObserver(view, options?)` — run a render function inside the observer tracker.
-- `useForceUpdate()` — force a re-render.
-- Types — `IObserverOptions`, `IObserverProps`, `ReactFC`.
+- `observer(Component, options?)` — 带缓存的包装器，追踪可观察读取并触发重渲染。
+- `Observer` — 以 render prop 作为 `children` 的组件。
+- `useObserver(view, options?)` — 在 observer 的追踪上下文中执行渲染函数。
+- `useForceUpdate()` — 强制重新渲染。
+- 类型 — `IObserverOptions`、`IObserverProps`、`ReactFC`。
 
-## Documentation
+## 文档
 
 https://formvk.github.io/core/api/react
 

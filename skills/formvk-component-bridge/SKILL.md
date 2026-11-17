@@ -14,9 +14,9 @@ description: Build formvk bridge packages adapting UI-library controls into fiel
 文档站已生成 AI 可读的 Markdown，需要确认 API 细节时直接抓取：
 
 - 全站索引：[llms.txt](https://formvk.github.io/core/llms.txt)
-- 自定义组件：[Vue Custom Components](https://formvk.github.io/core/vue/custom-components.md)、[React Custom Components](https://formvk.github.io/core/react/custom-components.md)
+- 自定义组件：[Vue 自定义组件](https://formvk.github.io/core/vue/custom-components.md)、[React 自定义组件](https://formvk.github.io/core/react/custom-components.md)
 - Hooks 与组件 helper：[Vue Hooks](https://formvk.github.io/core/vue/hooks.md)、[React Hooks](https://formvk.github.io/core/react/hooks.md)
-- 中文页面在路径中加 `zh/`，如 [中文 Custom Components](https://formvk.github.io/core/zh/vue/custom-components.md)
+- 英文页面在路径中加 `en/`，如 [English Custom Components](https://formvk.github.io/core/en/vue/custom-components.md)
 - 实现细节以源码为准，路径见文末参考
 
 ## 分层

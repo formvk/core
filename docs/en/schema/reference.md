@@ -1,0 +1,268 @@
+# Schema DSL Reference
+
+`@formvk/schema` provides the schema model, the typed fragment DSL and expression helpers. It has no Vue dependency. `@formvk/vue` re-exports this package in full, so every symbol below can be imported from either package.
+
+```ts
+import { createSchema, createFragment, createExpression, Schema } from '@formvk/schema'
+// or
+import { createSchema, createFragment, createExpression, Schema } from '@formvk/vue'
+```
+
+## `createSchema`
+
+```ts
+// Inject the value type explicitly
+function createSchema<IValues extends object, IScope extends object = {}>(
+  properties: SchemaPropertiesInjection<IValues, IScope>,
+  patches?: SchemaPatchInput | SchemaPatchInput[]
+): ISchema & { _$types$_: [IValues] }
+
+// Infer the value type from the creators
+function createSchema<Properties extends Record<string, unknown>, IValues extends SchemaPropertiesValues<Properties>>(
+  properties: Properties & ValidateSchemaProperties<Properties>,
+  patches?: SchemaPatchInput | SchemaPatchInput[]
+): ISchema & { _$types$_: [IValues] }
+```
+
+Assembles a root `type: 'object'` schema. Each property accepts a creator (the functions returned by `createFragment`), a plain `ISchema` object, or `null` / `undefined`. Creators are expanded immediately, so the return value is a plain JSON-serializable schema.
+
+Without a type argument the value type is inferred from the creators, and top-level creators cannot see it: TypeScript does not propagate an object literal's inferred type into its siblings, so `field.record` stays `any`. Pass the value type explicitly to inject it as the root record context — `field.record` becomes `IValues`, `scope.$record` becomes `IValues & { $lookup, $index }` and `scope.$values` becomes `IValues` inside every top-level creator:
+
+```ts
+interface InviteValues {
+  plan?: string
+  seats?: number
+}
+
+const schema = createSchema<InviteValues>({
+  plan: f.Field({ component: 'Select' }),
+  seats: f.Field({
+    reactions: (field, scope) => {
+      // field.record is InviteValues, scope.$values is InviteValues
+      field.visible = field.record.plan !== 'free'
+    },
+  }),
+})
+```
+
+Injection also drives each key's value type: a creator placed under a declared key infers its value type from that key, so `field.value` inside `reactions` is `number | undefined` under `seats?: number` and `string | undefined` under `plan?: string`. Keys missing from the interface only accept void creators, plain `ISchema` objects or empty values. Leave the value generic off top-level creators (`f.Field({...})` rather than `f.Field<number>({...})`) — an explicit generic stops TypeScript from inferring the creator's remaining type parameters, which turns `field.record` back into `any`. Object-valued keys (nested objects, arrays) keep the container's own inferred record, so `f.Object` / `f.ArrayItems` are typed from their own contents.
+
+The `_$types$_` marker carries the form value type (for example `{ name: string; tags: string[] }`). It is type-level metadata only and never appears at runtime.
+
+In inferred mode every aggregated key is required: whether a field can be absent is carried by its value type (a non-`required` field contributes `T | undefined`), not by an optional modifier. This lets an inferred object creator be extracted to a variable and reused under an explicitly typed parent — `f.Object<FormValues>({ address })` accepts it when the value shapes match and rejects mismatches. Object-valued keys are checked on their value slot only, because a container creator's own record is its content type rather than the root record. `f.Void` and inferred `createSchema` follow the same aggregation rule.
+
+> Vue users can skip the hand-written component maps entirely: `createSchemaField` from `@formvk/vue` takes a flat component map plus optional `voidComponents` / `arrayComponents`, returns `{ SchemaField, fragment }`, and infers the component maps, scope and value types with no type arguments. See [Vue bindings](/en/vue/#schemafield).
+
+## `createFragment`
+
+```ts
+function createFragment<
+  F extends Record<string, any> = {},
+  V extends Record<string, any> = {},
+  A extends Record<string, any> = {},
+  Scope extends object = {},
+  DefaultDecorator extends AnyComponent<V> = AnyComponent<V>,
+>(options?: FragmentOptions<V, DefaultDecorator>): Fragment<F, V, A, Scope, DefaultDecorator>
+```
+
+The first three type arguments are independent component maps — `F` for field components, `V` for void / layout / decorator components, and `A` for array components. Each maps a component name to the component type; `componentProps` and `decoratorProps` are extracted from it automatically (`$props` for Vue components, the first parameter for function and class components).
+
+### Options
+
+| Option                | Type                  | Description                                                                                                                                                               |
+| --------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `patches`             | patch \| patch[]      | Patches applied to every schema produced by this fragment. A `{ pre: true, patch }` entry runs before the rest.                                                           |
+| `voidComponentNames`  | `string[]`            | Dynamic creator names that produce `type: 'void'` nodes.                                                                                                                  |
+| `arrayComponentNames` | `string[]`            | Dynamic creator names that produce `type: 'array'` nodes and prefill `component`.                                                                                         |
+| `defaultDecorator`    | `string \| component` | Decorator added to `string` fields that declare `title` but no `decorator`. Other node types and fields without `title` are left untouched. An explicit `decorator` wins. |
+
+The component categories only exist in the type maps. The runtime Proxy cannot inspect `F` / `V` / `A`, so `voidComponentNames` / `arrayComponentNames` must be declared explicitly when dynamic creators need those node types.
+
+In development builds, two misconfigurations emit a one-time `console.warn` (the checks are compiled out of production bundles): a name declared in both lists — the array classification silently wins under the `array > void` precedence — and calling an unregistered dynamic creator with an array-style items argument, which silently falls back to a `type: 'string'` field node.
+
+`defaultDecorator` mirrors formily-pro's `defaultDecoratorPatch`, but stays opt-in because formvk does not ship a `FormItem` component:
+
+<<< @/snippets/schema/decorator.ts#basic
+
+The decorator name must also be registered in the `components` map passed to `SchemaField`.
+
+TypeScript does not support partial type argument inference: once the component maps are passed explicitly, `DefaultDecorator` falls back to its default instead of being inferred from the option. Pass it as the fifth type argument to narrow `decoratorProps`:
+
+<<< @/snippets/schema/decorator.ts#fifth-arg
+
+### Base creators
+
+| Creator                         | Produces           | Notes                                                               |
+| ------------------------------- | ------------------ | ------------------------------------------------------------------- |
+| `f.Field(schema?)`              | `type: 'string'`   | Override `type` explicitly for numbers, booleans and dates.         |
+| `f.Object(properties, schema?)` | `type: 'object'`   | Nested object node.                                                 |
+| `f.Array(items, schema?)`       | `type: 'array'`    | `items` is a creator or plain `ISchema`.                            |
+| `f.Void(properties, schema?)`   | `type: 'void'`     | Layout node without a value.                                        |
+| `f.transform(rawSchema)`        | expanded `ISchema` | Converts a raw schema, applying the fragment's patches recursively. |
+
+Creators return a function. Calling it with no arguments yields the plain `ISchema`; calling it with extra patches applies them on top.
+
+### Dynamic creators and component maps
+
+The three maps are plain `name → component` objects, one per category:
+
+<<< @/snippets/schema/dynamic-creators.ts#maps
+
+Passing them to `createFragment` generates one shorthand creator per declared component:
+
+<<< @/snippets/schema/dynamic-creators.ts#creators
+
+- Names declared in `F` generate field creators; names in `V` and `A` generate void / array creators.
+- A creator that is not declared in the matching map is a type error. Use `f.Field({ component: 'X' })` or declare `X` in the map.
+- `componentProps` is checked against the props extracted from that component; any leaf (or the whole props object) may be a <code v-pre>{{...}}</code> expression. Ordinary mistyped strings are still rejected — <code v-pre>maxLength: '10'</code> is invalid while <code v-pre>maxLength: '{{$values.limit}}'</code> is allowed.
+- Strictness is intentionally asymmetric: shorthand creators (`f.Input`) only exist for declared names, while the `component` / `decorator` string fields accept any string (via `string & {}`) so components registered only at runtime stay usable. An undeclared string name gets no autocomplete and falls back to a loose `Record<string, unknown>` for `componentProps`; props checking applies only to declared names.
+
+### Field-level type parameters
+
+`f.Field`, `f.Object`, `f.Void` and `f.Array` accept field-level type parameters so reactions and children are checked without casts:
+
+| Creator                                  | Type parameters                                                                  |
+| ---------------------------------------- | -------------------------------------------------------------------------------- |
+| `f.Field<Value, Scope, Record, Values>`  | Field value type, field-level scope, parent record, child reactions' `$values`.  |
+| `f.Object<Value, Scope, Record, Values>` | Object value type, field-level scope, parent record, child reactions' `$values`. |
+| `f.Void<Record, Scope, Values>`          | Record exposed to children, field-level scope, child reactions' `$values`.       |
+| `f.Array<Item, Scope, Record, Values>`   | Item type, field-level scope, array's own record, child `$values`.               |
+
+All four creators share the same parameter order: value / record → field-level scope → parent record → `$values` → `Component` → `Decorator`. `Component` and `Decorator` always come last — container creators (Object / Array / Void) follow the same rule — and are inferred from the component maps when omitted.
+
+Types declared on a parent flow into the children created inside `properties` / `items`:
+
+<<< @/snippets/schema/field-generics.ts
+
+Rules of thumb:
+
+- The parent value type drives both the value type of each child creator and the child's `$record`.
+- Keys absent from the parent record only accept void creators (layout nodes) or plain `ISchema`; a value-producing field on such a key is a type error.
+- The fragment-level `Scope` is inherited automatically; pass a different second type parameter (for example `f.Object<Value, OtherScope>`) to override it for a whole subtree.
+- `f.Void<Record>` exposes `Record` to children without producing a value of its own.
+- `f.Array<Item>` types `items` as `SchemaCreator<Item>` and the array's own value as `Item[]`. Declare the item creator's value type too (for example `f.Object<Item>`) so its children keep the context.
+- Object and array nodes live inside their parent container, so their own `$record` defaults to `any`. Pass the third type parameter when it matters: `f.Object<Value, Scope, ParentRecord>`, `f.Array<Item, Scope, ParentRecord>`.
+- Pass the `Values` slot to narrow `$values` inside child reactions: `f.Field<Value, Scope, Record, FormValues>`, `f.Object<Value, Scope, Record, FormValues>`, `f.Void<Record, Scope, FormValues>`, `f.Array<Item, Scope, Record, FormValues>`. It defaults to `any`.
+- Declaring a value generic on a field, for example `f.Field<number>`, disables inference for its remaining type parameters (a TypeScript limitation). Leave `Value` off and let the parent record drive it when possible.
+
+## `ISchema` field reference
+
+### Interaction and presentation
+
+| Field                                               | Type                              | Description                                                                            |
+| --------------------------------------------------- | --------------------------------- | -------------------------------------------------------------------------------------- |
+| `title`                                             | `string` / expression             | Field label.                                                                           |
+| `description`                                       | `string` / expression             | Help text under the field.                                                             |
+| `display`                                           | `'visible' \| 'hidden' \| 'none'` | `hidden` keeps layout space; `none` removes the node and its value from `form.values`. |
+| `visible` / `hidden`                                | `boolean` / expression            | Sugar that writes `display`.                                                           |
+| `editable` / `disabled` / `readOnly` / `readPretty` | `boolean` / expression            | Sugar that writes the field interaction pattern.                                       |
+| `data`                                              | `any`                             | Free-form data attached to the field, available on the field model.                    |
+| `content`                                           | `any`                             | Raw content for decorator components.                                                  |
+| `x*`                                                | `any`                             | Third-party extension fields, named with an `x` prefix.                                |
+
+### Structure
+
+| Field                                                            | Description                                                                                                                                                                                                         |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `type`                                                           | `'string' \| 'number' \| 'boolean' \| 'object' \| 'array' \| 'void' \| 'date' \| 'datetime'` or a custom string.                                                                                                    |
+| `name`                                                           | Field key; normally derived from the parent's `properties`.                                                                                                                                                         |
+| `properties`                                                     | Child nodes of an object / void node.                                                                                                                                                                               |
+| `items`                                                          | Item schema (or tuple of schemas) of an array node.                                                                                                                                                                 |
+| `additionalProperties` / `patternProperties` / `additionalItems` | Conditional child definitions.                                                                                                                                                                                      |
+| `definitions` / `$ref`                                           | Reusable schema definitions referenced by `#/...` paths.                                                                                                                                                            |
+| `default`                                                        | Default value used when the field initializes.                                                                                                                                                                      |
+| `enum`                                                           | Allowed values, optionally `{ label, value }` entries. At runtime it is stored on `field.dataSource`; select components that expect an `options` prop need a mapping such as `mapProps({ dataSource: 'options' })`. |
+
+### Validation fields
+
+Standard JSON Schema constraints are interpreted by `@formvk/validator`: `required`, `format`, `pattern` (a **regex string**, not the interaction pattern), `maxLength` / `minLength`, `maximum` / `minimum`, `exclusiveMaximum` / `exclusiveMinimum`, `multipleOf`, `maxItems` / `minItems` / `uniqueItems`, `maxProperties` / `minProperties`, `const`, `enum`, plus `validator` for custom rules. See the [Validation reference](/en/core/validation-reference) for the full rule table.
+
+Every validation key above accepts a <code v-pre>{{...}}</code> expression (including leaves inside a `validator` rule object). At the type level this is represented by `Stringify<T>`: the value is a union of `T` and an expression string, while an ordinary mistyped string (for example `'10'` for a numeric field) is still rejected.
+
+### Formvk extensions
+
+| Field                          | Description                                                                                                                                                                                        |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `component`                    | Component name resolved from the `components` map, a component definition, or an expression evaluating to a component name / definition.                                                           |
+| `componentProps`               | Props passed to the component. Typed via the fragment's component maps; any nested string leaf (or the whole props object) accepts an expression, with strict typing carried by `ExpressionProps`. |
+| `decorator` / `decoratorProps` | Decorator component (for example a form-item wrapper) and its props; the same expression rules as `component` / `componentProps` apply.                                                            |
+| `validator`                    | Validator descriptor, rule object or array; accepts a whole-value expression or leaf expressions inside rule objects.                                                                              |
+| `reactions`                    | One reaction or an array; see [Reactions](#reactions).                                                                                                                                             |
+| `slot` / `slotNode`            | Render the node into a named slot of its parent component.                                                                                                                                         |
+| `compileOmitted`               | Field paths that must not be compiled as expressions.                                                                                                                                              |
+
+Any field marked as expression-capable accepts a <code v-pre>{{ ... }}</code> string compiled against the field scope. The full set covers interaction / presentation fields (`title`, `visible`, ...), every validation key, the `component` / `decorator` references, any nested leaf of `componentProps` / `decoratorProps`, plus `enum` / `pattern` / `required`.
+
+## Reactions
+
+A reaction is a function `(field, scope) => void` that runs inside the field's reactive context. Any observable read inside it becomes a dependency. `field.record` is typed when the value type is injected with `createSchema<Values>`; otherwise it stays `any`:
+
+<<< @/snippets/schema/reactions.ts#field-reaction
+
+The object form exists only for reactions that must stay inside a pure-JSON schema:
+
+<<< @/snippets/schema/reactions.ts#reaction-object
+
+| Key                                   | Description                                                                                 |
+| ------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `dependencies`                        | Field paths (strings), `{ name, type, source, property }` objects, or a name-to-source map. |
+| `when`                                | Expression string or boolean deciding which branch runs.                                    |
+| `target`                              | Path of another field the reaction writes to.                                               |
+| `effects`                             | Lifecycle events that trigger the reaction, for example `onFieldValueChange`.               |
+| `fulfill.state` / `otherwise.state`   | Partial `IGeneralFieldState` applied to the field.                                          |
+| `fulfill.schema` / `otherwise.schema` | Schema fragment merged onto the node.                                                       |
+| `fulfill.run` / `otherwise.run`       | Expression string executed as code.                                                         |
+
+Prefer the function form for application code: it is ordinary TypeScript, needs no expression strings, and reads top-to-bottom.
+
+## `createExpression`
+
+```ts
+function createExpression<T extends object>(expression: string): Expression<T>
+```
+
+Builds type-checked expression strings. Pass the scope object's shape as the generic parameter; without it, `T` defaults to `object` and no property completion is available.
+
+<<< @/snippets/schema/expression.ts#api-expression
+
+### Operators
+
+| Method                         | Output               |
+| ------------------------------ | -------------------- |
+| `eq(value, exp?)` / `neq(...)` | `===` / `!==`        |
+| `gt` / `gte` / `lt` / `lte`    | comparison operators |
+| `and` / `or`                   | `&&` / `\|\|`        |
+| `not()` / `bool()`             | `!x` / `!!x`         |
+| `ter(a, b, exp?)`              | ternary `x ? a : b`  |
+
+Pass `true` as the last argument to insert a raw expression instead of a JSON-encoded literal.
+
+### `.exp` and `.fn`
+
+- `exp.exp.a.b` returns the raw path string `$values.a.b` without the <code v-pre>{{ }}</code> wrapper.
+- `exp.fn.handler('$event')` generates a wrapped function expression, for example <code v-pre>{{function __handler($event) {} return $values.handler($event)}}</code>. Use `'$args'` for spread arguments (the two cannot be combined), and `{ body, expand }` to inject a custom function body.
+
+### Expression scope
+
+Expressions and reactions evaluate against: `$form`, `$values`, `$self` (the current field), `$record` / `$records` (array item context), `$index`, `$lookup` (nearest record or root values), and any values provided through `scope` / `ExpressionScope`. Reactions also expose `$dependencies`.
+
+## `Schema` runtime class
+
+`new Schema(json, parent?)` parses a plain `ISchema` into a linked tree (children become `Schema` instances).
+
+| Member                                                                               | Description                                                       |
+| ------------------------------------------------------------------------------------ | ----------------------------------------------------------------- |
+| `addProperty` / `removeProperty` / `setProperties`                                   | Manage `properties` entries.                                      |
+| `addPatternProperty` / `setAdditionalProperties` / `setItems` / `setAdditionalItems` | Manage conditional and array children.                            |
+| `mapProperties(cb)` / `reduceProperties(cb, init)`                                   | Iterate ordered properties.                                       |
+| `compile(scope?)`                                                                    | Compile all expression strings against a scope into a new schema. |
+| `fromJSON(json)`                                                                     | Re-populate the instance from a plain object.                     |
+| `Schema.isSchemaInstance(value)`                                                     | Static instance check.                                            |
+| `Schema.compile` / `Schema.shallowCompile`                                           | Static expression compilation helpers.                            |
+| `Schema.registerCompiler` / `Schema.registerPatches` / `Schema.silent`               | Extension points for custom compilers and patches.                |
+
+## Next steps
+
+- [Schema overview](/en/schema/) — how schema nodes map to core field models and the typed DSL in practice.
+- [Form model](/en/core/) — `createForm`, field models, lifecycle hooks and queries.
+- [Validation reference](/en/core/validation-reference) — rules, formats and the validator registry.

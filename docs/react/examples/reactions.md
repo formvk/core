@@ -1,47 +1,41 @@
-# Dynamic Reactions
+# 动态联动
 
-Reactions update a field when other values change: show or hide it, toggle `required`, rewrite state or even swap the field schema. Reactions live in the schema, so they are framework-agnostic.
+reactions 会在其他值变化时更新字段：显示或隐藏、切换必填、改写状态，甚至替换字段 schema。reactions 定义在 schema 中，与框架无关。
 
-<ReactMount :component="ReactReactionsDemo" />
+<demo react="../../demos/react/zh/reactions.tsx" stackblitz="true" />
 
-The demo reuses the same `reactions` functions — only the component wrapper and JSX differ:
+这个演示原样复用同一批 `reactions` 函数，只有组件包裹方式与 JSX 不同：
 
-<<< @/demos/react/reactions.tsx
-
-<script setup lang="ts">
-import ReactReactionsDemo from '../../demos/react/reactions'
-</script>
-
-## How a reaction works
+## reaction 的工作方式
 
 <<< @/snippets/schema/example-reactions.ts
 
-- A reaction is a plain function `(field) => void`. Everything it reads — `field.form.values.plan`, `field.value`, an external store — is tracked automatically, so there is no dependency list to maintain.
-- Write to the field directly: `field.visible`, `field.required`, `field.title`, `field.componentProps` and the other field state keys.
-- Think in the same terms as an effect: read the data you need, then write the state that should change.
-- The object form (`dependencies` / `when` / `fulfill` / `otherwise`) still works, but it only exists for plain JSON schemas that cannot carry functions — see the [schema reference](/schema/reference#reactions).
+- reaction 就是一个普通函数 `(field) => void`。函数里读到的一切 —— `field.form.values.plan`、`field.value`、外部 store —— 都会被自动收集为依赖，不需要维护依赖列表。
+- 直接写字段状态：`field.visible`、`field.required`、`field.title`、`field.componentProps` 等字段状态键都可以赋值。
+- 心智模型和 effect 一致：读取需要的数据，再写入需要变化的状态。
+- 对象形式（`dependencies` / `when` / `fulfill` / `otherwise`）仍然可用，但它只为无法承载函数的纯 JSON schema 保留 —— 见 [Schema 参考](/schema/reference#reactions)。
 
-## Expressions in schema values
+## schema 值中的表达式
 
-Any expression-capable value can use <code v-pre>{{ ... }}</code> directly, for example a dynamic placeholder:
+所有支持表达式的值都可以直接写 <code v-pre>{{ ... }}</code>，例如动态 placeholder：
 
 ```ts
 company: f.Input({
-  title: 'Company',
+  title: '公司名称',
   componentProps: {
-    placeholder: '{{ $values.plan === "free" ? "Acme Inc." : "Your company" }}',
+    placeholder: '{{ $values.plan === "free" ? "例如：Acme" : "你的公司名称" }}',
   },
 })
 ```
 
-The available scope keys are `$values`, `$form`, `$self`, `$record`, `$records`, `$index` and `$lookup`.
+可用的作用域变量：`$values`、`$form`、`$self`、`$record`、`$records`、`$index`、`$lookup`。
 
-## Hidden fields and validation
+## 隐藏字段与校验
 
-A field whose `visible` is `false` is not rendered and is skipped by `form.validate()` / `form.submit()`. That is why the demo can submit successfully while `subscribe` is off, even though `email` is required.
+`visible` 为 `false` 的字段不会渲染，也会被 `form.validate()` / `form.submit()` 跳过。因此即使 `email` 是必填的，在 `subscribe` 未勾选时表单依然可以成功提交。
 
-## Next steps
+## 下一步
 
-- [Array List](/react/examples/array-list) — reactions meet repeatable fields.
-- [Schema overview](/schema/) — expressions and reactions in context.
-- [Vue version](/vue/examples/reactions) — the same schema with the Vue binding.
+- [数组列表](/react/examples/array-list) —— 联动与可重复字段组合。
+- [Schema 概览](/schema/) —— 表达式与联动的完整语境。
+- [Vue 版本](/vue/examples/reactions) —— 同一份 schema 的 Vue 实现。

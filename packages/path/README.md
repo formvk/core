@@ -1,16 +1,16 @@
 # @formvk/path
 
-[English](./README.md) | [简体中文](./README.zh-CN.md)
+[English](./README.en.md) | [简体中文](./README.md)
 
-Path parsing and data access utilities used by Formvk to address fields. Supports dot paths, array indices, wildcard match patterns, relative paths and reusable matchers.
+Formvk 中用于定位字段的路径解析与数据访问工具。支持点路径、数组下标、通配匹配模式、相对路径与可复用匹配器。
 
-## Install
+## 安装
 
 ```bash
 pnpm add @formvk/path
 ```
 
-## Usage
+## 使用
 
 ```ts
 import { Path } from '@formvk/path'
@@ -27,7 +27,7 @@ new Path('user.name').includes('user') // true
 Path.transform('user.name', /name/, key => key.toUpperCase()) // 'NAME'
 ```
 
-`Path.match` creates a matcher that can be passed to `Form.query`:
+`Path.match` 生成匹配器，可直接传给 `Form.query`：
 
 ```ts
 form.query(Path.match('user.*')).forEach(field => {
@@ -37,13 +37,13 @@ form.query(Path.match('user.*')).forEach(field => {
 
 ## API
 
-- **Instance** — `segments`, `entire`, `length`, `toString`, `toArr`, `concat`, `push`, `slice`, `pop`, `splice`, `parent`, `forEach`, `map`, `reduce`, `includes`, `match`, `matchAliasGroup`, `transform`, `getIn`, `setIn`, `deleteIn`, `existIn`, `ensureIn`.
-- **Static** — `Path.parse`, `Path.getIn`, `Path.setIn`, `Path.deleteIn`, `Path.existIn`, `Path.ensureIn`, `Path.match`, `Path.transform`, `Path.isPathPattern`.
-- **Types** — `Pattern`, `MatcherFunction`.
+- **实例** — `segments`、`entire`、`length`、`toString`、`toArr`、`concat`、`push`、`slice`、`pop`、`splice`、`parent`、`forEach`、`map`、`reduce`、`includes`、`match`、`matchAliasGroup`、`transform`、`getIn`、`setIn`、`deleteIn`、`existIn`、`ensureIn`。
+- **静态方法** — `Path.parse`、`Path.getIn`、`Path.setIn`、`Path.deleteIn`、`Path.existIn`、`Path.ensureIn`、`Path.match`、`Path.transform`、`Path.isPathPattern`。
+- **类型** — `Pattern`、`MatcherFunction`。
 
-`@formvk/shared` re-exports the class as `FormPath` together with the `FormPathPattern` type.
+`@formvk/shared` 将该类以 `FormPath` 别名重新导出，同时导出 `FormPathPattern` 类型。
 
-## Documentation
+## 文档
 
 https://formvk.github.io/core/api/core
 

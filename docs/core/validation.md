@@ -1,134 +1,134 @@
-# How to Configure Validation
+# 如何配置校验
 
-This guide shows the common validation tasks: declaring rules on a schema, controlling when they run, writing custom rules, displaying errors and localizing messages. The exhaustive rule table lives in the [Validation reference](/core/validation-reference).
+本文介绍常见的校验任务：在 schema 上声明规则、控制触发时机、编写自定义规则、展示错误以及本地化消息。完整规则表见[校验参考](/core/validation-reference)。
 
-## Add rules to a field schema
+## 在字段 schema 上添加规则
 
-Validation rules live on the field's `validator` field. The most common form is an array of rule objects, each with its own `message`:
+校验规则写在字段的 `validator` 上。最常见的形式是规则对象数组，每条规则带自己的 `message`：
 
 <<< @/snippets/validator/rules-on-schema.ts
 
-`required: true` on the field is sugar that injects the required rule and also drives the required marker in your components. Empty values skip every other rule, so an optional `url` field stays valid while blank.
+字段上的 `required: true` 是语法糖，会注入必填规则，并驱动组件中的必填标记。除必填外，空值会跳过所有其他规则，因此可选的 `url` 字段留空时仍然合法。
 
-A single rule object, a format string (`'email'`) or a function can be passed directly without the array wrapper.
+单个规则对象、格式字符串（`'email'`）或函数可以直接传入，不需要数组包装。
 
-## Control when validation runs
+## 控制校验时机
 
-Each rule accepts `triggerType`:
+每条规则都支持 `triggerType`：
 
-| Trigger   | Runs when                          |
-| --------- | ---------------------------------- |
-| `onInput` | The field value changes (default). |
-| `onFocus` | The control gains focus.           |
-| `onBlur`  | The control loses focus.           |
+| 触发时机  | 执行条件                 |
+| --------- | ------------------------ |
+| `onInput` | 字段取值变化时（默认）。 |
+| `onFocus` | 控件获得焦点时。         |
+| `onBlur`  | 控件失去焦点时。         |
 
 ```ts
-validator: [{ required: true, triggerType: 'onBlur', message: 'Required' }]
+validator: [{ required: true, triggerType: 'onBlur', message: '该字段必填' }]
 ```
 
-The field's `onInput` / `onFocus` / `onBlur` methods dispatch the matching rules, so components wired with `field.onInput($event)` get trigger behavior for free.
+字段的 `onInput` / `onFocus` / `onBlur` 方法会分发对应规则，因此用 `field.onInput($event)` 接入的组件天然具备触发时机能力。
 
-## Write a custom rule
+## 编写自定义规则
 
-Pass a function as the `validator` key. Return `true` / nothing to pass, `false` to use the rule's `message`, or a string / `{ type, message }` object to fail with explicit feedback. Async functions are supported.
+把函数作为 `validator` 键传入：返回 `true` 或不返回表示通过；返回 `false` 使用规则上的 `message`；返回字符串或 `{ type, message }` 对象则按指定消息和反馈类型失败。支持异步函数。
 
 <<< @/snippets/validator/custom-rules.ts#reserved
 
-The function receives `(value, rule, ctx, render)`, where `ctx` contains the surrounding `field` and `form`, so rules can read sibling values:
+函数签名为 `(value, rule, ctx, render)`，其中 `ctx` 包含当前 `field` 与 `form`，因此规则可以读取同级字段：
 
 <<< @/snippets/validator/custom-rules.ts#sibling
 
-## Business rule patterns
+## 业务校验形态
 
-Built-in rules validate one value in isolation. Business rules usually depend on other fields or on the whole row, which is what custom validators are for. Every example below comes from the [team invitation form](/vue/examples/team-invite).
+内置规则只校验单个值。业务规则往往依赖其他字段或整行数据，这时应使用自定义校验器。下面的例子都来自[团队邀请表单](/vue/examples/team-invite)。
 
-| Requirement                            | Rule lives on        | Approach                              |
-| -------------------------------------- | -------------------- | ------------------------------------- |
-| Seats must respect the selected plan   | the `seats` field    | custom validator reads `form.values`  |
-| The list must respect the plan limit   | the `members` array  | validator on the array node itself    |
-| Emails must be unique                  | each row's `email`   | custom validator compares siblings    |
-| Email availability must hit the server | each row's `email`   | async validator + `triggerType`       |
-| Re-check limits when the plan changes  | the dependent fields | `form.validate(pattern)` in an effect |
+| 需求                       | 规则写在哪       | 做法                                  |
+| -------------------------- | ---------------- | ------------------------------------- |
+| 席位数不能超过所选套餐     | `seats` 字段     | 自定义校验器读取 `form.values`        |
+| 成员数不能超过套餐上限     | `members` 数组   | 把校验器写在数组节点上                |
+| 邮箱不能重复               | 每一行的 `email` | 自定义校验器比较同级行                |
+| 邮箱可用性需要请求后端     | 每一行的 `email` | 异步校验器 + `triggerType`            |
+| 套餐变化后重新检查相关限制 | 依赖方字段       | 在 effect 中调用 `form.validate(...)` |
 
-### Cross-field limits
+### 跨字段限制
 
-A field can read any sibling through `form.values`. Return a message instead of `false` when the reason matters — it is shown as-is:
+字段可以通过 `form.values` 读取任意同级值。当失败原因需要展示给用户时，返回字符串而不是 `false`，它会原样作为错误消息：
 
 <<< @/snippets/validator/business-rules.ts#cross-field
 
-Cross-field rules re-run only when **their own field** is validated. Changing `plan` does not automatically re-validate `seats`, so pair the rule with an effect:
+跨字段规则只在**自己的字段**被校验时重新执行。切换 `plan` 不会自动重新校验 `seats`，因此需要配合 effect：
 
 <<< @/snippets/validator/business-rules.ts#revalidate
 
-Schedule such a re-check only when a dependency actually changes. Validating on every keystroke of the whole form is unnecessary; `form.validate('seats')` keeps the cost to the affected fields.
+只在依赖真正变化时安排这类复查，不需要每次输入都校验整张表单；`form.validate('seats')` 能把成本限制在受影响的字段上。
 
-### Array-level rules
+### 数组级规则
 
-Put the rule on the array node when the message belongs to the list rather than to one row. The value passed to the validator is the whole array:
+当错误属于整个列表而不是某一行时，把规则写在数组节点上。校验器收到的是整个数组：
 
 <<< @/snippets/validator/business-rules.ts#array-rule
 
-### Unique rows
+### 行内唯一性
 
-Compare the current value with the rest of the array inside the row validator, so feedback renders under the offending input instead of at the bottom of the list:
+在行校验器里把当前值与数组其余项比较，错误就会渲染在出问题的输入框下方，而不是列表底部：
 
 <<< @/snippets/validator/business-rules.ts#duplicate
 
-### Remote checks on blur
+### 失焦时远程校验
 
-Async validators work like sync ones. Set `triggerType: 'onBlur'` so an expensive request is not fired on every keystroke; the field enters `validateStatus: 'validating'` until it settles:
+异步校验器与同步校验器用法一致。设置 `triggerType: 'onBlur'` 可以避免每次按键都发请求；校验期间字段会处于 `validateStatus: 'validating'`：
 
 <<< @/snippets/validator/business-rules.ts#async
 
-## Display errors
+## 展示错误
 
-Validation feedback is written back onto the field model:
+校验反馈会写回字段模型：
 
-| Field state                                  | Content                                                     |
-| -------------------------------------------- | ----------------------------------------------------------- |
-| `field.selfErrors`                           | Messages produced by the field itself.                      |
-| `field.errors`                               | Messages including child fields (for object / array nodes). |
-| `field.validateStatus`                       | `'validating' \| 'error' \| 'warning' \| 'success'`.        |
-| `field.selfWarnings` / `field.selfSuccesses` | Non-blocking feedback of other types.                       |
+| 字段状态                                     | 内容                                                  |
+| -------------------------------------------- | ----------------------------------------------------- |
+| `field.selfErrors`                           | 字段自身产生的消息。                                  |
+| `field.errors`                               | 含子字段的消息（用于 object / array 节点）。          |
+| `field.validateStatus`                       | `'validating' \| 'error' \| 'warning' \| 'success'`。 |
+| `field.selfWarnings` / `field.selfSuccesses` | 其他类型的非阻塞反馈。                                |
 
-Custom components typically render `selfErrors[0]` under the control, as shown in [How to build custom components](/vue/custom-components). In React, remember the `observer` wrapper so the message appears as soon as validation writes it back:
+自定义组件通常在控件下方渲染 `selfErrors[0]`，具体见[自定义组件](/vue/custom-components)。React 中记得用 `observer` 包裹，校验写回后错误信息才能立即出现：
 
 <<< @/snippets/react/error-text.tsx
 
-## Submit and reset
+## 提交与重置
 
-`form.submit()` validates the whole form first:
+`form.submit()` 会先校验整个表单：
 
 <<< @/snippets/validator/submit.ts#submit
 
-- `form.validate(pattern?)` runs validation without submitting and rejects on failure.
-- `form.reset(pattern?)` restores initial values; pass `{ forceClear: true }` to clear them instead, or `{ validate: true }` to re-validate afterwards.
-- Create the form with `validateFirst: true` to stop at the first failed rule instead of collecting every error.
+- `form.validate(pattern?)` 只校验不提交，失败时 reject。
+- `form.reset(pattern?)` 恢复初始值；传 `{ forceClear: true }` 改为清空，传 `{ validate: true }` 重置后重新校验。
+- 创建表单时设置 `validateFirst: true`，可在第一条规则失败后立即停止，而不是汇总全部错误。
 
-## Localize messages and extend the engine
+## 本地化与扩展引擎
 
-Built-in rule and format messages ship in English and Chinese. Switch language or override messages at application startup:
+内置规则与格式消息自带中英文。可在应用启动时切换语言或覆盖消息：
 
 <<< @/snippets/validator/registry.ts
 
-After registering `slug`, any field can use `{ format: 'slug' }`. Register reusable rule functions with `registerValidateRules`, and customize <code v-pre>{{key}}</code> message rendering with `registerValidateMessageTemplateEngine`.
+注册 `slug` 后，任何字段都可以使用 `{ format: 'slug' }`。可复用的规则函数用 `registerValidateRules` 注册，<code v-pre>{{key}}</code> 消息渲染则通过 `registerValidateMessageTemplateEngine` 定制。
 
-### Message interpolation
+### 消息插值
 
-Built-in <code v-pre>{{path}}</code> placeholders resolve against the rule object merged with the validator context — `{ ...rule, field, form, value }`. Rule values (<code v-pre>{{minLength}}</code>), the current value (<code v-pre>{{value}}</code>) and anything reachable from the field or form (<code v-pre>{{field.title}}</code>, <code v-pre>{{form.values.plan}}</code>) can all appear in a message:
+内置的 <code v-pre>{{path}}</code> 占位符会按「规则对象 + 校验上下文」合并后的作用域解析 —— `{ ...rule, field, form, value }`。规则值（<code v-pre>{{minLength}}</code>）、当前值（<code v-pre>{{value}}</code>）以及字段 / 表单上的任意路径（<code v-pre>{{field.title}}</code>、<code v-pre>{{form.values.plan}}</code>）都可以写在消息里：
 
 <<< @/snippets/validator/message-template.ts#scope
 
-A bare <code v-pre>{{title}}</code> is not part of that scope and renders as `undefined`. To share one message between titled and untitled fields — `Email is required` versus `This field is required` — install a template engine that gives `title` a localized fallback:
+裸 <code v-pre>{{title}}</code> 不在该作用域内，会渲染成 `undefined`。如果想让一行消息同时覆盖有标题和无标题的字段 —— `姓名为必填项` 与 `该字段为必填项` —— 可以替换模板引擎，给 `title` 加一层本地化兜底：
 
 <<< @/snippets/validator/message-template.ts#title
 
-`registerValidateMessageTemplateEngine(fn)` receives `(message, context)` and runs before the built-in <code v-pre>{{path}}</code> pass, so a custom engine can support any syntax — the example accepts both <code v-pre>{{title}}</code> and `${title}`, and resolves `title` from `field.title`, then from a localized `field` label. It must return a string. Write these messages with plain quotes: inside a template literal JavaScript evaluates `${title}` before the validator sees it.
+`registerValidateMessageTemplateEngine(fn)` 接收 `(message, context)`，在内置 <code v-pre>{{path}}</code> 渲染之前执行，因此自定义引擎可以使用任意语法 —— 示例同时接受 <code v-pre>{{title}}</code> 与 `${title}`，`title` 依次取 `field.title`、本地化的 `field` 通用名。返回值必须是字符串。这类消息要用普通引号书写：写在模板字符串里时，`${title}` 会在校验器拿到之前就被 JavaScript 求值。
 
-The locale override in the snippet also replaces the built-in `required` message, so every required rule follows the pattern without a per-field `message`.
+示例中的 locale 覆盖同时替换了内置的 `required` 文案，因此所有必填规则都会套用该模式，无需逐字段写 `message`。
 
-## Next steps
+## 下一步
 
-- [Validation reference](/core/validation-reference) — every rule key, built-in format and registry API.
-- [Basic form example](/vue/examples/basic-form) — validation, submit and reset in a runnable demo.
-- [Dynamic reactions example](/vue/examples/reactions) — toggle `required` and visibility from other fields.
+- [校验参考](/core/validation-reference) —— 全部规则键、内置格式与注册中心 API。
+- [基础表单示例](/vue/examples/basic-form) —— 可运行的校验、提交与重置演示。
+- [动态联动示例](/vue/examples/reactions) —— 根据其他字段切换 `required` 与可见性。

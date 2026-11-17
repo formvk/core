@@ -1,16 +1,16 @@
 # @formvk/shared
 
-[English](./README.md) | [简体中文](./README.zh-CN.md)
+[English](./README.en.md) | [简体中文](./README.md)
 
-Low-level utilities shared by the Formvk packages: type checkers, array/object iteration, cloning, deep merge, defaults, `Subscribable`, middleware and uid generation. It is installed transitively by the other packages; use it directly only when building Formvk-compatible tooling.
+Formvk 各包共用的底层工具：类型判断、数组/对象遍历、克隆、深合并、默认值、`Subscribable`、中间件与 uid 生成。它由其他包间接安装；只有在构建与 Formvk 兼容的工具时才需要直接使用。
 
-## Install
+## 安装
 
 ```bash
 pnpm add @formvk/shared
 ```
 
-## Usage
+## 使用
 
 ```ts
 import { clone, isPlainObj, merge, toArr, uid } from '@formvk/shared'
@@ -25,15 +25,15 @@ const id = uid()
 
 ## API
 
-- **Checkers** — `isFn`, `isArr`, `isObj`, `isPlainObj`, `isStr`, `isNum`, `isBool`, `isMap`, `isSet`, `isWeakMap`, `isWeakSet`, `isRegExp`, `isNumberLike`, `isReactElement`, `isHTMLElement`, `getType`.
-- **Emptiness** — `isUndef`, `isValid`, `isEmpty`.
-- **Collections** — `toArr`, `each`, `map`, `reduce`, `every`, `some`, `find`, `findIndex`, `includes`, `move`.
-- **Objects** — `clone`, `shallowClone`, `merge`, `lazyMerge`, `defaults`, `instOf`.
-- **Strings** — `stringLength`, `lowerCase`, `pascalCase`.
-- **Path** — `FormPath` (alias of `Path` from `@formvk/path`) and the `FormPathPattern` type.
-- **Infrastructure** — `Subscribable`, `applyMiddleware`, `deprecate`, `uid`, `globalThisPolyfill`, `isEqual`.
+- **类型判断** — `isFn`、`isArr`、`isObj`、`isPlainObj`、`isStr`、`isNum`、`isBool`、`isMap`、`isSet`、`isWeakMap`、`isWeakSet`、`isRegExp`、`isNumberLike`、`isReactElement`、`isHTMLElement`、`getType`。
+- **空值判断** — `isUndef`、`isValid`、`isEmpty`。
+- **集合** — `toArr`、`each`、`map`、`reduce`、`every`、`some`、`find`、`findIndex`、`includes`、`move`。
+- **对象** — `clone`、`shallowClone`、`merge`、`lazyMerge`、`defaults`、`instOf`。
+- **字符串** — `stringLength`、`lowerCase`、`pascalCase`。
+- **路径** — `FormPath`（`@formvk/path` 中 `Path` 的别名）与 `FormPathPattern` 类型。
+- **基础设施** — `Subscribable`、`applyMiddleware`、`deprecate`、`uid`、`globalThisPolyfill`、`isEqual`。
 
-## Documentation
+## 文档
 
 https://formvk.github.io/core/api/core
 
