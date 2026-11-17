@@ -137,7 +137,7 @@ Render with the pre-bound component — no `components` prop is needed. The form
 | `defaultDecorator` | `string \| component`       | Same semantics as the `createFragment` option; its type is inferred so `decoratorProps` is checked against its props. |
 | `patches`          | patch \| patch[]            | Patches applied to every schema the fragment produces.                                                                |
 
-> **Name collisions are resolved silently.** The three maps are flattened in the order `components` → `voidComponents` → `arrayComponents`; when the same component name appears in more than one map, the higher-priority entry wins without any warning — `arrayComponents` overrides `voidComponents`, which in turn overrides `components`. The fragment's dynamic creator follows the same priority, so `f.Name()` emits an `array` / `void` / `string` node for the winning category, while the lower-priority component becomes unreachable at runtime. Keep names unique across the three maps if every entry needs to stay available.
+> **Name collisions are merged by fixed precedence.** The three maps are flattened in the order `components` → `voidComponents` → `arrayComponents`; when the same component name appears in more than one map, the higher-priority entry wins — `arrayComponents` overrides `voidComponents`, which in turn overrides `components`. The fragment's dynamic creator follows the same priority, so `f.Name()` emits an `array` / `void` / `string` node for the winning category, while the lower-priority component becomes unreachable at runtime. In development, a name declared in both `voidComponents` and `arrayComponents` logs one `console.warn` (the warning is stripped from production builds); the array classification still wins, and a clash with `components` is not reported. Keep names unique across the three maps if every entry needs to stay available.
 
 The returned creators are the same fragment API documented in the [Schema reference](/en/schema/reference#field-level-type-parameters), including parent-to-child type inference:
 
@@ -149,11 +149,15 @@ The returned creators are the same fragment API documented in the [Schema refere
 
 The building block inside `SchemaField`. Use it when you write your own layout components, for example array items:
 
-| Prop       | Type                | Description        |
-| ---------- | ------------------- | ------------------ |
-| `schema`   | `ISchema \| Schema` | The node to render |
-| `name`     | `string \| number`  | Field name         |
-| `basePath` | `FormPathPattern`   | Parent path        |
+| Prop                   | Type                               | Description                              |
+| ---------------------- | ---------------------------------- | ---------------------------------------- |
+| `schema`               | `ISchema \| Schema`                | The node to render                       |
+| `name`                 | `string \| number`                 | Field name                               |
+| `basePath`             | `FormPathPattern`                  | Parent path                              |
+| `onlyRenderProperties` | `boolean`                          | Render children only, without the node   |
+| `onlyRenderSelf`       | `boolean`                          | Render the node only, without children   |
+| `mapProperties`        | `(schema, name) => Schema \| void` | Transform child schemas before rendering |
+| `filterProperties`     | `(schema, name) => boolean`        | Return `false` to skip a child           |
 
 ### `ReactiveField`
 

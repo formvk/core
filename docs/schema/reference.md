@@ -78,7 +78,10 @@ function createFragment<
 
 组件分类只存在于类型 map 中。运行时 Proxy 无法读取 `F` / `V` / `A`，因此当动态构造器需要产出这些节点类型时，必须显式声明 `voidComponentNames` / `arrayComponentNames`。
 
-在开发构建中，两种错误配置会输出一次 `console.warn`（这些检查在生产构建中会被移除）：同一个名字同时声明在两个列表中 —— 在 `array > void` 的优先级下数组分类静默胜出；以及调用未注册的动态构造器并传入数组式 items 参数 —— 此时会静默回退为 `type: 'string'` 字段节点。
+在开发构建中，以下两种错误配置各会输出一次 `console.warn`（这些检查在生产构建中会被移除）；告警只做提示，运行时行为保持不变：
+
+- 同一个名字同时声明在两个列表中 —— 按 `array > void` 的优先级，数组分类仍然胜出；
+- 调用未注册的动态构造器并传入数组式 items 参数 —— 仍然回退为 `type: 'string'` 的字段节点。
 
 `defaultDecorator` 对应 formily-pro 的 `defaultDecoratorPatch`，但保持按需开启，因为 formvk 不内置 `FormItem` 组件：
 

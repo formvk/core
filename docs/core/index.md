@@ -179,7 +179,7 @@ pattern 控制交互，display 控制布局与值树中的存在性。
 
 ## Effects
 
-effect 注册在 `createForm({ effects })` 中；Vue 场景也可以通过 `@formvk/vue` 的 `useFormEffects` 注册。字段类钩子接收路径模式与 `(field, form)` 回调。
+effect 注册在 `createForm({ effects })` 中；也可以在 Vue / React 组件里通过 `@formvk/vue` / `@formvk/react` 的 `useFormEffects` 注册，它会随组件生命周期自动清理。字段类钩子接收路径模式与 `(field, form)` 回调。
 
 <<< @/snippets/core/effects.ts
 

@@ -179,7 +179,7 @@ Fields inherit `pattern` and `display` from their parent and the form, unless th
 
 ## Effects
 
-Effects are registered inside `createForm({ effects })` or, in Vue, through `useFormEffects` from `@formvk/vue`. Field hooks take a path pattern and a `(field, form)` callback.
+Effects are registered inside `createForm({ effects })`, or from a Vue / React component through `useFormEffects` from `@formvk/vue` / `@formvk/react`, which cleans them up with the component lifecycle. Field hooks take a path pattern and a `(field, form)` callback.
 
 <<< @/snippets/core/effects.ts
 

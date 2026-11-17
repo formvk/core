@@ -4,7 +4,7 @@
 
 <demo react="../../demos/react/schema-object.tsx" stackblitz="true" />
 
-schema 与 fragment 构造器仍然从 `@formvk/react` 原样导入 —— 只有渲染外壳不同：
+schema 与 fragment 构造器仍然从 `@formvk/react` 原样导入 —— 只有渲染外壳不同。
 
 ## 这份 schema 描述了什么
 

@@ -4,15 +4,15 @@ Hooks expose the current form and field to components rendered through `SchemaFi
 
 ## Hooks
 
-| Hook                           | Returns        | Description                                                               |
-| ------------------------------ | -------------- | ------------------------------------------------------------------------- |
-| `useForm<T>()`                 | `Ref<Form<T>>` | The nearest form from `FormProvider`                                      |
-| `useField<T>()`                | `Ref<T>`       | The current field, provided by `SchemaField` / `RecursionField`           |
-| `useFieldSchema()`             | `Ref<Schema>`  | The schema of the current field                                           |
-| `useFormEffects(fn)`           | `void`         | Registers `fn(form)` for the lifetime of the component                    |
-| `useParentForm()`              | `Ref<Form>`    | The form attached to the nearest field                                    |
-| `useAttach(ref)`               | `Ref<T>`       | Calls `onMount` / `onUnmount` of a model ref with the component lifecycle |
-| `useInjectionCleaner(symbols)` | `void`         | Clears provided injections from parent scopes                             |
+| Hook                           | Returns                            | Description                                                               |
+| ------------------------------ | ---------------------------------- | ------------------------------------------------------------------------- |
+| `useForm<T>()`                 | `Ref<Form<T>>`                     | The nearest form from `FormProvider`                                      |
+| `useField<T>()`                | `Ref<T>`                           | The current field, provided by `SchemaField` / `RecursionField`           |
+| `useFieldSchema()`             | `Ref<Schema>`                      | The schema of the current field                                           |
+| `useFormEffects(fn)`           | `void`                             | Registers `fn(form)` for the lifetime of the component                    |
+| `useParentForm()`              | `ComputedRef<Form \| ObjectField>` | The nearest object-field parent, or the owning form when none is found    |
+| `useAttach(ref)`               | `Ref<T>`                           | Calls `onMount` / `onUnmount` of a model ref with the component lifecycle |
+| `useInjectionCleaner(symbols)` | `void`                             | Clears provided injections from parent scopes                             |
 
 `useField()` returns a ref: read it through `.value` in `<script setup>`, while templates unwrap it automatically. It returns `null` outside a field subtree.
 

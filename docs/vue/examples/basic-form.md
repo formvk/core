@@ -10,16 +10,18 @@
 <script setup lang="ts">
 import { createForm, FormProvider, createSchema, createSchemaField } from '@formvk/vue'
 
-import { DemoArrayItems, demoComponents } from '../demos/components'
+import { DemoArrayItems, demoComponents, FormItem } from '../demos/components'
 
 const form = createForm({
   values: { username: '', role: '', subscribe: false, bio: '' },
 })
 
-// The flat component map drives every type: no generic arguments needed
+// 扁平组件映射驱动全部类型推断：无需泛型参数
 const { SchemaField, fragment: f } = createSchemaField({
   components: demoComponents,
+  voidComponents: { FormItem },
   arrayComponents: { ArrayItems: DemoArrayItems },
+  defaultDecorator: 'FormItem',
 })
 const schema = createSchema({
   username: f.Input({
@@ -30,11 +32,11 @@ const schema = createSchema({
       { minLength: 3, message: 'Use at least 3 characters' },
     ],
   }),
-  // ...other fields
+  // ...其他字段
 })
 
 async function onSubmit() {
-  const values = await form.submit() // throws when the form is invalid
+  const values = await form.submit() // 表单校验失败时抛出
   console.log(values)
 }
 </script>

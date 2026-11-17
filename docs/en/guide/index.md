@@ -4,16 +4,17 @@ Formvk is a schema-first form engine for Vue 3 and React. A form is described as
 
 ## Packages
 
-| Package                           | Responsibility                                                       |
-| --------------------------------- | -------------------------------------------------------------------- |
-| `@formvk/reactive`                | Observable state, `autorun`, `computed`, `batch`, `action`, `toJS`   |
-| `@formvk/reactive-react`          | React `observer` built on the same reactive core                     |
-| `@formvk/core`                    | `Form` / `Field` models, effects, validation lifecycle               |
-| `@formvk/schema`                  | `Schema`, `createFragment`, `createSchema`, `createExpression`       |
-| `@formvk/validator`               | Validation rules, formats and locale registry                        |
-| `@formvk/vue`                     | Vue bindings: `FormProvider`, `SchemaField`, `RecursionField`, hooks |
-| `@formvk/react`                   | React bindings: the same component and hook surface as TSX           |
-| `@formvk/shared` / `@formvk/path` | Shared utilities and form path resolution                            |
+| Package                           | Responsibility                                                                           |
+| --------------------------------- | ---------------------------------------------------------------------------------------- |
+| `@formvk/reactive`                | Observable state, `autorun`, `computed`, `batch`, `action`, `toJS`                       |
+| `@formvk/reactive-react`          | React `observer` built on the same reactive core                                         |
+| `@formvk/core`                    | `Form` / `Field` models, effects, validation lifecycle                                   |
+| `@formvk/models`                  | App-level models: `TableModel` (search / pagination / records / popups) and `PopupModel` |
+| `@formvk/schema`                  | `Schema`, `createFragment`, `createSchema`, `createExpression`                           |
+| `@formvk/validator`               | Validation rules, formats and locale registry                                            |
+| `@formvk/vue`                     | Vue bindings: `FormProvider`, `SchemaField`, `RecursionField`, hooks                     |
+| `@formvk/react`                   | React bindings: the same component and hook surface as TSX                               |
+| `@formvk/shared` / `@formvk/path` | Shared utilities and form path resolution                                                |
 
 ## How the layers fit together
 
@@ -26,6 +27,7 @@ Formvk is a schema-first form engine for Vue 3 and React. A form is described as
 - **Reactive** provides `observable` objects and dependency tracking.
 - **Core** owns the `Form` and `Field` models. Every field is an observable node with state, values, validation and effects.
 - **Schema** compiles plain JSON into field props and patches, and offers a typed DSL for authoring schemas.
+- **Models** build app-level table and popup models on top of Core and Schema; they depend on no UI library and drive both Vue and React.
 - **Vue / React** bind the same models to components: a provider supplies the form, `SchemaField` renders a schema tree and hooks such as `useField` expose the current field. The two binding packages are isomorphic and share every type.
 
 ## Design principles
@@ -37,7 +39,7 @@ Formvk is a schema-first form engine for Vue 3 and React. A form is described as
 
 ## Next steps
 
-- [Getting Started](/en/guide/getting-started) — build your first form with Vue.
+- [Getting Started](/en/guide/getting-started) — build your first form with Vue or React.
 - [Core](/en/core/) — form models, paths, validation and the reactive layer.
 - [Schema](/en/schema/) — the schema model and the typed DSL.
 - [Vue](/en/vue/) / [React](/en/react/) — components, hooks and complete examples.

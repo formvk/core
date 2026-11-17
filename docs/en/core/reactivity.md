@@ -58,8 +58,6 @@ Try it — the log below is produced by `autorun`:
 
 <demo react="../../demos/react/reactivity.tsx" stackblitz="true" />
 
-`autorun` is framework-agnostic: start it inside `useEffect` and return its dispose function as the cleanup. The component itself is wrapped with `observer` so reading `state.count` and the `computed` re-renders it:
-
 ## Working with Vue components
 
 Formvk models are built from observable objects, so Vue templates track them like any other reactive source. The form packages never call `forceUpdate` — a field component re-renders only when the field state it reads changes.

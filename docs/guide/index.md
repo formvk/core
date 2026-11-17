@@ -4,16 +4,17 @@ Formvk 是一个面向 Vue 3 与 React 的 Schema 驱动表单引擎。表单被
 
 ## 包结构
 
-| 包                                | 职责                                                               |
-| --------------------------------- | ------------------------------------------------------------------ |
-| `@formvk/reactive`                | 可观察状态、`autorun`、`computed`、`batch`、`action`、`toJS`       |
-| `@formvk/reactive-react`          | 基于同一响应式内核的 React `observer`                              |
-| `@formvk/core`                    | `Form` / `Field` 模型、effects、校验生命周期                       |
-| `@formvk/schema`                  | `Schema`、`createFragment`、`createSchema`、`createExpression`     |
-| `@formvk/validator`               | 校验规则、format 与多语言注册表                                    |
-| `@formvk/vue`                     | Vue 绑定：`FormProvider`、`SchemaField`、`RecursionField` 与 hooks |
-| `@formvk/react`                   | React 绑定：以 TSX 提供同构的组件与 hooks 接口                     |
-| `@formvk/shared` / `@formvk/path` | 公共工具与表单路径解析                                             |
+| 包                                | 职责                                                                 |
+| --------------------------------- | -------------------------------------------------------------------- |
+| `@formvk/reactive`                | 可观察状态、`autorun`、`computed`、`batch`、`action`、`toJS`         |
+| `@formvk/reactive-react`          | 基于同一响应式内核的 React `observer`                                |
+| `@formvk/core`                    | `Form` / `Field` 模型、effects、校验生命周期                         |
+| `@formvk/models`                  | 应用级模型：`TableModel`（搜索 / 分页 / 记录 / 弹窗）与 `PopupModel` |
+| `@formvk/schema`                  | `Schema`、`createFragment`、`createSchema`、`createExpression`       |
+| `@formvk/validator`               | 校验规则、format 与多语言注册表                                      |
+| `@formvk/vue`                     | Vue 绑定：`FormProvider`、`SchemaField`、`RecursionField` 与 hooks   |
+| `@formvk/react`                   | React 绑定：以 TSX 提供同构的组件与 hooks 接口                       |
+| `@formvk/shared` / `@formvk/path` | 公共工具与表单路径解析                                               |
 
 ## 分层关系
 
@@ -26,6 +27,7 @@ Formvk 是一个面向 Vue 3 与 React 的 Schema 驱动表单引擎。表单被
 - **Reactive** 提供 `observable` 对象与依赖追踪能力。
 - **Core** 持有 `Form` 与 `Field` 模型。每个字段都是可观察节点，包含状态、取值、校验与 effects。
 - **Schema** 把普通 JSON 编译成字段 props 与 patches，并提供类型安全的 DSL 来编写 schema。
+- **Models** 在 Core 与 Schema 之上提供表格页与弹窗的应用级模型，不依赖任何 UI 库，可直接驱动 Vue 与 React。
 - **Vue / React** 把同一套模型绑定到组件：Provider 提供表单，`SchemaField` 渲染 schema 树，`useField` 等 hooks 暴露当前字段。两个绑定包同构，且共享全部类型。
 
 ## 设计原则
@@ -37,7 +39,7 @@ Formvk 是一个面向 Vue 3 与 React 的 Schema 驱动表单引擎。表单被
 
 ## 下一步
 
-- [快速开始](/guide/getting-started) —— 用 Vue 构建第一个表单。
+- [快速开始](/guide/getting-started) —— 用 Vue 或 React 构建第一个表单。
 - [核心](/core/) —— 表单模型、路径、校验与响应式层。
 - [Schema](/schema/) —— schema 模型与类型安全 DSL。
 - [Vue](/vue/) / [React](/react/) —— 组件、hooks 与完整示例。

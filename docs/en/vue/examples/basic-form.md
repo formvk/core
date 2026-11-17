@@ -10,7 +10,7 @@ A complete form with initial values, validation rules, submit and reset — the 
 <script setup lang="ts">
 import { createForm, FormProvider, createSchema, createSchemaField } from '@formvk/vue'
 
-import { DemoArrayItems, demoComponents } from '../demos/components'
+import { DemoArrayItems, demoComponents, FormItem } from '../demos/components'
 
 const form = createForm({
   values: { username: '', role: '', subscribe: false, bio: '' },
@@ -19,7 +19,9 @@ const form = createForm({
 // The flat component map drives every type: no generic arguments needed
 const { SchemaField, fragment: f } = createSchemaField({
   components: demoComponents,
+  voidComponents: { FormItem },
   arrayComponents: { ArrayItems: DemoArrayItems },
+  defaultDecorator: 'FormItem',
 })
 const schema = createSchema({
   username: f.Input({

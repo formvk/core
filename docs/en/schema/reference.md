@@ -78,7 +78,10 @@ The first three type arguments are independent component maps — `F` for field 
 
 The component categories only exist in the type maps. The runtime Proxy cannot inspect `F` / `V` / `A`, so `voidComponentNames` / `arrayComponentNames` must be declared explicitly when dynamic creators need those node types.
 
-In development builds, two misconfigurations emit a one-time `console.warn` (the checks are compiled out of production bundles): a name declared in both lists — the array classification silently wins under the `array > void` precedence — and calling an unregistered dynamic creator with an array-style items argument, which silently falls back to a `type: 'string'` field node.
+In development builds, the two misconfigurations below each emit a one-time `console.warn` (the checks are compiled out of production bundles). The warnings are advisory — runtime behaviour is unchanged:
+
+- A name declared in both lists — the array classification still wins under the `array > void` precedence.
+- Calling an unregistered dynamic creator with an array-style items argument — the call still falls back to a `type: 'string'` field node.
 
 `defaultDecorator` mirrors formily-pro's `defaultDecoratorPatch`, but stays opt-in because formvk does not ship a `FormItem` component:
 

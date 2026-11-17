@@ -58,8 +58,6 @@
 
 <demo react="../demos/react/reactivity.tsx" stackblitz="true" />
 
-`autorun` 与框架无关：在 `useEffect` 中启动它，并把它的 dispose 函数作为清理函数返回。组件本身用 `observer` 包裹，因此读取 `state.count` 与 `computed` 会触发重新渲染：
-
 ## 与 Vue 组件配合
 
 Formvk 的模型都建立在可观察对象之上，因此 Vue 模板会像对待其他响应式源一样追踪它们。表单相关包从不调用 `forceUpdate` —— 字段组件只在它读取的字段状态变化时重新渲染。

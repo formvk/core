@@ -4,7 +4,7 @@ Reactions update a field when other values change: show or hide it, toggle `requ
 
 <demo react="../../../demos/react/reactions.tsx" stackblitz="true" />
 
-The demo reuses the same `reactions` functions — only the component wrapper and JSX differ:
+The demo reuses the same `reactions` functions — only the component wrapper and JSX differ.
 
 ## How a reaction works
 

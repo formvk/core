@@ -4,15 +4,15 @@ Hooks 用于在 `SchemaField` / `RecursionField` 渲染的组件中读取当前�
 
 ## Hooks
 
-| Hook                           | 返回           | 说明                                                  |
-| ------------------------------ | -------------- | ----------------------------------------------------- |
-| `useForm<T>()`                 | `Ref<Form<T>>` | `FormProvider` 提供的最近表单                         |
-| `useField<T>()`                | `Ref<T>`       | `SchemaField` / `RecursionField` 提供的当前字段       |
-| `useFieldSchema()`             | `Ref<Schema>`  | 当前字段的 schema                                     |
-| `useFormEffects(fn)`           | `void`         | 在组件生命周期内注册 `fn(form)`                       |
-| `useParentForm()`              | `Ref<Form>`    | 最近字段所属的表单                                    |
-| `useAttach(ref)`               | `Ref<T>`       | 让模型 ref 随组件生命周期调用 `onMount` / `onUnmount` |
-| `useInjectionCleaner(symbols)` | `void`         | 清理父级作用域的注入                                  |
+| Hook                           | 返回                               | 说明                                                  |
+| ------------------------------ | ---------------------------------- | ----------------------------------------------------- |
+| `useForm<T>()`                 | `Ref<Form<T>>`                     | `FormProvider` 提供的最近表单                         |
+| `useField<T>()`                | `Ref<T>`                           | `SchemaField` / `RecursionField` 提供的当前字段       |
+| `useFieldSchema()`             | `Ref<Schema>`                      | 当前字段的 schema                                     |
+| `useFormEffects(fn)`           | `void`                             | 在组件生命周期内注册 `fn(form)`                       |
+| `useParentForm()`              | `ComputedRef<Form \| ObjectField>` | 最近的 object 父字段；向上找不到时返回所属表单        |
+| `useAttach(ref)`               | `Ref<T>`                           | 让模型 ref 随组件生命周期调用 `onMount` / `onUnmount` |
+| `useInjectionCleaner(symbols)` | `void`                             | 清理父级作用域的注入                                  |
 
 `useField()` 返回 ref：`<script setup>` 里通过 `.value` 读取，模板自动解包。在字段子树之外调用时返回 `null`。
 

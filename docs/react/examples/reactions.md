@@ -4,7 +4,7 @@ reaction 在其他取值变化时更新字段：显示或隐藏字段、切换 `
 
 <demo react="../../demos/react/reactions.tsx" stackblitz="true" />
 
-示例复用了同一组 `reactions` 函数 —— 只有组件外壳与 JSX 不同：
+示例复用了同一组 `reactions` 函数 —— 只有组件外壳与 JSX 不同。
 
 ## reaction 如何工作
 

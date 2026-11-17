@@ -4,7 +4,7 @@ Repeatable field groups are regular `type: 'array'` nodes. The array component o
 
 <demo react="../../../demos/react/array-list.tsx" stackblitz="true" />
 
-The array component reads the field and its schema through `useField<ArrayField>()` and `useFieldSchema()`, then renders each item with `<RecursionField schema={itemSchema} name={index} />`:
+The array component reads the field and its schema through `useField<ArrayField>()` and `useFieldSchema()`, then renders each item with `<RecursionField schema={itemSchema} name={index} />`.
 
 ## The array component
 

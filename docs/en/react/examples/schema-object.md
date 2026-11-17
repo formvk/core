@@ -4,7 +4,7 @@
 
 <demo react="../../../demos/react/schema-object.tsx" stackblitz="true" />
 
-The schema and fragment builders are imported from `@formvk/react` unchanged — only the rendering wrapper differs:
+The schema and fragment builders are imported from `@formvk/react` unchanged — only the rendering wrapper differs.
 
 ## What the schema describes
 

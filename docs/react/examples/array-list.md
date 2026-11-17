@@ -4,7 +4,7 @@
 
 <demo react="../../demos/react/array-list.tsx" stackblitz="true" />
 
-数组组件通过 `useField<ArrayField>()` 与 `useFieldSchema()` 读取字段及其 schema，再用 `<RecursionField schema={itemSchema} name={index} />` 渲染每一项：
+数组组件通过 `useField<ArrayField>()` 与 `useFieldSchema()` 读取字段及其 schema，再用 `<RecursionField schema={itemSchema} name={index} />` 渲染每一项。
 
 ## 数组组件
 

@@ -100,7 +100,7 @@ function createForm<T extends object = any>(options?: IFormProps<T>): Form<T>
 | `defaultDecorator` | `string \| 组件引用`         | 语义同 `createFragment` 的同名选项；类型自动推断，`decoratorProps` 按该装饰器的 props 校验。 |
 | `patches`          | patch \| patch[]             | 应用到 fragment 产出的每个 schema 上的 patch。                                               |
 
-> **同名冲突按固定优先级静默处理，不会有任何警告。** 三个 map 按 `components` → `voidComponents` → `arrayComponents` 的顺序拍平，同一组件名在多个 map 中出现时，由高优先级条目直接胜出：`arrayComponents` 覆盖 `voidComponents`，后者再覆盖 `components`。fragment 的动态构造器遵循同一优先级，`f.Name()` 会按胜出分类产出 `array` / `void` / `string` 节点，低优先级组件在运行时不再可访问。如果需要每个组件都保持可用，请保证三个 map 中的名字互不重复。
+> **同名冲突按固定优先级合并。** 三个 map 按 `components` → `voidComponents` → `arrayComponents` 的顺序拍平，同一组件名在多个 map 中出现时，由高优先级条目胜出：`arrayComponents` 覆盖 `voidComponents`，后者再覆盖 `components`。fragment 的动态构造器遵循同一优先级，`f.Name()` 会按胜出分类产出 `array` / `void` / `string` 节点，低优先级组件在运行时不再可访问。开发环境下，同一个名字同时出现在 `voidComponents` 与 `arrayComponents` 时会输出一次 `console.warn`（生产构建会移除该告警），行为仍是数组分类胜出；与 `components` 的冲突不会告警。如果需要每个组件都保持可用，请保证三个 map 中的名字互不重复。
 
 返回的构造器与 [Schema 参考](/schema/reference#字段级类型参数) 中的 fragment API 完全一致，同样支持父级声明、子级推断：
 
@@ -112,11 +112,15 @@ function createForm<T extends object = any>(options?: IFormProps<T>): Form<T>
 
 `SchemaField` 内部的构建块。编写自定义布局组件（例如数组项）时直接使用：
 
-| 属性       | 类型                | 说明         |
-| ---------- | ------------------- | ------------ |
-| `schema`   | `ISchema \| Schema` | 要渲染的节点 |
-| `name`     | `string \| number`  | 字段名       |
-| `basePath` | `FormPathPattern`   | 父级路径     |
+| 属性                   | 类型                               | 说明                         |
+| ---------------------- | ---------------------------------- | ---------------------------- |
+| `schema`               | `ISchema \| Schema`                | 要渲染的节点                 |
+| `name`                 | `string \| number`                 | 字段名                       |
+| `basePath`             | `FormPathPattern`                  | 父级路径                     |
+| `onlyRenderProperties` | `boolean`                          | 只渲染子节点，不渲染节点本身 |
+| `onlyRenderSelf`       | `boolean`                          | 只渲染节点本身，不渲染子节点 |
+| `mapProperties`        | `(schema, name) => Schema \| void` | 渲染前转换子 schema          |
+| `filterProperties`     | `(schema, name) => boolean`        | 返回 `false` 时跳过该子节点  |
 
 ### `ExpressionScope`
 
