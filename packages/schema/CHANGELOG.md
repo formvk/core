@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.2.0-beta.1](https://github.com/formvk/core/compare/v1.2.0-beta.0...v1.2.0-beta.1) (2026-11-18)
+
+### Bug Fixes
+
+- 新增数组稳定键 recordKey 支持，优化数组行组件复用 ([e926b63](https://github.com/formvk/core/commit/e926b634226c8bc837d1271cf9aa40f08aa05ce9))
+
 # [1.2.0-beta.0](https://github.com/formvk/core/compare/v1.1.1...v1.2.0-beta.0) (2026-11-17)
 
 **Note:** Version bump only for package @formvk/schema
