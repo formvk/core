@@ -1,4 +1,4 @@
-import { action, batch, computed, reactive, shallow, shallowRef } from '@formvk/reactive'
+import { action, batch, computed, reactive, shallowRef } from '@formvk/reactive'
 import type { FormPathPattern } from '@formvk/shared'
 import { each, FormPath, isFn, isValid, toArr } from '@formvk/shared'
 
@@ -28,7 +28,8 @@ export class BaseField<ComponentProps = any, DecoratorProps = any, IRecord exten
 
   @shallowRef accessor content: any = undefined
 
-  @shallow accessor data: any = undefined
+  // data 承载 schema 节点等外部对象，需保持引用透传（不被浅响应代理包裹），故只用 shallowRef
+  @shallowRef accessor data: any = undefined
 
   @shallowRef accessor decoratorType: any = undefined
   @reactive accessor decoratorProps: DecoratorProps = {} as DecoratorProps

@@ -29,18 +29,18 @@ function addTwice() {
 </script>
 
 <template>
-  <div class="demo">
+  <div class="dv-demo">
     <p>
       count: <strong>{{ state.count }}</strong> · step: {{ state.step }} · doubled:
       <strong>{{ doubled }}</strong>
     </p>
-    <div class="demo-actions">
-      <button class="demo-btn" @click="increment">+{{ state.step }}</button>
-      <button class="demo-btn demo-btn--ghost" @click="addTwice">batch +2</button>
-      <button class="demo-btn demo-btn--ghost" @click="state.step = state.step === 1 ? 5 : 1">
+    <div class="dv-actions">
+      <button class="dv-btn" @click="increment">+{{ state.step }}</button>
+      <button class="dv-btn dv-btn--ghost" @click="addTwice">batch +2</button>
+      <button class="dv-btn dv-btn--ghost" @click="state.step = state.step === 1 ? 5 : 1">
         step → {{ state.step === 1 ? 5 : 1 }}
       </button>
     </div>
-    <div class="demo-result"><pre>{{ log }}</pre></div>
+    <div class="dv-result"><pre>{{ log }}</pre></div>
   </div>
 </template>

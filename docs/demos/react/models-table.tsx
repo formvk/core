@@ -25,8 +25,8 @@ let nextId = 6
 
 const columns = [
   { key: 'id', title: 'ID' },
-  { key: 'name', title: 'Name' },
-  { key: 'role', title: 'Role' },
+  { key: 'name', title: '姓名' },
+  { key: 'role', title: '角色' },
 ]
 
 const { fragment: f } = createSchemaField({
@@ -38,8 +38,8 @@ const { fragment: f } = createSchemaField({
 
 const searchSchema = createSchema({
   keyword: f.Input({
-    title: 'Keyword',
-    componentProps: { placeholder: 'Search by name' },
+    title: '关键字',
+    componentProps: { placeholder: '按姓名搜索' },
   }),
 })
 
@@ -47,21 +47,21 @@ const searchSchema = createSchema({
 // while the schema stays stable
 const userSchema = createSchema({
   name: f.Input({
-    title: 'Name',
+    title: '姓名',
     required: true,
-    validator: [{ required: true, message: 'Name is required' }],
+    validator: [{ required: true, message: '请输入姓名' }],
     componentProps: { placeholder: 'Alice' },
   }),
   role: f.Select({
-    title: 'Role',
+    title: '角色',
     required: true,
-    validator: [{ required: true, message: 'Please select a role' }],
+    validator: [{ required: true, message: '请选择角色' }],
     componentProps: {
-      placeholder: 'Select a role',
+      placeholder: '请选择角色',
       options: [
-        { label: 'Developer', value: 'developer' },
-        { label: 'Designer', value: 'designer' },
-        { label: 'Product manager', value: 'pm' },
+        { label: '开发', value: 'developer' },
+        { label: '设计', value: 'designer' },
+        { label: '产品经理', value: 'pm' },
       ],
     },
   }),
@@ -107,26 +107,26 @@ export default observer(function ModelsTableDemo() {
   }, [table])
 
   const actions = [
-    { label: 'Edit', onClick: (record: UserRecord) => table.editPopup.open(record) },
-    { label: 'Delete', danger: true, onClick: (record: UserRecord) => table.onRemove(record) },
+    { label: '编辑', onClick: (record: UserRecord) => table.editPopup.open(record) },
+    { label: '删除', danger: true, onClick: (record: UserRecord) => table.onRemove(record) },
   ]
 
   return (
-    <div className="demo">
+    <div className="dr-demo">
       <DemoTable
         columns={columns}
         records={table.records}
         actions={actions}
         pagination={table.pagination}
-        createText="Add"
+        createText="新增"
         onCreate={() => table.addPopup.open()}
         onPageChange={current => table.onSearch({ ...table.pagination, current })}
         toolbar={<DemoSearch model={table} schema={searchSchema} />}
       />
 
-      <DemoPopup model={table.addPopup} schema={userSchema} title="Add user" />
+      <DemoPopup model={table.addPopup} schema={userSchema} title="新增用户" />
 
-      <DemoPopup model={table.editPopup} schema={userSchema} title="Edit user" />
+      <DemoPopup model={table.editPopup} schema={userSchema} title="编辑用户" />
     </div>
   )
 })

@@ -35,13 +35,13 @@ npx skills add formvk/core --skill formvk-form-dev
 
 ### Vue
 
-<demo vue="../demos/getting-started.vue" stackblitz="true" />
+<demo vue="../demos/zh/getting-started.vue" stackblitz="true" />
 
 ### React
 
 React 版本使用同构的组件与 hooks：schema 与 `createSchemaField` 工厂放在模块级，表单在组件内惰性创建。
 
-<demo react="../demos/react/getting-started.tsx" stackblitz="true" />
+<demo react="../demos/react/zh/getting-started.tsx" stackblitz="true" />
 
 React 侧只有两处差异：`createForm` 放在 `useState(() => createForm(...))` 中，保证每个组件实例只创建一次、卸载时由 `FormProvider` 清理；读取 `form.values` 等响应式状态的组件需要用 `@formvk/reactive-react` 的 `observer` 包裹，React 不会像 Vue 模板那样自动追踪。
 

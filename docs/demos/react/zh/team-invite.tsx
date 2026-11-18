@@ -236,23 +236,23 @@ export default observer(function TeamInviteDemo() {
 
   return (
     <FormProvider form={form}>
-      <div className="demo">
+      <div className="dr-demo">
         <SchemaField schema={schema} />
-        <div className="demo-actions">
-          <button type="button" className="demo-btn demo-btn--ghost" onClick={assignMemberRoleToAll}>
+        <div className="dr-actions">
+          <button type="button" className="dr-btn dr-btn--ghost" onClick={assignMemberRoleToAll}>
             全部设为「成员」
           </button>
-          <button type="button" className="demo-btn" disabled={form.submitting} onClick={onSubmit}>
+          <button type="button" className="dr-btn" disabled={form.submitting} onClick={onSubmit}>
             {form.submitting ? '创建中…' : '创建团队'}
           </button>
-          <button type="button" className="demo-btn demo-btn--ghost" onClick={onReset}>
+          <button type="button" className="dr-btn dr-btn--ghost" onClick={onReset}>
             重置
           </button>
         </div>
-        <div className="demo-result">{summary}</div>
-        {error ? <div className="demo-result">{error}</div> : null}
+        <div className="dr-result">{summary}</div>
+        {error ? <div className="dr-result">{error}</div> : null}
         {submitted ? (
-          <div className="demo-result">
+          <div className="dr-result">
             <pre>{submitted}</pre>
           </div>
         ) : null}

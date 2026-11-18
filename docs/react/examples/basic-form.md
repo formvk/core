@@ -2,7 +2,7 @@
 
 一个包含初始值、校验规则、提交与重置的完整表单。schema 由 `createSchemaField` 返回的 fragment 构建，表单在组件内部惰性创建，因此每个实例都拥有独立的模型。
 
-<demo react="../../demos/react/basic-form.tsx" stackblitz="true" />
+<demo react="../../demos/react/zh/basic-form.tsx" stackblitz="true" />
 
 ## 实现说明
 

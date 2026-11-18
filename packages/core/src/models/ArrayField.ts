@@ -1,8 +1,8 @@
 import { action, reaction } from '@formvk/reactive'
-import { isArr, move } from '@formvk/shared'
+import { isArr, isFn, isStr, move } from '@formvk/shared'
 
 import { cleanupArrayChildren, exchangeArrayState, spliceArrayState } from '../shared/internals'
-import type { FormPathPattern, IFieldProps } from '../types'
+import type { FieldRecordKey, FormPathPattern, IArrayFieldProps } from '../types'
 import { Field } from './Field'
 import type { Form } from './Form'
 
@@ -14,9 +14,42 @@ export class ArrayField<
 > extends Field<Value, ComponentProps, DecoratorProps, IRecord> {
   displayName = 'ArrayField' as const
 
-  constructor(address: FormPathPattern, props: IFieldProps<any, any, any, Value>, form: Form, designable?: boolean) {
+  /**
+   * 数组项稳定键：字符串取 item 上的字段，函数接收 item 与索引。
+   * 用 declare 声明而非类字段：initialize 会早于派生类字段初始化执行，
+   * 普通字段声明会在构造结束后把 props / schema 写入的值重置为 undefined。
+   */
+  declare recordKey: FieldRecordKey<IRecord> | undefined
+
+  constructor(
+    address: FormPathPattern,
+    props: IArrayFieldProps<any, any, any, Value>,
+    form: Form,
+    designable?: boolean
+  ) {
     super(address, props, form, designable)
     this.makeAutoCleanable()
+  }
+
+  protected initialize() {
+    super.initialize()
+    this.recordKey = (this.props as IArrayFieldProps<any, any, any, Value>).recordKey as
+      | FieldRecordKey<IRecord>
+      | undefined
+  }
+
+  /** 读取数组项稳定键；未配置或取值非法时回退到索引 */
+  getRecordKey = (index: number): string | number => {
+    const record = (this.value as any[])?.[index]
+    const recordKey = this.recordKey
+    if (isFn(recordKey)) {
+      return recordKey(record as IRecord, index)
+    }
+    if (isStr(recordKey) && record !== null && typeof record === 'object') {
+      const value = (record as any)[recordKey]
+      if (isStr(value) || typeof value === 'number') return value
+    }
+    return index
   }
 
   protected makeAutoCleanable() {

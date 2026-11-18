@@ -46,7 +46,7 @@ export const DemoSelect = observer((props: DemoSelectProps) => {
   return (
     <select
       {...rest}
-      className="demo-select"
+      className="dr-select"
       value={(value as string) ?? ''}
       disabled={disabled}
       onChange={handleChange}
@@ -54,7 +54,7 @@ export const DemoSelect = observer((props: DemoSelectProps) => {
       onBlur={onBlur}
     >
       <option value="" disabled>
-        {placeholder ?? 'Select an option'}
+        {placeholder ?? '请选择'}
       </option>
       {resolvedOptions.map(option => (
         <option key={String(option.value)} value={option.value as string}>

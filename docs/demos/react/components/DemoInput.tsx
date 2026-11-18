@@ -23,7 +23,7 @@ export const DemoInput = observer((props: DemoInputProps) => {
   return (
     <input
       {...rest}
-      className="demo-input"
+      className="dr-input"
       type={type ?? 'text'}
       value={(value as string) ?? ''}
       placeholder={placeholder}

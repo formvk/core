@@ -1,6 +1,8 @@
+import './demo.css'
 import DemoArrayItems from './DemoArrayItems.vue'
 import DemoCheckbox from './DemoCheckbox.vue'
 import DemoInput from './DemoInput.vue'
+import DemoPerfRows from './DemoPerfRows.vue'
 import DemoSelect from './DemoSelect.vue'
 import DemoTextarea from './DemoTextarea.vue'
 import FormItem from './FormItem.vue'
@@ -19,4 +21,4 @@ export const demoComponents = {
   Textarea: DemoTextarea,
 }
 
-export { DemoArrayItems, DemoCheckbox, DemoInput, DemoSelect, DemoTextarea, FormItem }
+export { DemoArrayItems, DemoCheckbox, DemoInput, DemoPerfRows, DemoSelect, DemoTextarea, FormItem }

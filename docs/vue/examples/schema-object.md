@@ -2,7 +2,7 @@
 
 `f.Object` 描述嵌套对象节点。它的子节点放在 `properties` 下，取值会合并进父级取值，因此表单取值的形态与 schema 的形态一致。
 
-<demo vue="../../demos/schema-object.vue" stackblitz="true" />
+<demo vue="../../demos/zh/schema-object.vue" stackblitz="true" />
 
 ## 这份 schema 描述了什么
 

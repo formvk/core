@@ -1,0 +1,305 @@
+/*
+ * React demo 样式：统一使用 dr- 前缀，由 components/index.ts 引入。
+ * 主题层的 custom.css 只保留站点级样式，不再承载 demo 组件样式。
+ */
+
+.dr-demo {
+  margin: 20px 0;
+  padding: 20px 24px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 12px;
+  background-color: var(--vp-c-bg-soft);
+}
+
+.dr-field {
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr);
+  gap: 4px 16px;
+  align-items: start;
+  margin-bottom: 14px;
+}
+
+.dr-field__label {
+  padding-top: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--vp-c-text-1);
+}
+
+.dr-field__required {
+  margin-left: 2px;
+  font-style: normal;
+  color: #e5484d;
+}
+
+.dr-field__control {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.dr-field__description {
+  font-size: 12px;
+  color: var(--vp-c-text-2);
+}
+
+.dr-field__error {
+  font-size: 12px;
+  color: #e5484d;
+}
+
+.dr-input,
+.dr-select,
+.dr-textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 7px 12px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--vp-c-text-1);
+  background-color: var(--vp-c-bg);
+  outline: none;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.dr-input:focus,
+.dr-select:focus,
+.dr-textarea:focus {
+  border-color: var(--vp-c-brand-1);
+  box-shadow: 0 0 0 3px var(--vp-c-brand-soft);
+}
+
+.dr-input:disabled,
+.dr-select:disabled,
+.dr-textarea:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.dr-textarea {
+  min-height: 84px;
+  resize: vertical;
+}
+
+.dr-checkbox {
+  width: 16px;
+  height: 16px;
+  margin: 8px 0 0;
+  accent-color: var(--vp-c-brand-1);
+}
+
+.dr-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.dr-btn {
+  padding: 7px 16px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #fff;
+  cursor: pointer;
+  background-color: var(--vp-c-brand-1);
+  transition:
+    opacity 0.2s,
+    background-color 0.2s;
+}
+
+.dr-btn:hover {
+  opacity: 0.88;
+}
+
+.dr-btn--ghost {
+  color: var(--vp-c-text-1);
+  background-color: transparent;
+  border-color: var(--vp-c-divider);
+}
+
+.dr-btn--ghost:hover {
+  border-color: var(--vp-c-brand-1);
+  color: var(--vp-c-brand-1);
+}
+
+.dr-btn--danger {
+  color: #e5484d;
+  background-color: transparent;
+  border-color: transparent;
+}
+
+.dr-result {
+  margin-top: 16px;
+  padding: 12px 16px;
+  border-left: 3px solid var(--vp-c-brand-1);
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1.6;
+  background-color: var(--vp-c-bg);
+}
+
+.dr-result pre {
+  margin: 0;
+  overflow-x: auto;
+  font-family: var(--vp-font-family-mono);
+}
+
+.dr-array {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dr-array__item {
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  border: 1px dashed var(--vp-c-divider);
+  border-radius: 10px;
+}
+
+.dr-array__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 13px;
+  color: var(--vp-c-text-2);
+}
+
+.dr-perf-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.dr-perf-hint {
+  font-size: 13px;
+  color: var(--vp-c-text-2);
+}
+
+.dr-perf-table {
+  width: 100%;
+  margin-bottom: 16px;
+  font-size: 13px;
+  border-collapse: collapse;
+}
+
+.dr-perf-table th,
+.dr-perf-table td {
+  padding: 6px 8px;
+  text-align: right;
+  border-bottom: 1px solid var(--vp-c-divider);
+}
+
+.dr-perf-table th:first-child,
+.dr-perf-table td:first-child {
+  text-align: left;
+}
+
+.dr-perf-table td strong {
+  color: var(--vp-c-brand-1);
+}
+
+.dr-perf-array {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 12px;
+  max-height: 480px;
+  padding: 8px;
+  margin-top: 16px;
+  overflow: auto;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 8px;
+}
+
+/* 每行记录一张卡片：字段两列排布，被校验的下拉框铺满卡片底部 */
+.dr-perf-array__row {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  align-items: center;
+  padding: 30px 10px 10px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 10px;
+  background: var(--vp-c-bg-soft);
+}
+
+.dr-perf-array__row .dr-input,
+.dr-perf-array__row .dr-select {
+  padding: 4px 6px;
+  font-size: 12px;
+}
+
+/* 卡片里的 FormItem 装饰器改为上下布局，错误信息显示在下拉框下方 */
+.dr-perf-array__row .dr-field {
+  grid-column: 1 / -1;
+  grid-template-columns: 1fr;
+  gap: 2px;
+  margin-bottom: 0;
+}
+
+.dr-perf-array__row .dr-field__label {
+  padding-top: 0;
+  font-size: 12px;
+}
+
+.dr-perf-array__index {
+  position: absolute;
+  top: 8px;
+  left: 10px;
+  padding: 1px 6px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--vp-c-text-3);
+  background: var(--vp-c-default-soft);
+  border-radius: 999px;
+}
+
+/* 每行一个持有内部 state 的输入框：key 模式不同，删除后它的内容是否跟着数据走也不同 */
+.dr-perf-array__memo {
+  display: flex;
+  grid-column: 1 / -1;
+  gap: 6px;
+  align-items: center;
+  font-size: 11px;
+  color: var(--vp-c-text-3);
+}
+
+.dr-perf-array__memo .dr-input {
+  flex: 1;
+  padding: 3px 6px;
+  font-size: 12px;
+}
+
+.dr-perf-note {
+  margin-top: 12px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--vp-c-text-2);
+}
+
+@media (width <= 640px) {
+  .dr-field {
+    grid-template-columns: 1fr;
+  }
+
+  .dr-field__label {
+    padding-top: 0;
+  }
+
+  .dr-perf-array {
+    grid-template-columns: 1fr;
+  }
+}

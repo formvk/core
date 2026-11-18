@@ -24,6 +24,7 @@ import type {
   FormDisplayTypes,
   FormPatternTypes,
   HeartSubscriber,
+  IArrayFieldFactoryProps,
   IFieldFactoryProps,
   IFieldResetOptions,
   IFieldStateGetter,
@@ -68,6 +69,7 @@ export class Form<ValueType extends object = any> {
   props: IFormProps<ValueType> = {}
   heart!: Heart
   graph!: Graph
+  // 字段地址表：@shallow 提供整体替换与按地址键的浅响应，渲染层可精确订阅
   @shallow accessor fields: IFormFields = {}
   requests: IFormRequests = {}
   @shallow accessor indexes: Record<string, string> = {}
@@ -277,17 +279,19 @@ export class Form<ValueType extends object = any> {
     return this.fields[identifier] as any
   }
 
-  createArrayField(props: IFieldFactoryProps<any, any>): ArrayField | undefined {
+  createArrayField<Value extends any[] = any[]>(
+    props: IArrayFieldFactoryProps<any, any, any, Value>
+  ): ArrayField<Value> | undefined {
     const address = FormPath.parse(props.basePath).concat(props.name)
     const identifier = address.toString()
     if (!identifier) return
     if (!this.fields[identifier] || this.props.designable) {
       batch(() => {
-        new ArrayField(
+        new ArrayField<Value>(
           address,
           {
             ...props,
-            value: isArr(props.value) ? props.value : [],
+            value: (isArr(props.value) ? props.value : []) as Value,
           },
           this,
           this.props.designable
@@ -295,7 +299,7 @@ export class Form<ValueType extends object = any> {
       })
       this.notify(LifeCycleTypes.ON_FORM_GRAPH_CHANGE)
     }
-    return this.fields[identifier] as ArrayField
+    return this.fields[identifier] as ArrayField<Value>
   }
 
   createObjectField(props: IFieldFactoryProps<any, any>): ObjectField | undefined {

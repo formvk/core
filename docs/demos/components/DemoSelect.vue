@@ -49,14 +49,14 @@ function onChange(event: Event) {
 
 <template>
   <select
-    class="demo-select"
+    class="dv-select"
     :value="value ?? ''"
     :disabled="disabled"
     @change="onChange"
     @focus="emit('focus', $event)"
     @blur="emit('blur', $event)"
   >
-    <option value="" disabled>{{ placeholder ?? 'Select an option' }}</option>
+    <option value="" disabled>{{ placeholder ?? '请选择' }}</option>
     <option v-for="option in resolvedOptions" :key="option.value" :value="option.value">
       {{ option.label }}
     </option>

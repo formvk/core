@@ -1,4 +1,4 @@
-import type { ArrayField, Field, ObjectField, VoidField } from '@formvk/core'
+import type { ArrayField, Field, FieldRecordKey, ObjectField, VoidField } from '@formvk/core'
 
 import type { ExpressionProps, ISchema, SchemaExpression, SchemaPatch, SchemaReactions } from './types'
 
@@ -242,11 +242,13 @@ export type ArraySchema<
   IRecord extends object = any,
   Scope extends object = {},
   IValues extends object = any,
-> = Omit<ISchema, SchemaOverrideKeys | 'items' | 'properties' | 'default'> & {
+> = Omit<ISchema, SchemaOverrideKeys | 'items' | 'properties' | 'default' | 'recordKey'> & {
   component?: Component | SchemaExpression
   componentProps?: ExpressionProps<TComponentProps<A, Component>>
   decorator?: Decorator | SchemaExpression
   decoratorProps?: ExpressionProps<TComponentProps<V, Decorator>>
+  /** 数组项稳定键：对象项按 key 收窄，函数形式的入参推断为数组项类型 */
+  recordKey?: FieldRecordKey<Value[number]>
   /**
    * 数组节点的 properties 保持宽松：ArrayFragment 的显式 overload 以 any 作为 IRecord 兜底，
    * 上下文约束在这里会被宽松 overload 吞掉而失去意义（与 formily-pro TArraySchema 不声明 properties 对齐）。

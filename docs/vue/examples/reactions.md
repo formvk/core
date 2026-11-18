@@ -2,7 +2,7 @@
 
 reaction 在其他取值变化时更新字段：显示或隐藏字段、切换 `required`、改写状态，甚至替换字段 schema。reaction 定义在 schema 中，因此与框架无关。
 
-<demo vue="../../demos/reactions.vue" stackblitz="true" />
+<demo vue="../../demos/zh/reactions.vue" stackblitz="true" />
 
 ## reaction 如何工作
 

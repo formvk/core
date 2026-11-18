@@ -21,17 +21,17 @@ const {
 </script>
 
 <template>
-  <div class="demo-field">
-    <span class="demo-field__label">
+  <div class="dv-field">
+    <span class="dv-field__label">
       {{ props.label ?? fieldTitle }}
-      <em v-if="props.required ?? fieldRequired" class="demo-field__required">*</em>
+      <em v-if="props.required ?? fieldRequired" class="dv-field__required">*</em>
     </span>
-    <span class="demo-field__control">
+    <span class="dv-field__control">
       <slot />
-      <span v-if="props.description ?? fieldDescription" class="demo-field__description">
+      <span v-if="props.description ?? fieldDescription" class="dv-field__description">
         {{ props.description ?? fieldDescription }}
       </span>
-      <span v-for="error in props.errors ?? fieldErrors" :key="error" class="demo-field__error">
+      <span v-for="error in props.errors ?? fieldErrors" :key="error" class="dv-field__error">
         {{ error }}
       </span>
     </span>

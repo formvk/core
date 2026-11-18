@@ -237,20 +237,20 @@ function onReset() {
 
 <template>
   <FormProvider :form="form">
-    <div class="demo">
+    <div class="dv-demo">
       <SchemaField :schema="schema" />
-      <div class="demo-actions">
-        <button type="button" class="demo-btn demo-btn--ghost" @click="assignMemberRoleToAll">
+      <div class="dv-actions">
+        <button type="button" class="dv-btn dv-btn--ghost" @click="assignMemberRoleToAll">
           Set all roles to Member
         </button>
-        <button type="button" class="demo-btn" :disabled="form.submitting" @click="onSubmit">
+        <button type="button" class="dv-btn" :disabled="form.submitting" @click="onSubmit">
           {{ form.submitting ? 'Creating…' : 'Create team' }}
         </button>
-        <button type="button" class="demo-btn demo-btn--ghost" @click="onReset">Reset</button>
+        <button type="button" class="dv-btn dv-btn--ghost" @click="onReset">Reset</button>
       </div>
-      <div class="demo-result">{{ summary }}</div>
-      <div v-if="error" class="demo-result demo-result--error">{{ error }}</div>
-      <div v-if="submitted" class="demo-result">
+      <div class="dv-result">{{ summary }}</div>
+      <div v-if="error" class="dv-result dv-result--error">{{ error }}</div>
+      <div v-if="submitted" class="dv-result">
         <pre>{{ submitted }}</pre>
       </div>
     </div>

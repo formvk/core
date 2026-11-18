@@ -30,10 +30,10 @@ export default observer(function SchemaObjectDemo() {
   const [form] = useState(() => createForm({ values: { profile: { name: 'Alice', role: 'developer' } } }))
 
   return (
-    <div className="demo">
+    <div className="dr-demo">
       <FormProvider form={form}>
         <SchemaField schema={schema} />
-        <div className="demo-result">values: {JSON.stringify(form.values)}</div>
+        <div className="dr-result">values: {JSON.stringify(form.values)}</div>
       </FormProvider>
     </div>
   )

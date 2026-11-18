@@ -1,6 +1,7 @@
 import { expect, expectTypeOf, test } from 'vitest'
 
 import type { ArrayField, Field, GeneralField, ObjectField, VoidField } from '..'
+import { createForm } from '..'
 
 interface IUser {
   name: string
@@ -20,6 +21,32 @@ test('ArrayField 泛型：value / record / records', () => {
   expectTypeOf<ArrayField<IUser[]>['value']>().toEqualTypeOf<IUser[] | undefined>()
   expectTypeOf<ArrayField<IUser[], any, any, IUser>['record']>().toEqualTypeOf<IUser>()
   expectTypeOf<ArrayField<IUser[], any, any, IUser>['records']>().toEqualTypeOf<IUser[]>()
+})
+
+test('ArrayField recordKey 按数组项类型收窄', () => {
+  expectTypeOf<ArrayField<IUser[], any, any, IUser>['recordKey']>().toEqualTypeOf<
+    'name' | 'age' | ((record: IUser, index: number) => string | number) | undefined
+  >()
+})
+
+test('createArrayField 推断数组项并校验 recordKey', () => {
+  const form = createForm()
+  form.createArrayField({
+    name: 'array',
+    value: [{ id: 'a' }],
+    recordKey: (item, index) => {
+      expectTypeOf(item).toEqualTypeOf<{ id: string }>()
+      expectTypeOf(index).toEqualTypeOf<number>()
+      return item.id
+    },
+  })
+  form.createArrayField({ name: 'array2', value: [{ id: 'a' }], recordKey: 'id' })
+  form.createArrayField({
+    name: 'array3',
+    value: [{ id: 'a' }],
+    // @ts-expect-error recordKey 必须是数组项声明过的 key
+    recordKey: 'name',
+  })
 })
 
 test('ObjectField 泛型：value', () => {

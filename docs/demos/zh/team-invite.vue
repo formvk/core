@@ -236,18 +236,18 @@ function onReset() {
 
 <template>
   <FormProvider :form="form">
-    <div class="demo">
+    <div class="dv-demo">
       <SchemaField :schema="schema" />
-      <div class="demo-actions">
-        <button type="button" class="demo-btn demo-btn--ghost" @click="assignMemberRoleToAll">全部设为「成员」</button>
-        <button type="button" class="demo-btn" :disabled="form.submitting" @click="onSubmit">
+      <div class="dv-actions">
+        <button type="button" class="dv-btn dv-btn--ghost" @click="assignMemberRoleToAll">全部设为「成员」</button>
+        <button type="button" class="dv-btn" :disabled="form.submitting" @click="onSubmit">
           {{ form.submitting ? '创建中…' : '创建团队' }}
         </button>
-        <button type="button" class="demo-btn demo-btn--ghost" @click="onReset">重置</button>
+        <button type="button" class="dv-btn dv-btn--ghost" @click="onReset">重置</button>
       </div>
-      <div class="demo-result">{{ summary }}</div>
-      <div v-if="error" class="demo-result">{{ error }}</div>
-      <div v-if="submitted" class="demo-result">
+      <div class="dv-result">{{ summary }}</div>
+      <div v-if="error" class="dv-result">{{ error }}</div>
+      <div v-if="submitted" class="dv-result">
         <pre>{{ submitted }}</pre>
       </div>
     </div>

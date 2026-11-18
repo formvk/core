@@ -12,7 +12,7 @@ pnpm add @formvk/react @formvk/reactive-react react react-dom
 
 与 Vue 快速开始相同的表单，用 React 渲染。schema 与 `createSchemaField` 工厂保持在模块层级；表单在组件内部惰性创建：
 
-<demo react="../demos/react/getting-started.tsx" stackblitz="true" />
+<demo react="../demos/react/zh/getting-started.tsx" stackblitz="true" />
 
 ```ts
 import {

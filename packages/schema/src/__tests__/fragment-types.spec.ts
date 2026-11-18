@@ -85,6 +85,27 @@ describe('fragment types', () => {
     })
   })
 
+  test('array recordKey infers item type', () => {
+    f.Array(f.Object({ name: f.Field({ required: true }) }), {
+      recordKey: 'name',
+    })
+    f.Array(f.Object({ name: f.Field({ required: true }) }), {
+      // @ts-expect-error recordKey 必须是数组项声明过的 key
+      recordKey: 'missing',
+    })
+    f.Array(f.Object({ name: f.Field({ required: true }) }), {
+      recordKey: (record, index) => {
+        expectTypeOf(record).toEqualTypeOf<{ name: string }>()
+        expectTypeOf(index).toEqualTypeOf<number>()
+        return record.name
+      },
+    })
+    f.Array<string>(f.Field({ required: true }), {
+      // @ts-expect-error 非对象数组项只支持函数形式
+      recordKey: 'length',
+    })
+  })
+
   test('field component props', () => {
     f.Field({ component: 'Input', componentProps: { maxLength: 10 } })
     f.Field({ component: 'Select', componentProps: { options: [{ label: 'a', value: 1 }] } })

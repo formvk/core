@@ -20,7 +20,7 @@ export const DemoCheckbox = observer((props: DemoCheckboxProps) => {
   return (
     <input
       {...rest}
-      className="demo-checkbox"
+      className="dr-checkbox"
       type="checkbox"
       checked={!!value}
       disabled={disabled || readOnly}

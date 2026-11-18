@@ -2,7 +2,7 @@
 
 其他示例都只展示单一能力。这个示例是一条完整的产品流程：管理员创建团队、选择套餐并邀请成员的 SaaS 引导表单。它按真实功能的构建方式来写 —— 先梳理业务规则，再写 schema —— 因此能回答参考文档回答不了的问题：**什么时候该用哪种能力？**
 
-<demo vue="../../demos/team-invite.vue" stackblitz="true" />
+<demo vue="../../demos/zh/team-invite.vue" stackblitz="true" />
 
 下面每一节都指向文件中实现该规则的位置。
 

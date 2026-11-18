@@ -166,3 +166,55 @@ test('长度收缩自动清理子字段', () => {
   field.value = []
   expect(form.fields['array.0']).toBeUndefined()
 })
+
+test('recordKey 字符串形式读取数组项字段', async () => {
+  const form = attach(createForm())
+  const field = attach(
+    form.createArrayField({
+      name: 'array',
+      value: [{ id: 'aa' }, { id: 'bb' }],
+      recordKey: 'id',
+    })!
+  )
+
+  expect(field.recordKey).toBe('id')
+  expect(field.getRecordKey(0)).toBe('aa')
+  expect(field.getRecordKey(1)).toBe('bb')
+  // 越界回退到索引
+  expect(field.getRecordKey(2)).toBe(2)
+
+  // 重排后稳定键跟随数组项，而不是固定在原下标上
+  await field.move(0, 1)
+  expect(field.getRecordKey(0)).toBe('bb')
+  expect(field.getRecordKey(1)).toBe('aa')
+})
+
+test('recordKey 函数形式接收数组项与索引', () => {
+  type Row = { id?: string; name: string }
+  const rows: Row[] = [{ id: 'aa', name: 'a' }, { name: 'b' }]
+  const form = attach(createForm())
+  const field = attach(
+    form.createArrayField({
+      name: 'array',
+      value: rows,
+      recordKey: (item, index) => item.id ?? index,
+    })!
+  )
+
+  expect(field.getRecordKey(0)).toBe('aa')
+  expect(field.getRecordKey(1)).toBe(1)
+})
+
+test('recordKey 缺失或取值非法时回退到索引', () => {
+  type Row = { id?: any }
+  const rows: Row[] = [{ id: { nested: true } }]
+  const form = attach(createForm())
+
+  const plain = attach(form.createArrayField({ name: 'plain', value: rows })!)
+  expect(plain.recordKey).toBeUndefined()
+  expect(plain.getRecordKey(0)).toBe(0)
+
+  const invalid = attach(form.createArrayField({ name: 'invalid', value: rows, recordKey: 'id' })!)
+  // 字符串键取到非字符串/数字值时同样回退到索引
+  expect(invalid.getRecordKey(0)).toBe(0)
+})

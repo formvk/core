@@ -677,7 +677,8 @@ test('创建字段后初始值仍与已有表单值合并', () => {
   expect(child.value).toEqual('321')
 
   const form2 = attach(createForm())
-  const aa = attach(form2.createArrayField({ name: 'aa', initialValue: '111' })!)
+  // 非数组初始值是运行期容错场景，这里显式绕过类型约束
+  const aa = attach(form2.createArrayField({ name: 'aa', initialValue: '111' as any })!)
   const array2 = attach(form2.createArrayField({ name: 'array' })!)
   const arr0 = attach(form2.createField({ name: 'aa', basePath: 'array.0', initialValue: '123' })!)
   form2.values.aa = '222'

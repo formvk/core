@@ -32,22 +32,22 @@ export default observer(function ReactivityDemo() {
   }
 
   return (
-    <div className="demo">
+    <div className="dr-demo">
       <p>
         count: <strong>{state.count}</strong> · step: {state.step} · doubled: <strong>{doubled.value}</strong>
       </p>
-      <div className="demo-actions">
-        <button type="button" className="demo-btn" onClick={increment}>
+      <div className="dr-actions">
+        <button type="button" className="dr-btn" onClick={increment}>
           +{state.step}
         </button>
-        <button type="button" className="demo-btn demo-btn--ghost" onClick={addTwice}>
+        <button type="button" className="dr-btn dr-btn--ghost" onClick={addTwice}>
           batch +2
         </button>
-        <button type="button" className="demo-btn demo-btn--ghost" onClick={toggleStep}>
+        <button type="button" className="dr-btn dr-btn--ghost" onClick={toggleStep}>
           step → {state.step === 1 ? 5 : 1}
         </button>
       </div>
-      <div className="demo-result">
+      <div className="dr-result">
         <pre>{log}</pre>
       </div>
     </div>

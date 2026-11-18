@@ -4,7 +4,7 @@ import { observer } from '@formvk/reactive-react'
 
 import { DemoArrayItems, demoComponents, FormItem } from './index'
 
-import './demo-search.css'
+import './dr-search.css'
 
 const { SchemaField } = createSchemaField({
   components: demoComponents,
@@ -30,10 +30,10 @@ export const DemoSearch = observer(function DemoSearch({ model, schema }: DemoSe
         <SchemaField schema={schema} />
       </FormProvider>
       <button type="button" className="dr-search__btn" onClick={() => model.onSearch()}>
-        Search
+        搜索
       </button>
       <button type="button" className="dr-search__btn dr-search__btn--ghost" onClick={onReset}>
-        Reset
+        重置
       </button>
     </span>
   )

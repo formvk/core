@@ -27,7 +27,7 @@ const props = withDefaults(
     empty?: string
     createText?: string
   }>(),
-  { empty: 'No records' }
+  { empty: '暂无数据' }
 )
 
 const emit = defineEmits<{
@@ -50,7 +50,7 @@ const pageCount = computed(() =>
       <thead>
         <tr>
           <th v-for="column in columns" :key="column.key">{{ column.title }}</th>
-          <th v-if="actions?.length">Actions</th>
+          <th v-if="actions?.length">操作</th>
         </tr>
       </thead>
       <tbody>
@@ -80,7 +80,7 @@ const pageCount = computed(() =>
           :disabled="pagination.current <= 1"
           @click="emit('pageChange', pagination.current - 1)"
         >
-          Prev
+          上一页
         </button>
         <span>{{ pagination.current }} / {{ pageCount }}</span>
         <button
@@ -88,7 +88,7 @@ const pageCount = computed(() =>
           :disabled="pagination.current >= pageCount"
           @click="emit('pageChange', pagination.current + 1)"
         >
-          Next
+          下一页
         </button>
       </template>
       <button v-if="createText" class="dv-table__btn dv-table__create" @click="emit('create')">{{ createText }}</button>

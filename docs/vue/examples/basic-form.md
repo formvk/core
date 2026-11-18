@@ -2,7 +2,7 @@
 
 一个包含初始值、校验规则、提交与重置的完整表单 —— schema 由 `createSchemaField` 返回的 fragment 构建，它会从扁平组件映射中推导出每个组件的 prop 类型。
 
-<demo vue="../../demos/basic-form.vue" stackblitz="true" />
+<demo vue="../../demos/zh/basic-form.vue" stackblitz="true" />
 
 ## 实现说明
 

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-import './demo-table.css'
+import './dr-table.css'
 
 export interface DemoTableColumn {
   key: string
@@ -36,7 +36,7 @@ export function DemoTable({
   records,
   actions,
   pagination,
-  empty = 'No records',
+  empty = '暂无数据',
   createText,
   toolbar,
   onPageChange,
@@ -54,7 +54,7 @@ export function DemoTable({
             {columns.map(column => (
               <th key={column.key}>{column.title}</th>
             ))}
-            {actions?.length ? <th>Actions</th> : null}
+            {actions?.length ? <th>操作</th> : null}
           </tr>
         </thead>
         <tbody>
@@ -101,7 +101,7 @@ export function DemoTable({
                 disabled={pagination.current <= 1}
                 onClick={() => onPageChange?.(pagination.current - 1)}
               >
-                Prev
+                上一页
               </button>
               <span>
                 {pagination.current} / {pageCount}
@@ -112,7 +112,7 @@ export function DemoTable({
                 disabled={pagination.current >= pageCount}
                 onClick={() => onPageChange?.(pagination.current + 1)}
               >
-                Next
+                下一页
               </button>
             </>
           ) : null}

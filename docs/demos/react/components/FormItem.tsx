@@ -26,16 +26,16 @@ export const FormItem = observer(function FormItem(props: FormItemProps) {
   const messages = errors ?? ((field?.selfErrors ?? []) as string[])
 
   return (
-    <div className="demo-field">
-      <span className="demo-field__label">
+    <div className="dr-field">
+      <span className="dr-field__label">
         {title}
-        {marked ? <em className="demo-field__required">*</em> : null}
+        {marked ? <em className="dr-field__required">*</em> : null}
       </span>
-      <span className="demo-field__control">
+      <span className="dr-field__control">
         {children}
-        {tip ? <span className="demo-field__description">{tip}</span> : null}
+        {tip ? <span className="dr-field__description">{tip}</span> : null}
         {messages.map(error => (
-          <span key={error} className="demo-field__error">
+          <span key={error} className="dr-field__error">
             {error}
           </span>
         ))}

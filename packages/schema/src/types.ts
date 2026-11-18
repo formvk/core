@@ -266,6 +266,11 @@ export interface ISchema extends ISchemaBase {
   additionalItems?: ISchema
   patternProperties?: SchemaProperties
   additionalProperties?: ISchema
+  /**
+   * 数组项稳定键：字符串取数组项上的字段，函数接收数组项与索引。
+   * 运行时取不到合法的字符串/数字时回退到索引。
+   */
+  recordKey?: string | ((record: any, index: number) => string | number)
 
   /** 字段值 */
   value?: any

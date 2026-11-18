@@ -18,7 +18,7 @@ function onChange(event: Event) {
 
 <template>
   <input
-    class="demo-checkbox"
+    class="dv-checkbox"
     type="checkbox"
     :checked="!!value"
     :disabled="disabled || readOnly"

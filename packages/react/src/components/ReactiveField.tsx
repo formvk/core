@@ -1,9 +1,9 @@
 import { isVoidField } from '@formvk/core'
 import type { GeneralField, IFieldFactoryProps } from '@formvk/core'
-import { toJS } from '@formvk/reactive'
+import { Tracker, toJS, untracked } from '@formvk/reactive'
 import { observer } from '@formvk/reactive-react'
-import { each, isFn, isStr } from '@formvk/shared'
-import { createElement, isValidElement, useContext, useMemo } from 'react'
+import { FormPath, each, isFn, isStr } from '@formvk/shared'
+import { createElement, isValidElement, useContext, useEffect, useMemo, useReducer } from 'react'
 import type { ReactNode } from 'react'
 
 import { useAttach } from '../hooks/useAttach'
@@ -82,14 +82,47 @@ export const ReactiveField = observer((props: IReactiveFieldProps) => {
 
   const { fieldType = 'Field', fieldProps, slots: incomingSlots, children } = props
 
-  // 与 Vue 侧 watch(fieldProps) 重建对齐：fieldProps 引用变化即创建新字段，旧实例由 useAttach 卸载
+  const factoryProps = (fieldProps ?? {}) as IFieldFactoryProps<any, any>
+  const [, forceUpdate] = useReducer((tick: number) => tick + 1, 0)
+
+  // 字段地址只由 basePath 与 name 决定，二者引用稳定后地址字符串也稳定
+  const identifier = useMemo(
+    () =>
+      FormPath.parse(factoryProps.basePath ?? parent?.address)
+        .concat(factoryProps.name)
+        .toString(),
+    [fieldProps, parent]
+  )
+
+  // 渲染期按地址取当前字段实例；读取放在 untracked 中，
+  // 因为新建字段会写入 fields，不能让这次读取把自身登记成订阅者而在渲染期反向更新。
+  const addressField = form ? untracked(() => form.fields[identifier]) : undefined
+
+  // 与 Vue 侧 watch(fieldProps) 重建对齐：地址上没有实例时（首次渲染 / 新增行）才创建
   const field = useMemo(() => {
-    const factoryProps = (fieldProps ?? {}) as IFieldFactoryProps<any, any>
+    if (addressField) return addressField
     return (form as any)?.[`create${fieldType}`]?.({
       ...factoryProps,
       basePath: factoryProps.basePath ?? parent?.address,
     }) as GeneralField | undefined
-  }, [form, fieldType, fieldProps, parent])
+  }, [addressField, form, fieldType, fieldProps, parent, identifier])
+
+  // fields 是浅响应式的地址表：数组迁移会把同一地址上的字段换成另一个实例。
+  // 按地址精确订阅，只有该地址上的实例被替换或删除时才重渲染，不依赖全局版本号。
+  // 新建（undefined → 实例）不触发重渲染：实例就是本次渲染刚创建的；
+  // hotReload 重挂载时旧订阅者仍可能收到新建通知，跳过可避免渲染期跨组件更新告警。
+  useEffect(() => {
+    if (!form || !identifier) return
+    let last: GeneralField | undefined = form.fields[identifier]
+    const tracker = new Tracker(() => {
+      const next: GeneralField | undefined = form.fields[identifier]
+      const isCreate = last === undefined && next !== undefined
+      last = next
+      if (!isCreate) forceUpdate()
+    })
+    tracker.track(() => form.fields[identifier])
+    return () => tracker.dispose()
+  }, [form, identifier])
 
   useAttach(field)
 

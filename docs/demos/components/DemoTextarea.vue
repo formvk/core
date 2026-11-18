@@ -20,7 +20,7 @@ function onInput(event: Event) {
 
 <template>
   <textarea
-    class="demo-textarea"
+    class="dv-textarea"
     :value="value ?? ''"
     :rows="rows ?? 3"
     :placeholder="placeholder"

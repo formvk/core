@@ -6,7 +6,7 @@ import { DemoArrayItems, demoComponents, FormItem } from '../components'
 
 const form = createForm({
   values: {
-    members: [{ name: 'Alice', email: 'alice@example.com' }],
+    members: [{ id: 'member-1', name: 'Alice', email: 'alice@example.com' }],
   },
 })
 
@@ -18,9 +18,18 @@ const { SchemaField, fragment: f } = createSchemaField({
   arrayComponents: { ArrayItems: DemoArrayItems },
   defaultDecorator: 'FormItem',
 })
+
+// 新增行携带稳定 id，recordKey 才能在删除/重排时复用行组件实例
+let memberUid = 1
+function createMember() {
+  return { id: `member-${++memberUid}` }
+}
+
 const schema = createSchema({
   members: f.ArrayItems(
     f.Object({
+      // 隐藏字段，但属于数据模型：recordKey 需要 schema 声明过的 key
+      id: f.Input({ hidden: true }),
       name: f.Input({
         title: '姓名',
         required: true,
@@ -36,7 +45,9 @@ const schema = createSchema({
       title: '成员',
       // 默认装饰器只作用于 string 字段，array 需要显式声明
       decorator: 'FormItem',
-      componentProps: { addText: '添加成员', removeText: '删除' },
+      // id 在行内不可变，适合作为渲染键
+      recordKey: 'id',
+      componentProps: { addText: '添加成员', removeText: '删除', createItem: createMember },
     }
   ),
 })
@@ -52,12 +63,12 @@ async function onSubmit() {
 
 <template>
   <FormProvider :form="form">
-    <div class="demo">
+    <div class="dv-demo">
       <SchemaField :schema="schema" />
-      <div class="demo-actions">
-        <button class="demo-btn" @click="onSubmit">提交</button>
+      <div class="dv-actions">
+        <button class="dv-btn" @click="onSubmit">提交</button>
       </div>
-      <div v-if="submitted" class="demo-result">
+      <div v-if="submitted" class="dv-result">
         <pre>{{ submitted }}</pre>
       </div>
     </div>

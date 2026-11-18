@@ -28,7 +28,7 @@
 
 /* Schema field layout: provided by the docs theme on site, repeated here so the
    online sandbox renders the same layout without the VitePress theme CSS */
-.dr-popup .demo-field {
+.dr-popup .dr-field {
   display: grid;
   grid-template-columns: 88px minmax(0, 1fr);
   gap: 2px 10px;
@@ -36,7 +36,7 @@
   margin-bottom: 0;
 }
 
-.dr-popup .demo-field__label {
+.dr-popup .dr-field__label {
   padding-top: 7px;
   font-size: 13px;
   font-weight: 500;
@@ -44,31 +44,31 @@
   color: var(--vp-c-text-1, #1e293b);
 }
 
-.dr-popup .demo-field__required {
+.dr-popup .dr-field__required {
   margin-left: 2px;
   font-style: normal;
   color: #e5484d;
 }
 
-.dr-popup .demo-field__control {
+.dr-popup .dr-field__control {
   display: flex;
   flex-direction: column;
   gap: 4px;
   min-width: 0;
 }
 
-.dr-popup .demo-field__description {
+.dr-popup .dr-field__description {
   font-size: 12px;
   color: var(--vp-c-text-2, #64748b);
 }
 
-.dr-popup .demo-field__error {
+.dr-popup .dr-field__error {
   font-size: 12px;
   color: #e5484d;
 }
 
-.dr-popup .demo-input,
-.dr-popup .demo-select {
+.dr-popup .dr-input,
+.dr-popup .dr-select {
   box-sizing: border-box;
   width: 100%;
   padding: 7px 12px;
@@ -81,8 +81,8 @@
   outline: none;
 }
 
-.dr-popup .demo-input:focus,
-.dr-popup .demo-select:focus {
+.dr-popup .dr-input:focus,
+.dr-popup .dr-select:focus {
   border-color: var(--vp-c-brand-1, #2563eb);
   box-shadow: 0 0 0 3px var(--vp-c-brand-soft, rgb(37 99 235 / 14%));
 }

@@ -50,6 +50,7 @@ export class Schema implements ISchema {
   definitions?: Record<string, Schema>
   properties?: Record<string, Schema>
   items?: Schema | Schema[]
+  recordKey?: ISchema['recordKey']
   additionalItems?: Schema
   patternProperties?: Record<string, Schema>
   additionalProperties?: Schema

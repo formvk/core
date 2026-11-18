@@ -2,7 +2,7 @@
 
 `f.Object` 描述嵌套对象节点。它的子节点放在 `properties` 下，取值会合并进父级取值，因此表单取值的形态与 schema 的形态一致。
 
-<demo react="../../demos/react/schema-object.tsx" stackblitz="true" />
+<demo react="../../demos/react/zh/schema-object.tsx" stackblitz="true" />
 
 schema 与 fragment 构造器仍然从 `@formvk/react` 原样导入 —— 只有渲染外壳不同。
 

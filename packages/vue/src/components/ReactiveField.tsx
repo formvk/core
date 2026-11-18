@@ -1,8 +1,8 @@
 import { isVoidField } from '@formvk/core'
 import type { GeneralField, IFieldFactoryProps } from '@formvk/core'
 import { toJS } from '@formvk/reactive'
-import { each, isFn, isStr } from '@formvk/shared'
-import { Fragment, defineComponent, h, inject, isVNode, provide, ref, shallowRef, watch } from 'vue'
+import { FormPath, each, isFn, isStr } from '@formvk/shared'
+import { Fragment, computed, defineComponent, h, inject, isVNode, provide, ref, shallowRef, watch } from 'vue'
 import type { Ref, VNode } from 'vue'
 
 import { useAttach } from '../hooks/useAttach'
@@ -106,14 +106,27 @@ export const ReactiveField = defineComponent({
     const parentRef = useField()
     const optionsRef = inject(SchemaOptionsSymbol, ref({})) as Ref<ISchemaFieldRuntimeOptions>
 
+    function getFieldProps() {
+      return ((props as IReactiveFieldProps).fieldProps ?? {}) as IFieldFactoryProps<any, any>
+    }
+
     function createField(): GeneralField {
       const fieldType = (props as IReactiveFieldProps).fieldType ?? 'Field'
-      const fieldProps = ((props as IReactiveFieldProps).fieldProps ?? {}) as IFieldFactoryProps<any, any>
+      const fieldProps = getFieldProps()
       return (formRef.value as any)?.[`create${fieldType}`]?.({
         ...fieldProps,
         basePath: fieldProps.basePath ?? parentRef.value?.address,
       })
     }
+
+    function resolveFieldAddress() {
+      const fieldProps = getFieldProps()
+      return FormPath.parse(fieldProps.basePath ?? parentRef.value?.address)
+        .concat(fieldProps.name)
+        .toString()
+    }
+
+    const addressRef = computed(resolveFieldAddress)
 
     const fieldRef = shallowRef(createField()) as Ref<GeneralField>
     watch(
@@ -122,11 +135,24 @@ export const ReactiveField = defineComponent({
         fieldRef.value = createField()
       }
     )
-    useAttach(fieldRef)
-    provide(FieldSymbol, fieldRef)
+    // fields 是浅响应式的地址表：数组迁移会把同一地址上的字段换成另一个实例（字段实例随行移动，被删行销毁）。
+    // 这里只负责兜底重建；实例替换不再回写 fieldRef，由下方派生 computed 在渲染期直接读取。
+    watch(
+      () => formRef.value?.fields[addressRef.value],
+      next => {
+        if (!next) fieldRef.value = createField()
+      },
+      { flush: 'post' }
+    )
+    // 渲染与生命周期使用派生实例：读地址表会让渲染 effect 自然订阅该地址键，
+    // 实例被替换时第一趟渲染就拿到新实例，省掉 post watcher 纠正的第二趟。
+    // 地址上没有实例时才回退到 fieldRef（创建字段有副作用，不能放进 computed）。
+    const currentFieldRef = computed(() => formRef.value?.fields[addressRef.value] ?? fieldRef.value)
+    useAttach(currentFieldRef)
+    provide(FieldSymbol, currentFieldRef)
 
     return () => {
-      const field = fieldRef.value
+      const field = currentFieldRef.value
       const options = optionsRef.value
       if (!field) return slots.default?.()
       if (field.display !== 'visible') return null

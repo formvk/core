@@ -73,18 +73,18 @@ export default observer(function BasicFormDemo() {
 
   return (
     <FormProvider form={form}>
-      <div className="demo">
+      <div className="dr-demo">
         <SchemaField schema={schema} />
-        <div className="demo-actions">
-          <button type="button" className="demo-btn" disabled={form.submitting} onClick={onSubmit}>
+        <div className="dr-actions">
+          <button type="button" className="dr-btn" disabled={form.submitting} onClick={onSubmit}>
             {form.submitting ? '提交中…' : '提交'}
           </button>
-          <button type="button" className="demo-btn demo-btn--ghost" onClick={onReset}>
+          <button type="button" className="dr-btn dr-btn--ghost" onClick={onReset}>
             重置
           </button>
         </div>
         {submitted ? (
-          <div className="demo-result">
+          <div className="dr-result">
             <pre>{submitted}</pre>
           </div>
         ) : null}

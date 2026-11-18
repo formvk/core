@@ -12,7 +12,7 @@ const props = withDefaults(
     okText?: string
     cancelText?: string
   }>(),
-  { okText: 'Save', cancelText: 'Cancel' }
+  { okText: '保存', cancelText: '取消' }
 )
 
 const { SchemaField } = createSchemaField({
@@ -76,7 +76,7 @@ async function onSubmit() {
 }
 
 /* Schema 字段布局：文档站由主题提供，这里补齐让在线沙箱同样有样式 */
-.dv-popup .demo-field {
+.dv-popup .dv-field {
   display: grid;
   grid-template-columns: 88px minmax(0, 1fr);
   gap: 2px 10px;
@@ -84,7 +84,7 @@ async function onSubmit() {
   margin-bottom: 0;
 }
 
-.dv-popup .demo-field__label {
+.dv-popup .dv-field__label {
   padding-top: 7px;
   font-size: 13px;
   font-weight: 500;
@@ -92,31 +92,31 @@ async function onSubmit() {
   color: var(--vp-c-text-1, #1e293b);
 }
 
-.dv-popup .demo-field__required {
+.dv-popup .dv-field__required {
   margin-left: 2px;
   font-style: normal;
   color: #e5484d;
 }
 
-.dv-popup .demo-field__control {
+.dv-popup .dv-field__control {
   display: flex;
   flex-direction: column;
   gap: 4px;
   min-width: 0;
 }
 
-.dv-popup .demo-field__description {
+.dv-popup .dv-field__description {
   font-size: 12px;
   color: var(--vp-c-text-2, #64748b);
 }
 
-.dv-popup .demo-field__error {
+.dv-popup .dv-field__error {
   font-size: 12px;
   color: #e5484d;
 }
 
-.dv-popup .demo-input,
-.dv-popup .demo-select {
+.dv-popup .dv-input,
+.dv-popup .dv-select {
   box-sizing: border-box;
   width: 100%;
   padding: 7px 12px;
@@ -129,8 +129,8 @@ async function onSubmit() {
   outline: none;
 }
 
-.dv-popup .demo-input:focus,
-.dv-popup .demo-select:focus {
+.dv-popup .dv-input:focus,
+.dv-popup .dv-select:focus {
   border-color: var(--vp-c-brand-1, #2563eb);
   box-shadow: 0 0 0 3px var(--vp-c-brand-soft, rgb(37 99 235 / 14%));
 }

@@ -22,7 +22,7 @@ export const DemoTextarea = observer((props: DemoTextareaProps) => {
   return (
     <textarea
       {...rest}
-      className="demo-textarea"
+      className="dr-textarea"
       rows={rows ?? 3}
       value={(value as string) ?? ''}
       placeholder={placeholder}

@@ -23,10 +23,10 @@ export default observer(function GettingStartedDemo() {
   const [form] = useState(() => createForm({ values: { username: 'alice' } }))
 
   return (
-    <div className="demo">
+    <div className="dr-demo">
       <FormProvider form={form}>
         <SchemaField schema={schema} />
-        <div className="demo-result">values: {JSON.stringify(form.values)}</div>
+        <div className="dr-result">values: {JSON.stringify(form.values)}</div>
       </FormProvider>
     </div>
   )

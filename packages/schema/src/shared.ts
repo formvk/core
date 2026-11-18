@@ -21,6 +21,7 @@ export const SchemaFunctionKeys: Record<string, boolean> = {
   decoratorProps: true,
   validator: true,
   reactions: true,
+  recordKey: true,
 }
 
 export function isFunctionKey(key: string) {
@@ -61,6 +62,7 @@ export const SchemaStateMap: Record<string, string> = {
   component: 'componentType',
   decoratorProps: 'decoratorProps',
   componentProps: 'componentProps',
+  recordKey: 'recordKey',
 }
 
 /** schema key -> 校验规则 key */

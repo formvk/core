@@ -243,6 +243,37 @@ export interface IVoidFieldFactoryProps<
   basePath?: FormPathPattern
 }
 
+/**
+ * 数组项稳定键：
+ * - 字符串形式取数组项上的字段，数组项为对象时只允许声明过的 key
+ * - 函数形式接收数组项与索引，返回字符串或数字
+ * 运行时取不到合法的字符串/数字时回退到索引。
+ */
+export type FieldRecordKey<Item = any> =
+  | (Item extends Record<PropertyKey, any> ? Extract<keyof Item, string> : never)
+  | ((record: Item, index: number) => string | number)
+
+/** 从数组值类型中取出数组项类型 */
+export type ArrayItem<Value> = Value extends (infer Item)[] ? Item : any
+
+export interface IArrayFieldProps<
+  Decorator extends JSXComponent = any,
+  Component extends JSXComponent = any,
+  TextType = any,
+  ValueType extends any[] = any[],
+> extends IFieldProps<Decorator, Component, TextType, ValueType> {
+  recordKey?: FieldRecordKey<ArrayItem<ValueType>>
+}
+
+export interface IArrayFieldFactoryProps<
+  Decorator extends JSXComponent = any,
+  Component extends JSXComponent = any,
+  TextType = any,
+  ValueType extends any[] = any[],
+> extends IFieldFactoryProps<Decorator, Component, TextType, ValueType> {
+  recordKey?: FieldRecordKey<ArrayItem<ValueType>>
+}
+
 export interface IFieldRequests {
   /** setTimeout 句柄；Node 环境返回值与浏览器不同，用 ReturnType 保持环境无关 */
   validate?: ReturnType<typeof setTimeout>

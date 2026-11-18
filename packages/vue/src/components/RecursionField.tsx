@@ -66,15 +66,30 @@ export const RecursionField = defineComponent({
       fieldPropsRef.value = getPropsFromSchema(fieldSchemaRef.value)
     })
 
-    function getBasePath() {
+    // basePath 统一归一化为字符串：数组迁移会替换字段地址的 FormPath 实例（locateNode），
+    // 引用变化会击穿下游 fieldProps 的稳定性，而地址字符串本身没有变化。
+    function normalizeBasePath(value: any): string | undefined {
+      return value === undefined || value === null ? undefined : String(value)
+    }
+
+    function getBasePath(): string | undefined {
       if (props.onlyRenderProperties) {
-        return (
+        return normalizeBasePath(
           props.basePath ??
-          (isValid(props.name) ? (parentRef.value?.address ?? '').concat(props.name) : parentRef.value?.address)
+            (isValid(props.name) ? (parentRef.value?.address ?? '').concat(props.name) : parentRef.value?.address)
         )
       }
-      return props.basePath ?? parentRef.value?.address
+      return normalizeBasePath(props.basePath ?? parentRef.value?.address)
     }
+
+    // fieldProps 是创建字段的关键数据，引用必须稳定：
+    // 在渲染函数里每次新建对象会让下游 ReactiveField 反复重建字段，
+    // 也会让 Vue 的 props 浅比较永远判定为已变更。
+    const commonFieldPropsRef = computed(() => ({
+      ...fieldPropsRef.value,
+      name: props.name,
+      basePath: getBasePath(),
+    }))
 
     provide(SchemaSymbol, fieldSchemaRef)
 
@@ -83,7 +98,6 @@ export const RecursionField = defineComponent({
       if (!schema) return null
 
       const basePath = getBasePath()
-      const fieldProps = fieldPropsRef.value
 
       function generateSlotsByProperties(scoped = false) {
         if (props.onlyRenderSelf) return {}
@@ -113,7 +127,8 @@ export const RecursionField = defineComponent({
               key: `${index}-${name}`,
               schema: itemSchema,
               name,
-              basePath: field?.address ?? basePath,
+              // 同上：地址以字符串透传，避免 FormPath 实例替换造成的引用抖动
+              basePath: field?.address != null ? String(field.address) : basePath,
             })
           )
         })
@@ -132,11 +147,7 @@ export const RecursionField = defineComponent({
         return resolveEmptySlot(generateSlotsByProperties())
       }
 
-      const commonFieldProps = {
-        ...fieldProps,
-        name: props.name,
-        basePath,
-      }
+      const commonFieldProps = commonFieldPropsRef.value
 
       if (schema.type === 'object') {
         if (props.onlyRenderProperties) return resolveEmptySlot(generateSlotsByProperties())

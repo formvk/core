@@ -1,6 +1,8 @@
+import './demo.css'
 import { DemoArrayItems } from './DemoArrayItems'
 import { DemoCheckbox } from './DemoCheckbox'
 import { DemoInput } from './DemoInput'
+import { DemoPerfRows } from './DemoPerfRows'
 import { DemoSelect } from './DemoSelect'
 import { DemoTextarea } from './DemoTextarea'
 import { FormItem } from './FormItem'
@@ -20,4 +22,4 @@ export const demoComponents = {
   Textarea: DemoTextarea,
 }
 
-export { DemoArrayItems, DemoCheckbox, DemoInput, DemoSelect, DemoTextarea, FormItem }
+export { DemoArrayItems, DemoCheckbox, DemoInput, DemoPerfRows, DemoSelect, DemoTextarea, FormItem }

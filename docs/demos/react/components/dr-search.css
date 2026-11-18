@@ -8,7 +8,7 @@
 
 /* Schema field laid out horizontally in the toolbar: the docs theme supplies
    the base styles on site, repeated here so the sandbox matches */
-.dr-search .demo-field {
+.dr-search .dr-field {
   display: grid;
   flex: 1;
   grid-template-columns: auto minmax(0, 1fr);
@@ -18,7 +18,7 @@
   margin-bottom: 0;
 }
 
-.dr-search .demo-field__label {
+.dr-search .dr-field__label {
   padding-top: 0;
   font-size: 14px;
   font-weight: 500;
@@ -27,19 +27,19 @@
   white-space: nowrap;
 }
 
-.dr-search .demo-field__control {
+.dr-search .dr-field__control {
   display: flex;
   flex-direction: column;
   gap: 4px;
   min-width: 0;
 }
 
-.dr-search .demo-field__error {
+.dr-search .dr-field__error {
   font-size: 12px;
   color: #e5484d;
 }
 
-.dr-search .demo-input {
+.dr-search .dr-input {
   box-sizing: border-box;
   width: 100%;
   padding: 7px 12px;
@@ -52,7 +52,7 @@
   outline: none;
 }
 
-.dr-search .demo-input:focus {
+.dr-search .dr-input:focus {
   border-color: var(--vp-c-brand-1, #2563eb);
   box-shadow: 0 0 0 3px var(--vp-c-brand-soft, rgb(37 99 235 / 14%));
 }

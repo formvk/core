@@ -529,3 +529,41 @@ test('userReactions with primary type record', () => {
   expect(field0.title).toEqual(1)
   expect(field1.title).toEqual(2)
 })
+
+test('array schema recordKey maps to ArrayField', () => {
+  const form = createForm()
+  const field = attach(
+    form.createArrayField(
+      new Schema({
+        type: 'array',
+        name: 'array',
+        recordKey: 'id',
+        value: [{ id: 'aa' }, { id: 'bb' }],
+      }).toFieldProps()
+    )
+  )
+
+  expect(field.recordKey).toBe('id')
+  expect(field.getRecordKey(0)).toBe('aa')
+  expect(field.getRecordKey(1)).toBe('bb')
+  expect(field.getRecordKey(2)).toBe(2)
+})
+
+test('array schema recordKey keeps function value', () => {
+  const recordKey = (record: { id?: string }, index: number) => record.id ?? `row-${index}`
+  const form = createForm()
+  const field = attach(
+    form.createArrayField(
+      new Schema({
+        type: 'array',
+        name: 'array',
+        recordKey,
+        value: [{ id: 'aa' }, {}],
+      }).toFieldProps()
+    )
+  )
+
+  expect(field.recordKey).toBe(recordKey)
+  expect(field.getRecordKey(0)).toBe('aa')
+  expect(field.getRecordKey(1)).toBe('row-1')
+})

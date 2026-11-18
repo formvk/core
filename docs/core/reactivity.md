@@ -52,11 +52,11 @@
 
 ### Vue 3
 
-<demo vue="../demos/reactivity.vue" stackblitz="true" />
+<demo vue="../demos/zh/reactivity.vue" stackblitz="true" />
 
 ### React（TSX）
 
-<demo react="../demos/react/reactivity.tsx" stackblitz="true" />
+<demo react="../demos/react/zh/reactivity.tsx" stackblitz="true" />
 
 ## 与 Vue 组件配合
 

@@ -2,7 +2,7 @@
 
 reaction 在其他取值变化时更新字段：显示或隐藏字段、切换 `required`、改写状态，甚至替换字段 schema。reaction 定义在 schema 中，因此与框架无关。
 
-<demo react="../../demos/react/reactions.tsx" stackblitz="true" />
+<demo react="../../demos/react/zh/reactions.tsx" stackblitz="true" />
 
 示例复用了同一组 `reactions` 函数 —— 只有组件外壳与 JSX 不同。
 

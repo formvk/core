@@ -1,5 +1,5 @@
 import { Schema } from '@formvk/schema'
-import { isFn, isValid, lazyMerge } from '@formvk/shared'
+import { isFn, isValid, lazyMerge, FormPath } from '@formvk/shared'
 import { createElement, useContext, useMemo } from 'react'
 import type { ReactNode } from 'react'
 
@@ -40,18 +40,34 @@ export function RecursionField(props: IRecursionFieldProps) {
     [fieldSchema, options, scope]
   )
 
-  function getBasePath() {
+  // basePath 统一归一化为字符串：数组迁移会替换父字段地址的 FormPath 实例，
+  // 但地址字符串不变，用字符串判定可避免下游 fieldProps 被无谓地重建。
+  const parentAddress = parent?.address != null ? String(parent.address) : undefined
+  const basePath = useMemo(() => {
     if (props.onlyRenderProperties) {
-      return (
-        props.basePath ?? (isValid(props.name) ? (parent?.address ?? '').concat(props.name as any) : parent?.address)
-      )
+      if (props.basePath !== undefined && props.basePath !== null) return String(props.basePath)
+      if (isValid(props.name))
+        return FormPath.parse(parentAddress ?? '')
+          .concat(props.name as any)
+          .toString()
+      return parentAddress
     }
-    return props.basePath ?? parent?.address
-  }
+    return props.basePath !== undefined && props.basePath !== null ? String(props.basePath) : parentAddress
+  }, [props.basePath, props.onlyRenderProperties, props.name, parentAddress])
 
-  const basePath = getBasePath()
+  // fieldProps 是创建字段的关键数据，引用必须稳定：
+  // 每次渲染新建对象会击穿 ReactiveField 的 memo 与 useMemo，
+  // 让所有字段在任意父级重渲染时被重复解析。
+  const commonFieldProps = useMemo(
+    () => ({ ...fieldProps, name: props.name!, basePath }),
+    [fieldProps, props.name, basePath]
+  )
 
-  function generateSlots(): SlotMap {
+  /**
+   * attachToField 为 true 时子节点通过 FieldContext 取父字段地址（对象/void 字段的 ReactiveField 会提供 context），
+   * 否则（根节点 / onlyRenderProperties 不创建字段上下文）显式透传 basePath。
+   */
+  function generateSlots(attachToField: boolean): SlotMap {
     if (props.onlyRenderSelf) return {}
     const properties = Schema.getOrderProperties(fieldSchema)
     if (!properties.length) return {}
@@ -71,7 +87,12 @@ export function RecursionField(props: IRecursionFieldProps) {
       }
       const slotName = itemSchema.slot ?? 'default'
       const node = (
-        <RecursionField key={`${index}-${String(name)}`} schema={itemSchema} name={name} basePath={basePath} />
+        <RecursionField
+          key={`${index}-${String(name)}`}
+          schema={itemSchema}
+          name={name}
+          basePath={attachToField ? undefined : basePath}
+        />
       )
       ;(renderMap[slotName] ??= []).push(node)
     })
@@ -84,18 +105,14 @@ export function RecursionField(props: IRecursionFieldProps) {
   )
 
   if (!isValid(props.name)) {
-    return withSchema(resolveEmptySlot(generateSlots()))
-  }
-
-  const commonFieldProps = {
-    ...fieldProps,
-    name: props.name,
-    basePath,
+    return withSchema(resolveEmptySlot(generateSlots(false)))
   }
 
   if (fieldSchema.type === 'object') {
-    if (props.onlyRenderProperties) return withSchema(resolveEmptySlot(generateSlots()))
-    return withSchema(<ReactiveField fieldType="ObjectField" fieldProps={commonFieldProps} slots={generateSlots()} />)
+    if (props.onlyRenderProperties) return withSchema(resolveEmptySlot(generateSlots(false)))
+    return withSchema(
+      <ReactiveField fieldType="ObjectField" fieldProps={commonFieldProps} slots={generateSlots(true)} />
+    )
   }
 
   if (fieldSchema.type === 'array') {
@@ -103,8 +120,8 @@ export function RecursionField(props: IRecursionFieldProps) {
   }
 
   if (fieldSchema.type === 'void') {
-    if (props.onlyRenderProperties) return withSchema(resolveEmptySlot(generateSlots()))
-    return withSchema(<ReactiveField fieldType="VoidField" fieldProps={commonFieldProps} slots={generateSlots()} />)
+    if (props.onlyRenderProperties) return withSchema(resolveEmptySlot(generateSlots(false)))
+    return withSchema(<ReactiveField fieldType="VoidField" fieldProps={commonFieldProps} slots={generateSlots(true)} />)
   }
 
   return withSchema(<ReactiveField fieldType="Field" fieldProps={commonFieldProps} />)

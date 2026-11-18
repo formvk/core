@@ -23,9 +23,9 @@ const schema = createSchema({
 
 <template>
   <FormProvider :form="form">
-    <div class="demo">
+    <div class="dv-demo">
       <SchemaField :schema="schema" />
-      <div class="demo-result">values: {{ JSON.stringify(form.values) }}</div>
+      <div class="dv-result">values: {{ JSON.stringify(form.values) }}</div>
     </div>
   </FormProvider>
 </template>

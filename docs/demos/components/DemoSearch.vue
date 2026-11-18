@@ -27,8 +27,8 @@ async function onReset() {
     <FormProvider :form="model.form">
       <SchemaField :schema="schema" />
     </FormProvider>
-    <button class="dv-search__btn" @click="model.onSearch()">Search</button>
-    <button class="dv-search__btn dv-search__btn--ghost" @click="onReset">Reset</button>
+    <button class="dv-search__btn" @click="model.onSearch()">搜索</button>
+    <button class="dv-search__btn dv-search__btn--ghost" @click="onReset">重置</button>
   </span>
 </template>
 
@@ -42,7 +42,7 @@ async function onReset() {
 }
 
 /* Schema 字段在工具栏里横向排布：文档站由主题提供基础样式，这里补齐沙箱所需的部分 */
-.dv-search .demo-field {
+.dv-search .dv-field {
   display: grid;
   flex: 1;
   grid-template-columns: auto minmax(0, 1fr);
@@ -52,7 +52,7 @@ async function onReset() {
   margin-bottom: 0;
 }
 
-.dv-search .demo-field__label {
+.dv-search .dv-field__label {
   padding-top: 0;
   font-size: 14px;
   font-weight: 500;
@@ -61,19 +61,19 @@ async function onReset() {
   white-space: nowrap;
 }
 
-.dv-search .demo-field__control {
+.dv-search .dv-field__control {
   display: flex;
   flex-direction: column;
   gap: 4px;
   min-width: 0;
 }
 
-.dv-search .demo-field__error {
+.dv-search .dv-field__error {
   font-size: 12px;
   color: #e5484d;
 }
 
-.dv-search .demo-input {
+.dv-search .dv-input {
   box-sizing: border-box;
   width: 100%;
   padding: 7px 12px;
@@ -86,7 +86,7 @@ async function onReset() {
   outline: none;
 }
 
-.dv-search .demo-input:focus {
+.dv-search .dv-input:focus {
   border-color: var(--vp-c-brand-1, #2563eb);
   box-shadow: 0 0 0 3px var(--vp-c-brand-soft, rgb(37 99 235 / 14%));
 }

@@ -2,7 +2,17 @@ import { mount } from '@vue/test-utils'
 import { describe, expect, test, vi } from 'vitest'
 import { defineComponent, h, nextTick } from 'vue'
 
-import { FormProvider, SchemaField, connect, createForm, mapProps, mapReadPretty } from '..'
+import {
+  FormProvider,
+  RecursionField,
+  SchemaField,
+  connect,
+  createForm,
+  mapProps,
+  mapReadPretty,
+  useField,
+  useFieldSchema,
+} from '..'
 import { ReactiveField } from '../components/ReactiveField'
 import { Container, Decorator, Input, mountWithForm } from './shared'
 
@@ -690,5 +700,72 @@ describe('边界与降级渲染', () => {
     const DirectConnected = connect(Anon, mapProps({ title: 'title' }))
     const direct = mount(DirectConnected, { props: { title: 'direct-title' } })
     expect(direct.find('.anon').text()).toBe('direct-title|')
+  })
+})
+
+describe('数组字段图变更后的字段重绑定', () => {
+  const IndexArrayList = defineComponent({
+    name: 'IndexArrayList',
+    setup() {
+      const fieldRef = useField()
+      const schemaRef = useFieldSchema()
+      return () => {
+        const field = fieldRef.value as any
+        const items = (schemaRef.value as any)?.items
+        return (
+          <div class="index-array">
+            {(field.value ?? []).map((_item: any, index: number) => (
+              <div key={index}>
+                <RecursionField schema={items} name={index} basePath={field.address} />
+              </div>
+            ))}
+          </div>
+        )
+      }
+    },
+  })
+
+  test('索引 key 下删除 / 插入数组项后视图跟随字段迁移', async () => {
+    const form = createForm({ values: { users: [{ name: 'a' }, { name: 'b' }, { name: 'c' }] } })
+    const wrapper = mountWithForm(form, () => (
+      <SchemaField
+        components={{ ...components, IndexArrayList }}
+        schema={{
+          type: 'object',
+          properties: {
+            users: {
+              type: 'array',
+              component: 'IndexArrayList',
+              items: {
+                type: 'object',
+                properties: {
+                  name: { type: 'string', component: 'Input' },
+                },
+              },
+            },
+          },
+        }}
+      />
+    ))
+    const readValues = () => wrapper.findAll('input').map(input => (input.element as HTMLInputElement).value)
+    const arrayField = form.query('users').take() as any
+
+    expect(readValues()).toEqual(['a', 'b', 'c'])
+
+    arrayField.remove(0)
+    await nextTick()
+    expect(readValues()).toEqual(['b', 'c'])
+
+    // 重绑定后的第一行应写入 users.0，而不是已销毁的旧字段
+    await wrapper.findAll('input')[0].setValue('b2')
+    expect((form.values as any).users).toEqual([{ name: 'b2' }, { name: 'c' }])
+
+    arrayField.unshift({ name: 'x' })
+    await nextTick()
+    expect(readValues()).toEqual(['x', 'b2', 'c'])
+
+    await wrapper.findAll('input')[1].setValue('b3')
+    expect((form.values as any).users).toEqual([{ name: 'x' }, { name: 'b3' }, { name: 'c' }])
+    wrapper.unmount()
   })
 })

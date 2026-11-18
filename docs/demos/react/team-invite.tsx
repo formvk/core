@@ -238,23 +238,23 @@ export default observer(function TeamInviteDemo() {
 
   return (
     <FormProvider form={form}>
-      <div className="demo">
+      <div className="dr-demo">
         <SchemaField schema={schema} />
-        <div className="demo-actions">
-          <button type="button" className="demo-btn demo-btn--ghost" onClick={assignMemberRoleToAll}>
+        <div className="dr-actions">
+          <button type="button" className="dr-btn dr-btn--ghost" onClick={assignMemberRoleToAll}>
             Set all roles to Member
           </button>
-          <button type="button" className="demo-btn" disabled={form.submitting} onClick={onSubmit}>
+          <button type="button" className="dr-btn" disabled={form.submitting} onClick={onSubmit}>
             {form.submitting ? 'Creating…' : 'Create team'}
           </button>
-          <button type="button" className="demo-btn demo-btn--ghost" onClick={onReset}>
+          <button type="button" className="dr-btn dr-btn--ghost" onClick={onReset}>
             Reset
           </button>
         </div>
-        <div className="demo-result">{summary}</div>
-        {error ? <div className="demo-result">{error}</div> : null}
+        <div className="dr-result">{summary}</div>
+        {error ? <div className="dr-result">{error}</div> : null}
         {submitted ? (
-          <div className="demo-result">
+          <div className="dr-result">
             <pre>{submitted}</pre>
           </div>
         ) : null}

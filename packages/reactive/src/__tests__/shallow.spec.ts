@@ -3,6 +3,7 @@ import { expect, test, vi } from 'vitest'
 
 import { autorun } from '../autorun'
 import { shallow } from '../shallow'
+import { shallowRef } from '../shallowRef'
 
 test('shallow() 只有顶层变更触发 Vue effect', () => {
   const state = shallow({ top: 0, nested: { count: 0 } })
@@ -50,27 +51,62 @@ test('shallow() 不消费 formvk 的 registerSkip 规则', () => {
   expect(shallow(reactElement)).not.toBe(reactElement)
 })
 
-test('@shallow 装饰 accessor 字段：仅整体替换触发，内层对象变更不触发', () => {
+test('@shallow 装饰 accessor 字段：整体替换与内部顶层属性变更都触发，深层不触发', () => {
   class Model {
     @shallow accessor state = { nested: { count: 1 } }
   }
   const model = new Model()
   const handler = vi.fn()
-  autorun(() => handler(model.state))
+  autorun(() => handler(model.state.nested.count))
 
-  // 浅盒子的 .value 是原始内层对象，内层对象的任何变更（含其顶层属性）都不触发
+  // 深层变更不触发，autorun 不重跑，看到的仍是旧值
   model.state.nested.count = 2
   expect(handler).toHaveBeenCalledTimes(1)
+  expect(handler).toHaveBeenLastCalledWith(1)
 
+  // 顶层属性变更：读取到的是浅响应代理，能追踪到嵌套对象的整体替换
   model.state.nested = { count: 3 }
-  expect(handler).toHaveBeenCalledTimes(1)
+  expect(handler).toHaveBeenCalledTimes(2)
+  expect(handler).toHaveBeenLastCalledWith(3)
 
-  // 只有整体替换 accessor 才会写盒子的 value，触发响应；浅盒子不转换写入值，引用保持一致
+  // 整体替换 accessor 同样触发；写入值被包成浅响应代理，与原始对象引用不同但值一致
   const next = { nested: { count: 4 } }
   model.state = next
-  expect(handler).toHaveBeenCalledTimes(2)
-  expect(model.state).toBe(next)
-  expect(model.state.nested.count).toBe(4)
+  expect(handler).toHaveBeenCalledTimes(3)
+  expect(handler).toHaveBeenLastCalledWith(4)
+  expect(model.state).not.toBe(next)
+  expect(model.state).toEqual(next)
+})
+
+test('@shallowRef 与 @shallow 的 accessor 语义差异：前者仅整体替换', () => {
+  class RefModel {
+    @shallowRef accessor state = { nested: { count: 1 } }
+  }
+  class ShallowModel {
+    @shallow accessor state = { nested: { count: 1 } }
+  }
+
+  const refModel = new RefModel()
+  const shallowModel = new ShallowModel()
+  const refHandler = vi.fn()
+  const shallowHandler = vi.fn()
+  autorun(() => refHandler(refModel.state.nested.count))
+  autorun(() => shallowHandler(shallowModel.state.nested.count))
+
+  refModel.state.nested = { count: 2 }
+  shallowModel.state.nested = { count: 2 }
+  expect(refHandler).toHaveBeenCalledTimes(1)
+  expect(shallowHandler).toHaveBeenCalledTimes(2)
+
+  const refNext = { nested: { count: 3 } }
+  const shallowNext = { nested: { count: 4 } }
+  refModel.state = refNext
+  shallowModel.state = shallowNext
+  expect(refHandler).toHaveBeenCalledTimes(2)
+  expect(shallowHandler).toHaveBeenCalledTimes(3)
+  // shallowRef 保持引用透传，shallow 读取到的是浅响应代理
+  expect(refModel.state).toBe(refNext)
+  expect(shallowModel.state).not.toBe(shallowNext)
 })
 
 test('@shallow 装饰普通字段只跟踪顶层', () => {
@@ -109,7 +145,7 @@ test('@shallow 装饰方法与取值器时原样透传', () => {
   expect(store.label).toBe('shallow')
 })
 
-test('@shallow accessor 装饰数组：顶层替换响应，内层变更不响应', () => {
+test('@shallow accessor 装饰数组：整体替换与 push 响应，元素内部变更不响应', () => {
   class ShallowStore {
     @shallow accessor list = [{ n: 1 }]
   }
@@ -119,11 +155,18 @@ test('@shallow accessor 装饰数组：顶层替换响应，内层变更不响�
   autorun(() => handler(store.list.length))
   expect(handler).toHaveBeenCalledTimes(1)
 
+  // 元素本身不被代理，内部变更不触发
   store.list[0].n = 99
   expect(handler).toHaveBeenCalledTimes(1)
 
-  store.list = [{ n: 2 }]
+  // 数组是浅响应代理，索引 / length 变更可追踪
+  store.list.push({ n: 2 })
   expect(handler).toHaveBeenCalledTimes(2)
+  expect(handler).toHaveBeenLastCalledWith(2)
+
+  store.list = [{ n: 3 }]
+  expect(handler).toHaveBeenCalledTimes(3)
+  expect(handler).toHaveBeenLastCalledWith(1)
 })
 
 test('@shallow 普通字段装饰基础类型时原样返回', () => {

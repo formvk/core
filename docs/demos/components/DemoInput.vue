@@ -21,7 +21,7 @@ function onInput(event: Event) {
 
 <template>
   <input
-    class="demo-input"
+    class="dv-input"
     :type="type ?? 'text'"
     :value="value ?? ''"
     :placeholder="placeholder"
