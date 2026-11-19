@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.2.0-beta.3](https://github.com/formvk/core/compare/v1.2.0-beta.2...v1.2.0-beta.3) (2026-11-19)
+
+### Features
+
+- **vue:** 统一 Vue 字段组件使用 v-model 契约 ([07a6f1a](https://github.com/formvk/core/commit/07a6f1a1341ce1948bfc38a03e6b7a149b9efd13))
+- **vue:** 支持组件声明 modelValue 时使用 v-model 契约 ([5bf53c2](https://github.com/formvk/core/commit/5bf53c259edf9758e583c8dd6d546e9f196b912d))
+
 # [1.2.0-beta.2](https://github.com/formvk/core/compare/v1.2.0-beta.1...v1.2.0-beta.2) (2026-11-19)
 
 **Note:** Version bump only for package formvk-core
