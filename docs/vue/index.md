@@ -1,6 +1,6 @@
 # Vue 绑定
 
-`@formvk/vue` 重新导出了 `@formvk/schema`，因此一次导入即可拿到表单引擎、schema DSL、组件与 hooks。本页介绍 `createForm`、`createSchemaField` 与渲染组件；hooks 与组件工具见 [Hooks](/vue/hooks)，完整可运行表单见[示例](/vue/examples/basic-form)。
+`@formvk/vue` 重新导出了 `@formvk/schema`，因此一次导入即可拿到表单引擎、schema DSL、组件与 hooks。本页介绍 `createForm`、`createSchemaOptions` 与渲染组件；hooks 与组件工具见 [Hooks](/vue/hooks)，完整可运行表单见[示例](/vue/examples/basic-form)。
 
 > 相关参考：[Schema](/schema/) —— schema 模型、DSL 与表达式；[核心](/core/) —— `createForm`、字段模型、路径与生命周期钩子（从 `@formvk/core` 导入）；[校验](/core/validation) —— 规则、格式与消息本地化。
 
@@ -9,7 +9,7 @@ import {
   createForm,
   createFragment,
   createSchema,
-  createSchemaField,
+  createSchemaOptions,
   createExpression,
   Schema,
   FormProvider,
@@ -59,7 +59,7 @@ function createForm<T extends object = any>(options?: IFormProps<T>): Form<T>
 
 ### `SchemaField`
 
-渲染 schema 树。`components` 是扁平的 `name → component` 映射。`createSchemaField` 返回的 `SchemaField` 已预绑定组件，因此只有使用独立 `SchemaField` 时才需要传这个 prop。
+渲染 schema 树。`components` 是扁平的 `name → component` 映射。`SchemaField` 会读取 `OptionsProvider` 注入的组件与 `scope`，`props` 优先级更高；只有完全独立使用、不依赖注入时才需要自己传 `components`。
 
 | 属性                   | 类型                               | 说明                                              |
 | ---------------------- | ---------------------------------- | ------------------------------------------------- |
@@ -74,22 +74,28 @@ function createForm<T extends object = any>(options?: IFormProps<T>): Form<T>
 | `filterProperties`     | `(schema, name) => boolean`        | 返回 `false` 跳过某个子节点                       |
 | `hotReload`            | `boolean`                          | `schema` 引用变化时重建字段（仅建议开发环境开启） |
 
-### `createSchemaField`
+### `createSchemaOptions`
 
-`createSchemaField(options)` 返回一个双 key 对象：
+`createSchemaOptions(options)` 返回一个包含两个成员的对象：
 
-- `SchemaField` —— 已预绑定拍平后组件映射与 `scope` 的渲染组件，渲染时仍可传扁平 `components` prop 覆盖同名组件。
+- `OptionsProvider` —— 把工厂的组件映射与 `scope` 注入后代，`SchemaField` 读取并合并这两项；合并优先级由低到高为 `OptionsProvider` → `SchemaField` props。
 - `fragment` —— schema 构造器集合：基础构造器 `Field` / `Object` / `Array` / `Void` / `transform`，以及按组件名生成的快捷构造器（如 `Input`、`ArrayItems`）。
 
 `components` 是扁平的 `name → component` 映射，未声明分类的名字按 field 组件处理。`voidComponents` / `arrayComponents` 是归类布局组件与数组组件的**组件 map**，工厂会自动把它们合并进运行时组件映射，无需重复注册。所有类型都从 options 推断，无需传任何类型参数，也不用手写组件 map：
 
 <<< @/snippets/vue/schema-field.ts#full
 
-用预绑定的组件渲染，无需再传 `components` prop：
+`OptionsProvider` 在应用最外层注入一次就够了，树下所有 `SchemaField` 共享同一份默认组件与 `scope`，不需要在每个渲染点重复包裹：
 
 ```vue
-<SchemaField :schema="schema" />
+<OptionsProvider>
+  <FormProvider :form="form">
+    <SchemaField :schema="schema" />
+  </FormProvider>
+</OptionsProvider>
 ```
+
+`SchemaField` 的 `components` / `scope` props 仍可按实例覆盖同名项。
 
 | 选项               | 类型                         | 说明                                                                                         |
 | ------------------ | ---------------------------- | -------------------------------------------------------------------------------------------- |

@@ -18,7 +18,7 @@ Formvk 本身不渲染任何东西。schema 只声明组件名（`component: 'In
 
 ## 注册组件
 
-在 `SchemaField` 上一次性注册组件（或用 `createSchemaField` 预绑定）。映射的键就是 `component` 中使用的名字：
+在 `SchemaField` 上一次性注册组件（或用 `createSchemaOptions` + `OptionsProvider` 注入默认组件）。映射的键就是 `component` 中使用的名字：
 
 <<< @/snippets/react/field-component.tsx#register-app
 
@@ -30,10 +30,10 @@ Formvk 本身不渲染任何东西。schema 只声明组件名（`component: 'In
 
 <<< @/snippets/react/decorator.tsx#decorator
 
-把装饰器注册到同一份扁平映射，并用 `decorator: 'FormItem'` 引用它。若要应用到所有带标题的字段，把 `defaultDecorator` 传给 `createSchemaField`，无需逐个重复声明 —— 显式的 `decorator` 仍然优先：
+把装饰器注册到同一份扁平映射，并用 `decorator: 'FormItem'` 引用它。若要应用到所有带标题的字段，把 `defaultDecorator` 传给 `createSchemaOptions`，无需逐个重复声明 —— 显式的 `decorator` 仍然优先：
 
 ```ts
-const { SchemaField, fragment: f } = createSchemaField({
+const { OptionsProvider, fragment: f } = createSchemaOptions({
   components: { FormItem, Input },
   defaultDecorator: 'FormItem',
 })
@@ -51,13 +51,13 @@ const { SchemaField, fragment: f } = createSchemaField({
 
 <<< @/snippets/react/component-maps.tsx#void-array
 
-### 跳过手写 map：交给 `createSchemaField` 推断
+### 跳过手写 map：交给 `createSchemaOptions` 推断
 
-当 schema 与组件在同一应用内时，给 `createSchemaField` 传入扁平的运行时组件映射，并用 `voidComponents` / `arrayComponents` 组件 map 归类特殊组件 —— 它们会自动合并进运行时组件映射，无需重复注册。工厂返回 `{ SchemaField, fragment }` 并自动提取每个组件的 props —— 不用手写组件 map，也不用传类型参数：
+当 schema 与组件在同一应用内时，给 `createSchemaOptions` 传入扁平的运行时组件映射，并用 `voidComponents` / `arrayComponents` 组件 map 归类特殊组件 —— 它们会自动合并进运行时组件映射，无需重复注册。工厂返回 `{ OptionsProvider, fragment }` 并自动提取每个组件的 props —— 不用手写组件 map，也不用传类型参数：
 
 <<< @/snippets/react/component-maps.tsx#inference
 
-返回的 `SchemaField` 已预绑定拍平后的映射，因此渲染时无需 `components` prop：`<SchemaField schema={schema} />`。完整选项列表见 [React 绑定](/react/#schemafield)。
+在应用根部用 `OptionsProvider` 注入一次即可，树下所有 `SchemaField` 共享这些默认组件，无需 `components` prop，也不用在每个渲染点重复包裹。完整选项列表见 [React 绑定](/react/#createschemaoptions)。
 
 ## 适配现有组件库
 

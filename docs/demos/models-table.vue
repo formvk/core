@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { TableModel } from '@formvk/models'
-import { createSchema, createSchemaField } from '@formvk/vue'
+import { createSchema, createSchemaOptions } from '@formvk/vue'
 import { onMounted } from 'vue'
 
 import { DemoArrayItems, demoComponents, FormItem } from './components'
@@ -58,7 +58,7 @@ const columns = [
   { key: 'role', title: '角色' },
 ]
 
-const { fragment: f } = createSchemaField({
+const { fragment: f } = createSchemaOptions({
   components: demoComponents,
   voidComponents: { FormItem },
   arrayComponents: { ArrayItems: DemoArrayItems },

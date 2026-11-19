@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TableModel } from '@formvk/models'
-import { createSchemaField, FormProvider, type ISchema } from '@formvk/vue'
+import { createSchemaOptions, FormProvider, type ISchema, SchemaField } from '@formvk/vue'
 
 import { DemoArrayItems, demoComponents, FormItem } from './index'
 
@@ -9,7 +9,7 @@ const props = defineProps<{
   schema: ISchema
 }>()
 
-const { SchemaField } = createSchemaField({
+const { OptionsProvider } = createSchemaOptions({
   components: demoComponents,
   voidComponents: { FormItem },
   arrayComponents: { ArrayItems: DemoArrayItems },
@@ -23,13 +23,15 @@ async function onReset() {
 </script>
 
 <template>
-  <span class="dv-search">
-    <FormProvider :form="model.form">
-      <SchemaField :schema="schema" />
-    </FormProvider>
-    <button class="dv-search__btn" @click="model.onSearch()">搜索</button>
-    <button class="dv-search__btn dv-search__btn--ghost" @click="onReset">重置</button>
-  </span>
+  <OptionsProvider>
+    <span class="dv-search">
+      <FormProvider :form="model.form">
+        <SchemaField :schema="schema" />
+      </FormProvider>
+      <button class="dv-search__btn" @click="model.onSearch()">搜索</button>
+      <button class="dv-search__btn dv-search__btn--ghost" @click="onReset">重置</button>
+    </span>
+  </OptionsProvider>
 </template>
 
 <style>

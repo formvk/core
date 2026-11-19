@@ -1,12 +1,12 @@
 import type { TableModel } from '@formvk/models'
-import { createSchemaField, FormProvider, type ISchema } from '@formvk/react'
+import { createSchemaOptions, FormProvider, type ISchema, SchemaField } from '@formvk/react'
 import { observer } from '@formvk/reactive-react'
 
 import { DemoArrayItems, demoComponents, FormItem } from './index'
 
 import './dr-search.css'
 
-const { SchemaField } = createSchemaField({
+const { OptionsProvider } = createSchemaOptions({
   components: demoComponents,
   voidComponents: { FormItem },
   arrayComponents: { ArrayItems: DemoArrayItems },
@@ -25,17 +25,19 @@ export const DemoSearch = observer(function DemoSearch({ model, schema }: DemoSe
   }
 
   return (
-    <span className="dr-search">
-      <FormProvider form={model.form}>
-        <SchemaField schema={schema} />
-      </FormProvider>
-      <button type="button" className="dr-search__btn" onClick={() => model.onSearch()}>
-        搜索
-      </button>
-      <button type="button" className="dr-search__btn dr-search__btn--ghost" onClick={onReset}>
-        重置
-      </button>
-    </span>
+    <OptionsProvider>
+      <span className="dr-search">
+        <FormProvider form={model.form}>
+          <SchemaField schema={schema} />
+        </FormProvider>
+        <button type="button" className="dr-search__btn" onClick={() => model.onSearch()}>
+          搜索
+        </button>
+        <button type="button" className="dr-search__btn dr-search__btn--ghost" onClick={onReset}>
+          重置
+        </button>
+      </span>
+    </OptionsProvider>
   )
 })
 

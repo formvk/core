@@ -62,5 +62,5 @@ React hooks 返回的是**裸值**，不是 Vue 风格的 ref，不需要 `.valu
 
 ## 下一步
 
-- [React 绑定](/react/) —— `createForm`、`createSchemaField` 与渲染组件。
+- [React 绑定](/react/) —— `createForm`、`createSchemaOptions` 与渲染组件。
 - [自定义组件](/react/custom-components) —— 字段组件与数组组件契约。

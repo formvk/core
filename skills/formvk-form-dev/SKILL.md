@@ -24,7 +24,7 @@ description: Build forms with formvk in Vue or React apps. Use when creating sch
 | 模型类型、effect 钩子  | `@formvk/core` | `@formvk/core`           |
 | `observer`             | 不需要         | `@formvk/reactive-react` |
 
-- 绑定包重导出 `@formvk/schema`，`createForm`、`createSchema`、`createSchemaField`、`FormProvider`、`SchemaField` 优先从绑定包导入。
+- 绑定包重导出 `@formvk/schema`，`createForm`、`createSchema`、`createSchemaOptions`、`FormProvider`、`OptionsProvider`、`SchemaField` 优先从绑定包导入。
 - `onFieldValueChange`、`onFormSubmit` 等 effect 钩子，以及 `Field`、`ArrayField` 等模型类型，从 `@formvk/core` 导入。
 - React 组件读取字段或表单状态时必须用 `observer` 包裹；Vue 不需要。
 
@@ -33,19 +33,30 @@ description: Build forms with formvk in Vue or React apps. Use when creating sch
 - schema 是静态数据，放模块级，只构建一次。
 - form 是有状态模型：React 用 `useState(() => createForm(...))` 惰性创建；Vue 在 `<script setup>` 中创建。
 - `FormProvider` 提供 form，`SchemaField` 消费 schema，字段组件通过 `useField()` 读取当前字段。
+- `OptionsProvider` 在应用最外层注入一次就够了，树下所有 `SchemaField` 共享同一份组件映射与 `scope`，不要在每个渲染点重复包裹。
 
 ## 组件 map 与 `f.Input`
 
-schema 只存组件名，组件先注册进 map，再交给 `createSchemaField`。返回的 `fragment` 会为每个组件名生成动态构造器：
+schema 只存组件名，组件先注册进 map，再交给 `createSchemaOptions`。它返回 `OptionsProvider` 与 `fragment`，后者会为每个组件名生成动态构造器：
 
 ```ts
-import { createSchemaField } from '@formvk/vue' // React 换成 @formvk/react
+import { createSchemaOptions } from '@formvk/vue' // React 换成 @formvk/react
 
 import { Input } from './components/Input'
 
-const { SchemaField, fragment: f } = createSchemaField({
+const { OptionsProvider, fragment: f } = createSchemaOptions({
   components: { Input },
 })
+```
+
+渲染时在应用最外层注入一次 `OptionsProvider`，内部所有 `SchemaField` 共享默认组件，无需再传 `components`：
+
+```vue
+<OptionsProvider>
+  <FormProvider :form="form">
+    <SchemaField :schema="schema" />
+  </FormProvider>
+</OptionsProvider>
 ```
 
 ```ts
@@ -110,7 +121,7 @@ form.reset() // 可传 { forceClear: true }
 ## 联动
 
 ```ts
-const { fragment: f } = createSchemaField({
+const { fragment: f } = createSchemaOptions({
   components: { Input, Select },
 })
 
@@ -161,7 +172,7 @@ const schema = createSchema({
 注册数组组件后使用 `f.ArrayItems`，第一个参数仍是数组项 creator：
 
 ```ts
-const { SchemaField, fragment: f } = createSchemaField({
+const { fragment: f } = createSchemaOptions({
   components: { Input },
   arrayComponents: { ArrayItems },
 })
@@ -193,13 +204,13 @@ const schema = createSchema({
 
 ## 框架差异
 
-| 事项         | Vue                            | React                             |
-| ------------ | ------------------------------ | --------------------------------- |
-| `useField()` | `Ref`，模板自动解包            | 裸值或 `undefined`                |
-| 响应式       | 自动                           | 必须 `observer`                   |
-| form 创建    | `<script setup>` 中创建        | `useState(() => createForm(...))` |
-| 写入原始值   | `setValue`                     | `setValue` 或注入的 `onChange`    |
-| 组件注册     | 工厂预绑定或 `components` prop | 同左                              |
+| 事项         | Vue                                    | React                             |
+| ------------ | -------------------------------------- | --------------------------------- |
+| `useField()` | `Ref`，模板自动解包                    | 裸值或 `undefined`                |
+| 响应式       | 自动                                   | 必须 `observer`                   |
+| form 创建    | `<script setup>` 中创建                | `useState(() => createForm(...))` |
+| 写入原始值   | `setValue`                             | `setValue` 或注入的 `onChange`    |
+| 组件注册     | `OptionsProvider` 或 `components` prop | 同左                              |
 
 ## 常见坑
 

@@ -39,7 +39,7 @@ npx skills add formvk/core --skill formvk-form-dev
 
 ### React
 
-React 版本使用同构的组件与 hooks：schema 与 `createSchemaField` 工厂放在模块级，表单在组件内惰性创建。
+React 版本使用同构的组件与 hooks：schema 与 `createSchemaOptions` 工厂放在模块级，表单在组件内惰性创建。
 
 <demo react="../demos/react/zh/getting-started.tsx" stackblitz="true" />
 

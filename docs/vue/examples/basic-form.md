@@ -1,6 +1,6 @@
 # 基础表单
 
-一个包含初始值、校验规则、提交与重置的完整表单 —— schema 由 `createSchemaField` 返回的 fragment 构建，它会从扁平组件映射中推导出每个组件的 prop 类型。
+一个包含初始值、校验规则、提交与重置的完整表单 —— schema 由 `createSchemaOptions` 返回的 fragment 构建，它会从扁平组件映射中推导出每个组件的 prop 类型。
 
 <demo vue="../../demos/zh/basic-form.vue" stackblitz="true" />
 
@@ -8,7 +8,7 @@
 
 ```vue
 <script setup lang="ts">
-import { createForm, FormProvider, createSchema, createSchemaField } from '@formvk/vue'
+import { createForm, FormProvider, createSchema, createSchemaOptions, SchemaField } from '@formvk/vue'
 
 import { DemoArrayItems, demoComponents, FormItem } from '../demos/components'
 
@@ -17,7 +17,7 @@ const form = createForm({
 })
 
 // 扁平组件映射驱动全部类型推断：无需泛型参数
-const { SchemaField, fragment: f } = createSchemaField({
+const { OptionsProvider, fragment: f } = createSchemaOptions({
   components: demoComponents,
   voidComponents: { FormItem },
   arrayComponents: { ArrayItems: DemoArrayItems },
@@ -42,10 +42,12 @@ async function onSubmit() {
 </script>
 
 <template>
-  <FormProvider :form="form">
-    <SchemaField :schema="schema" />
-    <button @click="onSubmit">Submit</button>
-  </FormProvider>
+  <OptionsProvider>
+    <FormProvider :form="form">
+      <SchemaField :schema="schema" />
+      <button @click="onSubmit">Submit</button>
+    </FormProvider>
+  </OptionsProvider>
 </template>
 ```
 

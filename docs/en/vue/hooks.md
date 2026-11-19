@@ -63,5 +63,5 @@ The connected component is marked `markRaw` and passes props through unchanged w
 
 ## Next steps
 
-- [Vue bindings](/en/vue/) — `createForm`, `createSchemaField` and the rendering components.
+- [Vue bindings](/en/vue/) — `createForm`, `createSchemaOptions` and the rendering components.
 - [Custom components](/en/vue/custom-components) — field and array component contracts.

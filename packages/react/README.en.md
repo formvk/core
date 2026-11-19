@@ -15,7 +15,7 @@ pnpm add @formvk/react react react-dom
 ## Usage
 
 ```tsx
-import { createForm, createSchema, createSchemaField, FormProvider } from '@formvk/react'
+import { createForm, createSchema, createSchemaOptions, FormProvider, SchemaField } from '@formvk/react'
 import { useState } from 'react'
 
 function Input(props: { value?: string }) {
@@ -23,7 +23,7 @@ function Input(props: { value?: string }) {
 }
 
 // schema and component factory are static: build them once at module scope
-const { SchemaField, fragment: f } = createSchemaField({
+const { OptionsProvider, fragment: f } = createSchemaOptions({
   components: { Input },
 })
 
@@ -36,16 +36,18 @@ export default function App() {
   const [form] = useState(() => createForm({ values: { name: '' } }))
 
   return (
-    <FormProvider form={form}>
-      <SchemaField schema={schema} />
-    </FormProvider>
+    <OptionsProvider>
+      <FormProvider form={form}>
+        <SchemaField schema={schema} />
+      </FormProvider>
+    </OptionsProvider>
   )
 }
 ```
 
 ## API
 
-- **Components** — `FormProvider`, `SchemaField`, `createSchemaField`, `RecursionField`, `ExpressionScope`, `FormConsumer`, `ReactiveField`.
+- **Components** — `FormProvider`, `SchemaField`, `OptionsProvider`, `createSchemaOptions`, `RecursionField`, `ExpressionScope`, `FormConsumer`, `ReactiveField`.
 - **Hooks** — `useForm`, `useField`, `useFieldSchema`, `useAttach`, `useFormEffects`, `useParentForm`.
 - **Helpers** — `createForm`, `connect`, `mapProps`, `mapReadPretty`.
 - **Schema** — re-exports `@formvk/schema` (`createFragment`, `createSchema`, `ISchema`, expression types, ...).

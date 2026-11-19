@@ -10,11 +10,11 @@ schema 与工厂放模块级，form 在组件内创建：
 
 ```ts
 // schema.ts
-import { createSchema, createSchemaField } from '@formvk/vue'
+import { createSchema, createSchemaOptions } from '@formvk/vue'
 
 import { Input } from './components/Input'
 
-export const { SchemaField, fragment: f } = createSchemaField({
+export const { OptionsProvider, fragment: f } = createSchemaOptions({
   components: { Input },
 })
 
@@ -27,19 +27,23 @@ export const schema = createSchema({
 ```vue
 <!-- App.vue -->
 <script setup lang="ts">
-import { createForm, FormProvider } from '@formvk/vue'
+import { createForm, FormProvider, SchemaField } from '@formvk/vue'
 
-import { SchemaField, schema } from './schema'
+import { OptionsProvider, schema } from './schema'
 
 const form = createForm({ values: { name: '' } })
 </script>
 
 <template>
-  <FormProvider :form="form">
-    <SchemaField :schema="schema" />
-  </FormProvider>
+  <OptionsProvider>
+    <FormProvider :form="form">
+      <SchemaField :schema="schema" />
+    </FormProvider>
+  </OptionsProvider>
 </template>
 ```
+
+- `OptionsProvider` 在应用最外层注入一次即可，页面内多个表单、弹窗里的 `SchemaField` 共享同一份默认组件，不要重复包裹。
 
 ## 自定义字段控件
 

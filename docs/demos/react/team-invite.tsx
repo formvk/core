@@ -1,5 +1,5 @@
 import { onFieldValueChange } from '@formvk/core'
-import { createForm, createSchema, createSchemaField, FormProvider } from '@formvk/react'
+import { createForm, createSchema, createSchemaOptions, FormProvider, SchemaField } from '@formvk/react'
 import { observer } from '@formvk/reactive-react'
 import { useState } from 'react'
 
@@ -36,7 +36,7 @@ async function ensureEmailAvailable(value: unknown) {
 }
 
 // The schema and the component factory are static, so they stay at module level.
-const { SchemaField, fragment: f } = createSchemaField({
+const { OptionsProvider, fragment: f } = createSchemaOptions({
   components: demoComponents,
   voidComponents: { FormItem },
   arrayComponents: { ArrayItems: DemoArrayItems },
@@ -237,28 +237,30 @@ export default observer(function TeamInviteDemo() {
   }
 
   return (
-    <FormProvider form={form}>
-      <div className="dr-demo">
-        <SchemaField schema={schema} />
-        <div className="dr-actions">
-          <button type="button" className="dr-btn dr-btn--ghost" onClick={assignMemberRoleToAll}>
-            Set all roles to Member
-          </button>
-          <button type="button" className="dr-btn" disabled={form.submitting} onClick={onSubmit}>
-            {form.submitting ? 'Creating…' : 'Create team'}
-          </button>
-          <button type="button" className="dr-btn dr-btn--ghost" onClick={onReset}>
-            Reset
-          </button>
-        </div>
-        <div className="dr-result">{summary}</div>
-        {error ? <div className="dr-result">{error}</div> : null}
-        {submitted ? (
-          <div className="dr-result">
-            <pre>{submitted}</pre>
+    <OptionsProvider>
+      <FormProvider form={form}>
+        <div className="dr-demo">
+          <SchemaField schema={schema} />
+          <div className="dr-actions">
+            <button type="button" className="dr-btn dr-btn--ghost" onClick={assignMemberRoleToAll}>
+              Set all roles to Member
+            </button>
+            <button type="button" className="dr-btn" disabled={form.submitting} onClick={onSubmit}>
+              {form.submitting ? 'Creating…' : 'Create team'}
+            </button>
+            <button type="button" className="dr-btn dr-btn--ghost" onClick={onReset}>
+              Reset
+            </button>
           </div>
-        ) : null}
-      </div>
-    </FormProvider>
+          <div className="dr-result">{summary}</div>
+          {error ? <div className="dr-result">{error}</div> : null}
+          {submitted ? (
+            <div className="dr-result">
+              <pre>{submitted}</pre>
+            </div>
+          ) : null}
+        </div>
+      </FormProvider>
+    </OptionsProvider>
   )
 })

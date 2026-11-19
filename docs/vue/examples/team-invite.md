@@ -55,10 +55,10 @@ const form = createForm<TeamInviteValues>({
 
 ## 2. 用组件映射构建 schema
 
-`createSchemaField` 一次性完成组件分类并返回带类型的 `fragment`，无需手写组件映射：
+`createSchemaOptions` 一次性完成组件分类并返回带类型的 `fragment`，无需手写组件映射：
 
 ```ts
-const { SchemaField, fragment: f } = createSchemaField({
+const { fragment: f } = createSchemaOptions({
   components: demoComponents, // Input, NumberInput, Select, Checkbox, Textarea
   voidComponents: { FormItem },
   arrayComponents: { ArrayItems: DemoArrayItems },

@@ -2,27 +2,23 @@ import type { Form } from '@formvk/core'
 import { createFragment, Schema } from '@formvk/schema'
 import type { AnyComponent, ISchema, SchemaKey } from '@formvk/schema'
 import { FormPath, isValid } from '@formvk/shared'
-import { useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useContext, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import type { ReactNode } from 'react'
 
 import { useField } from '../hooks/useField'
 import { useForm } from '../hooks/useForm'
-import { SchemaExpressionScopeContext, SchemaOptionsContext } from '../shared/context'
+import { SchemaExpressionScopeContext, SchemaOptionsContext, SchemaOptionsProviderContext } from '../shared/context'
 import type {
   InferArrayComponents,
   InferFieldComponents,
   InferVoidComponents,
-  ISchemaFieldFactoryOptions,
   ISchemaFieldProps,
   ISchemaFieldRuntimeOptions,
-  SchemaFieldFactoryResult,
+  ISchemaOptionsFactoryOptions,
+  SchemaOptionsFactoryResult,
   SchemaReactComponents,
 } from '../types'
 import { RecursionField } from './RecursionField'
-
-interface ISchemaFieldInnerProps extends ISchemaFieldProps {
-  /** createSchemaField 预绑定的 components 与 scope，直接使用 SchemaField 时不存在 */
-  prebound?: ISchemaFieldRuntimeOptions
-}
 
 function joinPath(prefix: string, segment: SchemaKey | '*') {
   return prefix ? `${prefix}.${segment}` : String(segment)
@@ -99,18 +95,21 @@ function applyHotReload(form: Form, prev: Schema, next: Schema, basePath: string
   })
 }
 
-export function SchemaField(props: ISchemaFieldInnerProps) {
+export function SchemaField(props: ISchemaFieldProps) {
   const form = useForm()
   const parent = useField()
+
+  // OptionsProvider 注入默认 components 与 scope，SchemaField 自身的 props 优先级更高
+  const providedOptions = useContext(SchemaOptionsProviderContext)
 
   const fieldSchema = useMemo(() => toSchema(props.schema), [props.schema])
 
   const options = useMemo<ISchemaFieldRuntimeOptions>(
     () => ({
-      components: { ...props.prebound?.components, ...props.components },
-      scope: { ...props.prebound?.scope, ...props.scope },
+      components: { ...providedOptions?.components, ...props.components },
+      scope: { ...providedOptions?.scope, ...props.scope },
     }),
-    [props.prebound, props.components, props.scope]
+    [providedOptions, props.components, props.scope]
   )
 
   // 对齐 Vue watch(schema, { flush: 'pre' })：外部 store 的销毁不能放在渲染期
@@ -150,22 +149,22 @@ export function SchemaField(props: ISchemaFieldInnerProps) {
 SchemaField.displayName = 'SchemaField'
 
 /**
- * 基于扁平组件映射与分类组件 map 创建 SchemaField + fragment：
+ * 基于扁平组件映射与分类组件 map 创建 OptionsProvider + fragment：
  * - voidComponents / arrayComponents 只接收组件 map，分类名由工厂内部提取后传给 fragment
  * - 分类组件会自动合并进运行时组件映射，无需在 components 中重复注册
- * - 返回的 SchemaField 已预绑定拍平后的组件与 scope，props 仍可传扁平 map 覆盖同名组件
+ * - 返回的 OptionsProvider 向后代 SchemaField 注入拍平后的组件与 scope，SchemaField props 可覆盖同名项
  * - fragment 包含 Field / Object / Array / Void / transform 与按组件名生成的动态构造器
  * 组件 props、字段值与 scope 类型全部自动推断，无需手写类型参数。
  */
-export function createSchemaField<
+export function createSchemaOptions<
   F extends SchemaReactComponents = SchemaReactComponents,
   V extends SchemaReactComponents = {},
   A extends SchemaReactComponents = {},
   Scope extends object = Record<string, any>,
   Decorator extends AnyComponent<InferVoidComponents<V, A>> = AnyComponent<InferVoidComponents<V, A>>,
 >(
-  factoryOptions: ISchemaFieldFactoryOptions<F, V, A, Scope, Decorator> = {}
-): SchemaFieldFactoryResult<F, V, A, Scope, Decorator> {
+  factoryOptions: ISchemaOptionsFactoryOptions<F, V, A, Scope, Decorator> = {}
+): SchemaOptionsFactoryResult<F, V, A, Scope, Decorator> {
   const voidComponents = factoryOptions.voidComponents ?? {}
   const arrayComponents = factoryOptions.arrayComponents ?? {}
   const flatComponents: SchemaReactComponents = {
@@ -187,13 +186,15 @@ export function createSchemaField<
     defaultDecorator: factoryOptions.defaultDecorator,
   })
 
-  const prebound: ISchemaFieldRuntimeOptions = {
+  const options: ISchemaFieldRuntimeOptions = {
     components: flatComponents,
     scope: factoryOptions.scope,
   }
 
-  const BoundSchemaField = (props: ISchemaFieldProps) => <SchemaField {...props} prebound={prebound} />
-  BoundSchemaField.displayName = 'SchemaField'
+  const OptionsProvider = ({ children }: { children?: ReactNode }) => (
+    <SchemaOptionsProviderContext.Provider value={options}>{children}</SchemaOptionsProviderContext.Provider>
+  )
+  OptionsProvider.displayName = 'SchemaOptionsProvider'
 
-  return { SchemaField: BoundSchemaField as typeof SchemaField, fragment }
+  return { OptionsProvider, fragment }
 }

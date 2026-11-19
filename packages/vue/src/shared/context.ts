@@ -13,3 +13,7 @@ export const SchemaSymbol: InjectionKey<Ref<Schema>> = Symbol('schema')
 export const SchemaExpressionScopeSymbol: InjectionKey<Ref<Record<string, any>>> = Symbol('schemaExpression')
 
 export const SchemaOptionsSymbol: InjectionKey<Ref<ISchemaFieldRuntimeOptions>> = Symbol('schemaOptions')
+
+/** createSchemaOptions 返回的 OptionsProvider 注入的选项，SchemaField 读取后与自身 props 合并。 */
+export const SchemaOptionsProviderSymbol: InjectionKey<Ref<ISchemaFieldRuntimeOptions>> =
+  Symbol('schemaOptionsProvider')

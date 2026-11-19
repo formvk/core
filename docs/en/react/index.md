@@ -1,6 +1,6 @@
 # React Bindings
 
-`@formvk/react` re-exports `@formvk/schema`, so a single import gives you the form engine, the schema DSL, components and hooks. It is the isomorphic twin of `@formvk/vue`: the schema DSL, the form model and every type are shared, only the rendering layer is React-specific. This page covers `createForm`, `createSchemaField` and the rendering components; hooks live in [Hooks](/en/react/hooks), and complete runnable forms in [Examples](/en/react/examples/basic-form).
+`@formvk/react` re-exports `@formvk/schema`, so a single import gives you the form engine, the schema DSL, components and hooks. It is the isomorphic twin of `@formvk/vue`: the schema DSL, the form model and every type are shared, only the rendering layer is React-specific. This page covers `createForm`, `createSchemaOptions` and the rendering components; hooks live in [Hooks](/en/react/hooks), and complete runnable forms in [Examples](/en/react/examples/basic-form).
 
 > Related references: [Vue bindings](/en/vue/) — the same API surface for Vue 3; [Schema](/en/schema/) — the schema model, DSL and expressions; [Core](/en/core/) — `createForm`, field models, paths and lifecycle hooks; [Validation](/en/core/validation) — rules, formats and message localization.
 
@@ -10,7 +10,7 @@
 pnpm add @formvk/react @formvk/reactive-react react react-dom
 ```
 
-The same form as the Vue quick start, rendered with React. The schema and the `createSchemaField` factory stay at module level; the form is created lazily inside the component:
+The same form as the Vue quick start, rendered with React. The schema and the `createSchemaOptions` factory stay at module level; the form is created lazily inside the component:
 
 <demo react="../../demos/react/getting-started.tsx" stackblitz="true" />
 
@@ -19,7 +19,7 @@ import {
   createForm,
   createFragment,
   createSchema,
-  createSchemaField,
+  createSchemaOptions,
   createExpression,
   Schema,
   FormProvider,
@@ -49,7 +49,7 @@ function createForm<T extends object = any>(options?: IFormProps<T>): Form<T>
 
 Creates a form model. Unlike the Vue binding, no `markRaw` step is needed: React never converts plain objects into reactive proxies, and the `Form` instance carries its own decorated reactive accessors.
 
-**Where to create the form.** Keep the `createSchemaField` factory and the `schema` at module level — they are static and safely shared — but create the form lazily inside the component. A function component re-runs its body on every render, so a bare `createForm()` would rebuild the model on every render; a module-level singleton would instead share one piece of state across every mounted instance and keep stale values alive after unmount. The `useState` lazy initializer runs exactly once per instance, and `FormProvider` disposes the model on unmount:
+**Where to create the form.** Keep the `createSchemaOptions` factory and the `schema` at module level — they are static and safely shared — but create the form lazily inside the component. A function component re-runs its body on every render, so a bare `createForm()` would rebuild the model on every render; a module-level singleton would instead share one piece of state across every mounted instance and keep stale values alive after unmount. The `useState` lazy initializer runs exactly once per instance, and `FormProvider` disposes the model on unmount:
 
 <<< @/snippets/react/lazy-form.tsx
 
@@ -92,7 +92,7 @@ A render-props component that receives the form through its `children` function.
 
 ### `SchemaField`
 
-Renders a schema tree. `components` is a flat `name → component` map. The `SchemaField` returned by `createSchemaField` is already pre-bound, so this prop is only needed when using the standalone `SchemaField`.
+Renders a schema tree. `components` is a flat `name → component` map. `SchemaField` reads the components and `scope` injected by `OptionsProvider`, while its own props take precedence; pass `components` yourself only when the field is used standalone without a provider.
 
 | Prop                   | Type                               | Description                                                     |
 | ---------------------- | ---------------------------------- | --------------------------------------------------------------- |
@@ -109,24 +109,28 @@ Renders a schema tree. `components` is a flat `name → component` map. The `Sch
 
 `hotReload` mirrors the Vue binding's `watch(schema, { flush: 'pre' })`, but React cannot destroy external stores during render (scheduling other observers there triggers cross-component `setState` warnings). Instead the diff runs in `useLayoutEffect`: stale fields are cleared before paint while values are preserved, and the `RecursionField` subtree is remounted wholesale through a changed `key`. A ref guard keeps the effect idempotent under StrictMode double invocation.
 
-### `createSchemaField`
+### `createSchemaOptions`
 
-`createSchemaField(options)` returns a two-key object:
+`createSchemaOptions(options)` returns an object with two members:
 
-- `SchemaField` — a render component pre-bound with the flattened component map and `scope`. You can still pass a flat `components` prop to override individual components at render time.
+- `OptionsProvider` — provides the factory's component map and `scope` to descendants; `SchemaField` reads and merges them. Merge precedence, lowest to highest, is `OptionsProvider` → `SchemaField` props.
 - `fragment` — the schema builder: the base creators `Field` / `Object` / `Array` / `Void` / `transform`, plus one shorthand creator per component name (for example `Input`, `ArrayItems`).
 
 `components` is a flat `name → component` map; names not listed in a category are treated as field components. `voidComponents` / `arrayComponents` are component maps that classify layout and array components; the factory merges them into the runtime component map automatically, so no duplicate registration is needed. All types are inferred from the options — no type arguments and no hand-written component maps:
 
 <<< @/snippets/react/schema-field.tsx#full
 
-Render with the pre-bound component — no `components` prop is needed. The form is created lazily inside the component, as shown in [`createForm`](#createform):
+Inject `OptionsProvider` once at the outermost layer of the app; every `SchemaField` in the subtree shares the same default components and `scope`, so there is no need to wrap each render site. The form is created lazily inside the component, as shown in [`createForm`](#createform):
 
 ```tsx
-<FormProvider form={form}>
-  <SchemaField schema={schema} />
-</FormProvider>
+<OptionsProvider>
+  <FormProvider form={form}>
+    <SchemaField schema={schema} />
+  </FormProvider>
+</OptionsProvider>
 ```
+
+The `components` / `scope` props of `SchemaField` can still override individual entries per instance.
 
 | Option             | Type                        | Description                                                                                                           |
 | ------------------ | --------------------------- | --------------------------------------------------------------------------------------------------------------------- |

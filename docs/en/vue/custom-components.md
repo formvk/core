@@ -18,7 +18,7 @@ In Vue `useField()` returns a ref: read it through `.value` in `<script setup>`,
 
 ## Register the component
 
-Register components once on `SchemaField` (or pre-bind them with `createSchemaField`). The map keys are the names used in `component`:
+Register components once on `SchemaField` (or inject defaults with `createSchemaOptions` + `OptionsProvider`). The map keys are the names used in `component`:
 
 <<< @/snippets/vue/register-app.vue
 
@@ -30,10 +30,10 @@ A decorator wraps the field control with layout: label, required mark, help text
 
 <<< @/snippets/vue/decorator.vue
 
-Register the decorator in the same flat map and reference it with `decorator: 'FormItem'`. To apply it to every titled field, pass `defaultDecorator` to `createSchemaField` instead of repeating the key — explicit `decorator` values still win:
+Register the decorator in the same flat map and reference it with `decorator: 'FormItem'`. To apply it to every titled field, pass `defaultDecorator` to `createSchemaOptions` instead of repeating the key — explicit `decorator` values still win:
 
 ```ts
-const { SchemaField, fragment: f } = createSchemaField({
+const { OptionsProvider, fragment: f } = createSchemaOptions({
   components: { FormItem, Input },
   defaultDecorator: 'FormItem',
 })
@@ -51,13 +51,13 @@ Layout-only components go in the second map (`V`) and array components in the th
 
 <<< @/snippets/vue/component-maps.ts#void-array
 
-### Skip the map: let `createSchemaField` infer everything
+### Skip the map: let `createSchemaOptions` infer everything
 
-When the schema lives in the same app as the components, pass a flat runtime component map to `createSchemaField` and classify the special components with `voidComponents` / `arrayComponents` component maps — they are merged into the runtime component map automatically, so no duplicate registration is needed. The factory returns `{ SchemaField, fragment }` and extracts each component's props automatically — no hand-written component maps, no type arguments:
+When the schema lives in the same app as the components, pass a flat runtime component map to `createSchemaOptions` and classify the special components with `voidComponents` / `arrayComponents` component maps — they are merged into the runtime component map automatically, so no duplicate registration is needed. The factory returns `{ OptionsProvider, fragment }` and extracts each component's props automatically — no hand-written component maps, no type arguments:
 
 <<< @/snippets/vue/component-maps.ts#inference
 
-The returned `SchemaField` is pre-bound with the flattened map, so rendering needs no `components` prop: `<SchemaField :schema="schema" />`. See the [Vue bindings](/en/vue/#schemafield) reference for the full option list.
+Inject `OptionsProvider` once at the app root; every `SchemaField` in the subtree shares those defaults, so no `components` prop and no per-render-site wrapper are needed. See the [Vue bindings](/en/vue/#createschemaoptions) reference for the full option list.
 
 ## Adapt an existing component library
 

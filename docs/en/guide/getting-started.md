@@ -39,7 +39,7 @@ The example below creates a form model, describes one field with the schema DSL 
 
 ### React
 
-The React version uses the same components and hooks: the schema and the `createSchemaField` factory stay at module level, while the form is created lazily inside the component.
+The React version uses the same components and hooks: the schema and the `createSchemaOptions` factory stay at module level, while the form is created lazily inside the component.
 
 <demo react="../../demos/react/getting-started.tsx" stackblitz="true" />
 

@@ -1,4 +1,4 @@
-import { createSchema, createSchemaField } from '@formvk/react'
+import { createSchema, createSchemaOptions } from '@formvk/react'
 import type { ReactNode } from 'react'
 
 function Input(props: { placeholder?: string; value?: string }) {
@@ -20,7 +20,7 @@ const components = {
   Select,
 }
 
-const { SchemaField, fragment: f } = createSchemaField({
+const { OptionsProvider, fragment: f } = createSchemaOptions({
   components,
   voidComponents: { FormLayout },
   arrayComponents: { ArrayItems },
@@ -45,7 +45,7 @@ const schema = createSchema({
 // #endregion
 
 // #region inference
-const { fragment: g } = createSchemaField({ components: { Input } })
+const { fragment: g } = createSchemaOptions({ components: { Input } })
 
 const inferredSchema = createSchema({
   // Field needs no generic: its value type comes from the parent record
@@ -53,6 +53,6 @@ const inferredSchema = createSchema({
 })
 // #endregion
 
-void SchemaField
+void OptionsProvider
 void schema
 void inferredSchema

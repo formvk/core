@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { PopupModel } from '@formvk/models'
-import { createSchemaField, FormProvider, type ISchema } from '@formvk/vue'
+import { createSchemaOptions, FormProvider, type ISchema, SchemaField } from '@formvk/vue'
 
 import { DemoArrayItems, demoComponents, FormItem } from './index'
 
@@ -15,7 +15,7 @@ const props = withDefaults(
   { okText: '保存', cancelText: '取消' }
 )
 
-const { SchemaField } = createSchemaField({
+const { OptionsProvider } = createSchemaOptions({
   components: demoComponents,
   voidComponents: { FormItem },
   arrayComponents: { ArrayItems: DemoArrayItems },
@@ -32,18 +32,20 @@ async function onSubmit() {
 </script>
 
 <template>
-  <div v-if="model.visible" class="dv-popup">
-    <div class="dv-popup__body">
-      <h4 v-if="title" class="dv-popup__title">{{ title }}</h4>
-      <FormProvider :form="model.form">
-        <SchemaField :schema="schema" />
-      </FormProvider>
-      <div class="dv-popup__actions">
-        <button class="dv-popup__btn" @click="onSubmit">{{ okText }}</button>
-        <button class="dv-popup__btn dv-popup__btn--ghost" @click="model.close()">{{ cancelText }}</button>
+  <OptionsProvider>
+    <div v-if="model.visible" class="dv-popup">
+      <div class="dv-popup__body">
+        <h4 v-if="title" class="dv-popup__title">{{ title }}</h4>
+        <FormProvider :form="model.form">
+          <SchemaField :schema="schema" />
+        </FormProvider>
+        <div class="dv-popup__actions">
+          <button class="dv-popup__btn" @click="onSubmit">{{ okText }}</button>
+          <button class="dv-popup__btn dv-popup__btn--ghost" @click="model.close()">{{ cancelText }}</button>
+        </div>
       </div>
     </div>
-  </div>
+  </OptionsProvider>
 </template>
 
 <style>

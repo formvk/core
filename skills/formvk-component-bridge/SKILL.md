@@ -23,7 +23,7 @@ description: Build formvk bridge packages adapting UI-library controls into fiel
 
 1. 原始控件：不认识 formvk，只接受 `value` / `modelValue` / `onChange` 等常规 props。
 2. 桥接组件：读取当前字段，把字段值和状态映射成控件 props，把控件事件写回字段。
-3. 注册层：把桥接组件放进扁平组件 map，生成 `SchemaField` 与带类型的 `fragment`。
+3. 注册层：把桥接组件放进扁平组件 map，生成注入默认组件的 `OptionsProvider` 与带类型的 `fragment`。
 
 能用 `mapProps` / `mapReadPretty` / `connect` 解决时不要手写第 2 层。只有值类型转换、异步选项、复杂事件协议才写自定义组件。
 
@@ -37,7 +37,7 @@ packages/<ui>/
     ├── components/       # 字段控件
     ├── decorators/       # FormItem 等布局组件
     ├── arrays/           # ArrayItems 等数组组件
-    ├── shared/           # 组件 map 与 createSchemaField 工厂
+    ├── shared/           # 组件 map 与 createSchemaOptions 工厂
     └── index.ts
 ```
 
@@ -124,7 +124,7 @@ export const Select = connect(
 桥接包最终给出「组件 map + 带类型的 fragment」。优先使用 `f.Input` / `f.ArrayItems` 这类动态构造器：
 
 ```ts
-import { createSchema, createSchemaField } from '@formvk/react' // Vue 换成 @formvk/vue
+import { createSchema, createSchemaOptions } from '@formvk/react' // Vue 换成 @formvk/vue
 
 import { ArrayItems } from '../arrays/ArrayItems'
 import { Input } from '../components/Input'
@@ -134,7 +134,7 @@ import { FormItem } from '../decorators/FormItem'
 export const components = { Input, Select, FormItem }
 export const arrayComponents = { ArrayItems }
 
-export const { SchemaField, fragment: f } = createSchemaField({
+export const { OptionsProvider, fragment: f } = createSchemaOptions({
   components,
   arrayComponents,
   defaultDecorator: 'FormItem',
@@ -146,6 +146,7 @@ export const schema = createSchema({
 })
 ```
 
+- 消费方在应用最外层注入一次 `OptionsProvider` 即可，树下所有 `SchemaField` 共享组件映射，`components` 不用再传，也不要每个渲染点重复包裹。
 - `components` 是扁平 map：`name → component`，同一个 map 同时服务字段、装饰器、嵌套节点。
 - `voidComponents` / `arrayComponents` 会自动合并进运行时 map，不需要在 `components` 里重复注册。
 - 分类优先级 `array > void > field`；同一个名字只放一个分类。
@@ -153,7 +154,7 @@ export const schema = createSchema({
 - `f.ArrayItems(items, schema?)` 只有在声明 `arrayComponents` 后才存在，第一个参数是数组项 creator。
 - `defaultDecorator` 只给「有 title 且未写 decorator 的 string 字段」补装饰器，void / object / array 必须显式声明。
 
-只导出组件 map、不预绑定 `SchemaField` 时，用 `createFragment` 产出类型：
+只导出组件 map、不生成 `OptionsProvider` 时，用 `createFragment` 产出类型：
 
 ```ts
 import { createFragment } from '@formvk/react'

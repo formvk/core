@@ -3,9 +3,6 @@ import type { AnyComponent, Fragment, ISchema, Schema, SchemaKey, SchemaPatchInp
 import type { FormPathPattern } from '@formvk/shared'
 import type { ComponentType, ComponentProps as ReactComponentProps, ReactNode } from 'react'
 
-// 仅用于工厂返回值类型，type-only 引用不产生运行时循环依赖
-import type { SchemaField } from '../components/SchemaField'
-
 export type ReactComponent = ComponentType<any>
 
 /** 提取 React 组件定义的 props 类型；非组件类型退化为 never。 */
@@ -48,7 +45,7 @@ export interface ISchemaFieldRuntimeOptions {
   scope?: Record<string, any>
 }
 
-export interface ISchemaFieldFactoryOptions<
+export interface ISchemaOptionsFactoryOptions<
   F extends SchemaReactComponents = SchemaReactComponents,
   V extends SchemaReactComponents = {},
   A extends SchemaReactComponents = {},
@@ -70,18 +67,18 @@ export interface ISchemaFieldFactoryOptions<
 }
 
 /**
- * createSchemaField 的返回值：
- * - SchemaField：预绑定 components 与 scope 的渲染组件
+ * createSchemaOptions 的返回值：
+ * - OptionsProvider：把工厂的 components 与 scope 提供给后代 SchemaField，由后者合并
  * - fragment：同配置的 fragment 构造器集合（Field / Object / Array / Void / transform 与动态构造器）
  */
-export type SchemaFieldFactoryResult<
+export type SchemaOptionsFactoryResult<
   F extends SchemaReactComponents,
   V extends SchemaReactComponents,
   A extends SchemaReactComponents,
   Scope extends object,
   Decorator extends AnyComponent<InferVoidComponents<V, A>>,
 > = {
-  SchemaField: typeof SchemaField
+  OptionsProvider: ComponentType<{ children?: ReactNode }>
   fragment: Fragment<
     InferFieldComponents<F, V, A>,
     InferVoidComponents<V, A>,

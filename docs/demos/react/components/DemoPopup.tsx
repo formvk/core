@@ -1,12 +1,12 @@
 import type { PopupModel } from '@formvk/models'
-import { createSchemaField, FormProvider, type ISchema } from '@formvk/react'
+import { createSchemaOptions, FormProvider, type ISchema, SchemaField } from '@formvk/react'
 import { observer } from '@formvk/reactive-react'
 
 import { DemoArrayItems, demoComponents, FormItem } from './index'
 
 import './dr-popup.css'
 
-const { SchemaField } = createSchemaField({
+const { OptionsProvider } = createSchemaOptions({
   components: demoComponents,
   voidComponents: { FormItem },
   arrayComponents: { ArrayItems: DemoArrayItems },
@@ -33,22 +33,24 @@ export const DemoPopup = observer(({ model, schema, title, okText = '保存', ca
   }
 
   return (
-    <div className="dr-popup">
-      <div className="dr-popup__body">
-        {title ? <h4 className="dr-popup__title">{title}</h4> : null}
-        <FormProvider form={model.form}>
-          <SchemaField schema={schema} />
-        </FormProvider>
-        <div className="dr-popup__actions">
-          <button type="button" className="dr-popup__btn" onClick={onSubmit}>
-            {okText}
-          </button>
-          <button type="button" className="dr-popup__btn dr-popup__btn--ghost" onClick={() => model.close()}>
-            {cancelText}
-          </button>
+    <OptionsProvider>
+      <div className="dr-popup">
+        <div className="dr-popup__body">
+          {title ? <h4 className="dr-popup__title">{title}</h4> : null}
+          <FormProvider form={model.form}>
+            <SchemaField schema={schema} />
+          </FormProvider>
+          <div className="dr-popup__actions">
+            <button type="button" className="dr-popup__btn" onClick={onSubmit}>
+              {okText}
+            </button>
+            <button type="button" className="dr-popup__btn dr-popup__btn--ghost" onClick={() => model.close()}>
+              {cancelText}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </OptionsProvider>
   )
 })
 

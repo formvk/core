@@ -1,6 +1,6 @@
 import type { ArrayField } from '@formvk/core'
 import { isDataField, onFieldMount } from '@formvk/core'
-import { createForm, createSchema, createSchemaField, FormProvider } from '@formvk/react'
+import { createForm, createSchema, createSchemaOptions, FormProvider, SchemaField } from '@formvk/react'
 import { observer } from '@formvk/reactive-react'
 import type { ISchema } from '@formvk/schema'
 import { useEffect, useRef, useState } from 'react'
@@ -25,7 +25,7 @@ const modeOptions: Array<{ value: Mode; label: string }> = [
   { value: 'index', label: 'index key（下标）' },
 ]
 
-const { SchemaField, fragment: f } = createSchemaField({
+const { OptionsProvider, fragment: f } = createSchemaOptions({
   components: demoComponents,
   voidComponents: { FormItem },
   arrayComponents: { Rows: DemoPerfRows },
@@ -154,74 +154,76 @@ export default observer(function ValidationAlignmentDemo() {
   }
 
   return (
-    <FormProvider key={generation} form={form}>
-      <div className="dr-demo">
-        <SchemaField schema={schema} />
-        <div className="dr-perf-toolbar">
-          {modeOptions.map(option => (
-            <button
-              key={option.value}
-              type="button"
-              className={`dr-btn${option.value !== mode ? ' dr-btn--ghost' : ''}`}
-              onClick={() => switchMode(option.value)}
-            >
-              {option.label}
+    <OptionsProvider>
+      <FormProvider key={generation} form={form}>
+        <div className="dr-demo">
+          <SchemaField schema={schema} />
+          <div className="dr-perf-toolbar">
+            {modeOptions.map(option => (
+              <button
+                key={option.value}
+                type="button"
+                className={`dr-btn${option.value !== mode ? ' dr-btn--ghost' : ''}`}
+                onClick={() => switchMode(option.value)}
+              >
+                {option.label}
+              </button>
+            ))}
+            <span className="dr-perf-hint">
+              {ROWS} 行 × {COLS} 列 · 每 {EMPTY_EVERY} 行留空一个下拉框
+            </span>
+          </div>
+          <table className="dr-perf-table">
+            <thead>
+              <tr>
+                <th>操作</th>
+                <th>recordKey</th>
+                <th>index key</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>校验失败数</td>
+                <td>
+                  <strong>{formatCount(results.recordKey.validateErrors)}</strong>
+                </td>
+                <td>{formatCount(results.index.validateErrors)}</td>
+              </tr>
+              <tr>
+                <td>内部状态错位（删首行后）</td>
+                <td>
+                  <strong>{formatCount(results.recordKey.mismatched)}</strong>
+                </td>
+                <td>{formatCount(results.index.mismatched)}</td>
+              </tr>
+              <tr>
+                <td>字段重新绑定（删首行）</td>
+                <td>
+                  <strong>{formatCount(results.recordKey.remount)}</strong>
+                </td>
+                <td>{formatCount(results.index.remount)}</td>
+              </tr>
+            </tbody>
+          </table>
+          <div className="dr-actions">
+            <button type="button" className="dr-btn" onClick={validateAll}>
+              校验全部
             </button>
-          ))}
-          <span className="dr-perf-hint">
-            {ROWS} 行 × {COLS} 列 · 每 {EMPTY_EVERY} 行留空一个下拉框
-          </span>
+            <button type="button" className="dr-btn dr-btn--danger" onClick={removeFirst}>
+              删除首行
+            </button>
+            <button type="button" className="dr-btn dr-btn--ghost" onClick={() => rebuild()}>
+              重置
+            </button>
+          </div>
+          <p className="dr-perf-note">
+            每 3 行留空一个下拉框。先点击「校验全部」，再点击「删除首行」：校验反馈属于字段实例，两种模式下 33
+            个错误都留在空值行上，不会错位。内部状态输入框只持有组件自己的状态：index key
+            下组件按下标复用，数据前移后输入内容仍停在原位，与新行数据不再匹配；recordKey
+            下组件随数据行移动，内部状态与数据保持一致。「内部状态错位」统计内容与所在行数据不一致的输入框数量；「字段重新绑定」统计删除首行时存活字段被重新绑定的次数。
+          </p>
         </div>
-        <table className="dr-perf-table">
-          <thead>
-            <tr>
-              <th>操作</th>
-              <th>recordKey</th>
-              <th>index key</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>校验失败数</td>
-              <td>
-                <strong>{formatCount(results.recordKey.validateErrors)}</strong>
-              </td>
-              <td>{formatCount(results.index.validateErrors)}</td>
-            </tr>
-            <tr>
-              <td>内部状态错位（删首行后）</td>
-              <td>
-                <strong>{formatCount(results.recordKey.mismatched)}</strong>
-              </td>
-              <td>{formatCount(results.index.mismatched)}</td>
-            </tr>
-            <tr>
-              <td>字段重新绑定（删首行）</td>
-              <td>
-                <strong>{formatCount(results.recordKey.remount)}</strong>
-              </td>
-              <td>{formatCount(results.index.remount)}</td>
-            </tr>
-          </tbody>
-        </table>
-        <div className="dr-actions">
-          <button type="button" className="dr-btn" onClick={validateAll}>
-            校验全部
-          </button>
-          <button type="button" className="dr-btn dr-btn--danger" onClick={removeFirst}>
-            删除首行
-          </button>
-          <button type="button" className="dr-btn dr-btn--ghost" onClick={() => rebuild()}>
-            重置
-          </button>
-        </div>
-        <p className="dr-perf-note">
-          每 3 行留空一个下拉框。先点击「校验全部」，再点击「删除首行」：校验反馈属于字段实例，两种模式下 33
-          个错误都留在空值行上，不会错位。内部状态输入框只持有组件自己的状态：index key
-          下组件按下标复用，数据前移后输入内容仍停在原位，与新行数据不再匹配；recordKey
-          下组件随数据行移动，内部状态与数据保持一致。「内部状态错位」统计内容与所在行数据不一致的输入框数量；「字段重新绑定」统计删除首行时存活字段被重新绑定的次数。
-        </p>
-      </div>
-    </FormProvider>
+      </FormProvider>
+    </OptionsProvider>
   )
 })

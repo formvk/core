@@ -4,22 +4,22 @@ import { createFragment, Schema } from '@formvk/schema'
 import type { AnyComponent, ISchema, SchemaKey } from '@formvk/schema'
 import { FormPath, isValid } from '@formvk/shared'
 import type { FormPathPattern } from '@formvk/shared'
-import { computed, defineComponent, provide, watch } from 'vue'
+import { computed, defineComponent, inject, provide, watch } from 'vue'
 import type { PropType } from 'vue'
 
 import { useField } from '../hooks/useField'
 import { useForm } from '../hooks/useForm'
-import { SchemaExpressionScopeSymbol, SchemaOptionsSymbol } from '../shared/context'
+import { SchemaExpressionScopeSymbol, SchemaOptionsProviderSymbol, SchemaOptionsSymbol } from '../shared/context'
 import type {
   InferArrayComponents,
   InferFieldComponents,
   InferVoidComponents,
-  ISchemaFieldFactoryOptions,
   ISchemaFieldProps,
   ISchemaFieldRuntimeOptions,
   ISchemaFilter,
   ISchemaMapper,
-  SchemaFieldFactoryResult,
+  ISchemaOptionsFactoryOptions,
+  SchemaOptionsFactoryResult,
   SchemaVueComponents,
 } from '../types'
 import { RecursionField } from './RecursionField'
@@ -152,14 +152,17 @@ function setupHotReload(props: ISchemaFieldProps) {
   )
 }
 
-function renderSchemaField(props: ISchemaFieldProps, prebound?: ISchemaFieldRuntimeOptions) {
+function renderSchemaField(props: ISchemaFieldProps) {
   const schemaRef = computed(() => toSchema(props.schema))
 
   setupHotReload(props)
 
+  // OptionsProvider 注入默认 components 与 scope，SchemaField 自身的 props 优先级更高
+  const providedOptionsRef = inject(SchemaOptionsProviderSymbol, undefined)
+
   const optionsRef = computed(() => ({
-    components: { ...prebound?.components, ...props.components },
-    scope: { ...prebound?.scope, ...props.scope },
+    components: { ...providedOptionsRef?.value?.components, ...props.components },
+    scope: { ...providedOptionsRef?.value?.scope, ...props.scope },
   }))
 
   const scopeRef = computed(() => optionsRef.value.scope)
@@ -190,22 +193,22 @@ export const SchemaField = defineComponent({
 })
 
 /**
- * 基于扁平组件映射与分类组件 map 创建 SchemaField + fragment：
+ * 基于扁平组件映射与分类组件 map 创建 OptionsProvider + fragment：
  * - voidComponents / arrayComponents 只接收组件 map，分类名由工厂内部提取后传给 fragment
  * - 分类组件会自动合并进运行时组件映射，无需在 components 中重复注册
- * - 返回的 SchemaField 已预绑定拍平后的组件与 scope，props 仍可传扁平 map 覆盖同名组件
+ * - 返回的 OptionsProvider 向后代 SchemaField 注入拍平后的组件与 scope，SchemaField props 可覆盖同名项
  * - fragment 包含 Field / Object / Array / Void / transform 与按组件名生成的动态构造器
  * 组件 props、字段值与 scope 类型全部自动推断，无需手写类型参数。
  */
-export function createSchemaField<
+export function createSchemaOptions<
   F extends SchemaVueComponents = SchemaVueComponents,
   V extends SchemaVueComponents = {},
   A extends SchemaVueComponents = {},
   Scope extends object = Record<string, any>,
   Decorator extends AnyComponent<InferVoidComponents<V, A>> = AnyComponent<InferVoidComponents<V, A>>,
 >(
-  options: ISchemaFieldFactoryOptions<F, V, A, Scope, Decorator> = {}
-): SchemaFieldFactoryResult<F, V, A, Scope, Decorator> {
+  options: ISchemaOptionsFactoryOptions<F, V, A, Scope, Decorator> = {}
+): SchemaOptionsFactoryResult<F, V, A, Scope, Decorator> {
   const voidComponents = options.voidComponents ?? {}
   const arrayComponents = options.arrayComponents ?? {}
   const flatComponents: SchemaVueComponents = {
@@ -227,19 +230,19 @@ export function createSchemaField<
     defaultDecorator: options.defaultDecorator,
   })
 
-  const prebound: ISchemaFieldRuntimeOptions = {
+  const providerOptionsRef = computed<ISchemaFieldRuntimeOptions>(() => ({
     components: flatComponents,
     scope: options.scope,
-  }
+  }))
 
-  const BoundSchemaField = defineComponent({
-    name: 'SchemaField',
+  const OptionsProvider = defineComponent({
+    name: 'SchemaOptionsProvider',
     inheritAttrs: false,
-    props: schemaFieldProps,
-    setup(props) {
-      return renderSchemaField(props, prebound)
+    setup(_, { slots }) {
+      provide(SchemaOptionsProviderSymbol, providerOptionsRef)
+      return () => slots.default?.()
     },
   })
 
-  return { SchemaField: BoundSchemaField, fragment }
+  return { OptionsProvider, fragment }
 }

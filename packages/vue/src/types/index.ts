@@ -1,10 +1,7 @@
 import type { Form, GeneralField, IFieldFactoryProps } from '@formvk/core'
 import type { AnyComponent, Fragment, ISchema, Schema, SchemaKey, SchemaPatchInput } from '@formvk/schema'
 import type { FormPathPattern } from '@formvk/shared'
-import type { Component } from 'vue'
-
-// 仅用于工厂返回值类型，type-only 引用不产生运行时循环依赖
-import type { SchemaField } from '../components/SchemaField'
+import type { Component, DefineComponent } from 'vue'
 
 export type VueComponent = Component
 
@@ -48,7 +45,7 @@ export interface ISchemaFieldRuntimeOptions {
   scope?: Record<string, any>
 }
 
-export interface ISchemaFieldFactoryOptions<
+export interface ISchemaOptionsFactoryOptions<
   F extends SchemaVueComponents = SchemaVueComponents,
   V extends SchemaVueComponents = {},
   A extends SchemaVueComponents = {},
@@ -70,18 +67,18 @@ export interface ISchemaFieldFactoryOptions<
 }
 
 /**
- * createSchemaField 的返回值：
- * - SchemaField：预绑定 components 与 scope 的渲染组件
+ * createSchemaOptions 的返回值：
+ * - OptionsProvider：把工厂的 components 与 scope 提供给后代 SchemaField，由后者合并
  * - fragment：同配置的 fragment 构造器集合（Field / Object / Array / Void / transform 与动态构造器）
  */
-export type SchemaFieldFactoryResult<
+export type SchemaOptionsFactoryResult<
   F extends SchemaVueComponents,
   V extends SchemaVueComponents,
   A extends SchemaVueComponents,
   Scope extends object,
   Decorator extends AnyComponent<InferVoidComponents<V, A>>,
 > = {
-  SchemaField: typeof SchemaField
+  OptionsProvider: DefineComponent<{}, {}, any>
   fragment: Fragment<
     InferFieldComponents<F, V, A>,
     InferVoidComponents<V, A>,

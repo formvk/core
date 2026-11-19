@@ -56,7 +56,7 @@ const schema = createSchema({
 - 编译器 — `compile`、`shallowCompile`、`registerCompiler`、`silent`。
 - 类型 — `FieldSchema`、`ObjectSchema`、`ArraySchema`、`VoidSchema`、`Fragment`、`SchemaCreator`。
 
-在 Vue/React 应用中，`@formvk/vue` / `@formvk/react` 的 `createSchemaField` 会把组件映射绑定到 fragment 并渲染 schema。
+在 Vue/React 应用中，`@formvk/vue` / `@formvk/react` 的 `createSchemaOptions` 会把组件映射绑定到 fragment 并渲染 schema。
 
 ## 文档
 

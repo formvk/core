@@ -51,7 +51,7 @@ The `_$types$_` marker carries the form value type (for example `{ name: string;
 
 In inferred mode every aggregated key is required: whether a field can be absent is carried by its value type (a non-`required` field contributes `T | undefined`), not by an optional modifier. This lets an inferred object creator be extracted to a variable and reused under an explicitly typed parent — `f.Object<FormValues>({ address })` accepts it when the value shapes match and rejects mismatches. Object-valued keys are checked on their value slot only, because a container creator's own record is its content type rather than the root record. `f.Void` and inferred `createSchema` follow the same aggregation rule.
 
-> Vue users can skip the hand-written component maps entirely: `createSchemaField` from `@formvk/vue` takes a flat component map plus optional `voidComponents` / `arrayComponents`, returns `{ SchemaField, fragment }`, and infers the component maps, scope and value types with no type arguments. See [Vue bindings](/en/vue/#schemafield).
+> Vue users can skip the hand-written component maps entirely: `createSchemaOptions` from `@formvk/vue` takes a flat component map plus optional `voidComponents` / `arrayComponents`, returns `{ OptionsProvider, fragment }`, and infers the component maps, scope and value types with no type arguments. See [Vue bindings](/en/vue/#schemafield).
 
 ## `createFragment`
 

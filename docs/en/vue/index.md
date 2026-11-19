@@ -1,6 +1,6 @@
 # Vue Bindings
 
-`@formvk/vue` re-exports `@formvk/schema`, so a single import gives you the form engine, the schema DSL, components and hooks. This page covers `createForm`, `createSchemaField` and the rendering components; hooks and component helpers live in [Hooks](/en/vue/hooks), and complete runnable forms in [Examples](/en/vue/examples/basic-form).
+`@formvk/vue` re-exports `@formvk/schema`, so a single import gives you the form engine, the schema DSL, components and hooks. This page covers `createForm`, `createSchemaOptions` and the rendering components; hooks and component helpers live in [Hooks](/en/vue/hooks), and complete runnable forms in [Examples](/en/vue/examples/basic-form).
 
 > Related references: [Schema](/en/schema/) — the schema model, DSL and expressions; [Core](/en/core/) — `createForm`, field models, paths and lifecycle hooks (imported from `@formvk/core`); [Validation](/en/core/validation) — rules, formats and message localization.
 
@@ -9,7 +9,7 @@ import {
   createForm,
   createFragment,
   createSchema,
-  createSchemaField,
+  createSchemaOptions,
   createExpression,
   Schema,
   FormProvider,
@@ -59,7 +59,7 @@ Render-slot component that receives the form:
 
 ### `SchemaField`
 
-Renders a schema tree. `components` is a flat `name → component` map. The `SchemaField` returned by `createSchemaField` is already pre-bound, so this prop is only needed when using the standalone `SchemaField`.
+Renders a schema tree. `components` is a flat `name → component` map. `SchemaField` reads the components and `scope` injected by `OptionsProvider`, while its own props take precedence; pass `components` yourself only when the field is used standalone without a provider.
 
 | Prop                   | Type                               | Description                                                     |
 | ---------------------- | ---------------------------------- | --------------------------------------------------------------- |
@@ -74,22 +74,28 @@ Renders a schema tree. `components` is a flat `name → component` map. The `Sch
 | `filterProperties`     | `(schema, name) => boolean`        | Return `false` to skip a child                                  |
 | `hotReload`            | `boolean`                          | Rebuild fields when the `schema` reference changes (dev only)   |
 
-### `createSchemaField`
+### `createSchemaOptions`
 
-`createSchemaField(options)` returns a two-key object:
+`createSchemaOptions(options)` returns an object with two members:
 
-- `SchemaField` — a render component pre-bound with the flattened component map and `scope`. You can still pass a flat `components` prop to override individual components at render time.
+- `OptionsProvider` — provides the factory's component map and `scope` to descendants; `SchemaField` reads and merges them. Merge precedence, lowest to highest, is `OptionsProvider` → `SchemaField` props.
 - `fragment` — the schema builder: the base creators `Field` / `Object` / `Array` / `Void` / `transform`, plus one shorthand creator per component name (for example `Input`, `ArrayItems`).
 
 `components` is a flat `name → component` map; names not listed in a category are treated as field components. `voidComponents` / `arrayComponents` are component maps that classify layout and array components; the factory merges them into the runtime component map automatically, so no duplicate registration is needed. All types are inferred from the options — no type arguments and no hand-written component maps:
 
 <<< @/snippets/vue/schema-field.ts#full
 
-Render with the pre-bound component — no `components` prop is needed:
+Inject `OptionsProvider` once at the outermost layer of the app; every `SchemaField` in the subtree shares the same default components and `scope`, so there is no need to wrap each render site:
 
 ```vue
-<SchemaField :schema="schema" />
+<OptionsProvider>
+  <FormProvider :form="form">
+    <SchemaField :schema="schema" />
+  </FormProvider>
+</OptionsProvider>
 ```
+
+The `components` / `scope` props of `SchemaField` can still override individual entries per instance.
 
 | Option             | Type                        | Description                                                                                                           |
 | ------------------ | --------------------------- | --------------------------------------------------------------------------------------------------------------------- |

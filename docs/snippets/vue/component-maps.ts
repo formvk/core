@@ -1,4 +1,4 @@
-import { createFragment, createSchemaField } from '@formvk/vue'
+import { createFragment, createSchemaOptions } from '@formvk/vue'
 import { defineComponent } from 'vue'
 
 // In a real app these are imported SFCs, e.g. import MyInput from './MyInput.vue'
@@ -34,7 +34,7 @@ const f2 = createFragment<FieldMap, VoidMap, ArrayMap>({
 // #endregion
 
 // #region inference
-const { fragment: g } = createSchemaField({
+const { fragment: g } = createSchemaOptions({
   components: { Input: MyInput },
   arrayComponents: { ArrayItems: MyArrayItems },
 })

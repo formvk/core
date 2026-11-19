@@ -47,7 +47,7 @@ React 函数组件每次渲染都会重新执行函数体，因此两类状态�
 
 ```tsx
 // static: built once for the whole module
-const { SchemaField, fragment: f } = createSchemaField({
+const { OptionsProvider, fragment: f } = createSchemaOptions({
   components: demoComponents,
   voidComponents: { FormItem },
   arrayComponents: { ArrayItems: DemoArrayItems },
@@ -61,9 +61,11 @@ export default observer(function TeamInviteDemo() {
   const [form] = useState(() => createForm<TeamInviteValues>({ ... }))
 
   return (
-    <FormProvider form={form}>
-      <SchemaField schema={schema} />
-    </FormProvider>
+    <OptionsProvider>
+      <FormProvider form={form}>
+        <SchemaField schema={schema} />
+      </FormProvider>
+    </OptionsProvider>
   )
 })
 ```

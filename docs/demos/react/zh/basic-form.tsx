@@ -1,10 +1,10 @@
-import { createForm, createSchema, createSchemaField, FormProvider } from '@formvk/react'
+import { createForm, createSchema, createSchemaOptions, FormProvider, SchemaField } from '@formvk/react'
 import { observer } from '@formvk/reactive-react'
 import { useState } from 'react'
 
 import { DemoArrayItems, demoComponents, FormItem } from '../components'
 
-const { SchemaField, fragment: f } = createSchemaField({
+const { OptionsProvider, fragment: f } = createSchemaOptions({
   components: demoComponents,
   voidComponents: { FormItem },
   arrayComponents: { ArrayItems: DemoArrayItems },
@@ -72,23 +72,25 @@ export default observer(function BasicFormDemo() {
   }
 
   return (
-    <FormProvider form={form}>
-      <div className="dr-demo">
-        <SchemaField schema={schema} />
-        <div className="dr-actions">
-          <button type="button" className="dr-btn" disabled={form.submitting} onClick={onSubmit}>
-            {form.submitting ? '提交中…' : '提交'}
-          </button>
-          <button type="button" className="dr-btn dr-btn--ghost" onClick={onReset}>
-            重置
-          </button>
-        </div>
-        {submitted ? (
-          <div className="dr-result">
-            <pre>{submitted}</pre>
+    <OptionsProvider>
+      <FormProvider form={form}>
+        <div className="dr-demo">
+          <SchemaField schema={schema} />
+          <div className="dr-actions">
+            <button type="button" className="dr-btn" disabled={form.submitting} onClick={onSubmit}>
+              {form.submitting ? '提交中…' : '提交'}
+            </button>
+            <button type="button" className="dr-btn dr-btn--ghost" onClick={onReset}>
+              重置
+            </button>
           </div>
-        ) : null}
-      </div>
-    </FormProvider>
+          {submitted ? (
+            <div className="dr-result">
+              <pre>{submitted}</pre>
+            </div>
+          ) : null}
+        </div>
+      </FormProvider>
+    </OptionsProvider>
   )
 })

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { createForm, FormProvider, createSchema, createSchemaField } from '@formvk/vue'
+import { createForm, FormProvider, createSchema, createSchemaOptions, SchemaField } from '@formvk/vue'
 import { ref } from 'vue'
 
 import { DemoArrayItems, demoComponents, FormItem } from '../components'
@@ -12,7 +12,7 @@ const form = createForm({
 
 const submitted = ref('')
 
-const { SchemaField, fragment: f } = createSchemaField({
+const { OptionsProvider, fragment: f } = createSchemaOptions({
   components: demoComponents,
   voidComponents: { FormItem },
   arrayComponents: { ArrayItems: DemoArrayItems },
@@ -62,15 +62,17 @@ async function onSubmit() {
 </script>
 
 <template>
-  <FormProvider :form="form">
-    <div class="dv-demo">
-      <SchemaField :schema="schema" />
-      <div class="dv-actions">
-        <button class="dv-btn" @click="onSubmit">提交</button>
+  <OptionsProvider>
+    <FormProvider :form="form">
+      <div class="dv-demo">
+        <SchemaField :schema="schema" />
+        <div class="dv-actions">
+          <button class="dv-btn" @click="onSubmit">提交</button>
+        </div>
+        <div v-if="submitted" class="dv-result">
+          <pre>{{ submitted }}</pre>
+        </div>
       </div>
-      <div v-if="submitted" class="dv-result">
-        <pre>{{ submitted }}</pre>
-      </div>
-    </div>
-  </FormProvider>
+    </FormProvider>
+  </OptionsProvider>
 </template>

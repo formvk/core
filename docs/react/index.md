@@ -1,6 +1,6 @@
 # React 绑定
 
-`@formvk/react` 重新导出了 `@formvk/schema`，因此一次导入即可拿到表单引擎、schema DSL、组件与 hooks。它是 `@formvk/vue` 的同构孪生：schema DSL、表单模型与所有类型完全共享，只有渲染层是 React 特有的。本页介绍 `createForm`、`createSchemaField` 与渲染组件；hooks 见 [Hooks](/react/hooks)，完整可运行表单见[示例](/react/examples/basic-form)。
+`@formvk/react` 重新导出了 `@formvk/schema`，因此一次导入即可拿到表单引擎、schema DSL、组件与 hooks。它是 `@formvk/vue` 的同构孪生：schema DSL、表单模型与所有类型完全共享，只有渲染层是 React 特有的。本页介绍 `createForm`、`createSchemaOptions` 与渲染组件；hooks 见 [Hooks](/react/hooks)，完整可运行表单见[示例](/react/examples/basic-form)。
 
 > 相关参考：[Vue 绑定](/vue/) —— 面向 Vue 3 的同一套 API；[Schema](/schema/) —— schema 模型、DSL 与表达式；[核心](/core/) —— `createForm`、字段模型、路径与生命周期钩子；[校验](/core/validation) —— 规则、格式与消息本地化。
 
@@ -10,7 +10,7 @@
 pnpm add @formvk/react @formvk/reactive-react react react-dom
 ```
 
-与 Vue 快速开始相同的表单，用 React 渲染。schema 与 `createSchemaField` 工厂保持在模块层级；表单在组件内部惰性创建：
+与 Vue 快速开始相同的表单，用 React 渲染。schema 与 `createSchemaOptions` 工厂保持在模块层级；表单在组件内部惰性创建：
 
 <demo react="../demos/react/zh/getting-started.tsx" stackblitz="true" />
 
@@ -19,7 +19,7 @@ import {
   createForm,
   createFragment,
   createSchema,
-  createSchemaField,
+  createSchemaOptions,
   createExpression,
   Schema,
   FormProvider,
@@ -49,7 +49,7 @@ function createForm<T extends object = any>(options?: IFormProps<T>): Form<T>
 
 创建表单模型。与 Vue 绑定不同，这里不需要 `markRaw`：React 不会把普通对象转换成响应式代理，`Form` 实例自带装饰过的响应式访问器。
 
-**在哪里创建表单。** 把 `createSchemaField` 工厂与 `schema` 放在模块层级 —— 它们是静态的，可以安全共享 —— 表单则在组件内部惰性创建。函数组件每次渲染都会重新执行函数体，因此直接调用 `createForm()` 会在每次渲染时重建模型；而模块级单例会在所有挂载实例之间共享同一份状态，并在卸载后继续保留过期的值。`useState` 的惰性初始化在每个实例中只运行一次，`FormProvider` 会在卸载时销毁模型：
+**在哪里创建表单。** 把 `createSchemaOptions` 工厂与 `schema` 放在模块层级 —— 它们是静态的，可以安全共享 —— 表单则在组件内部惰性创建。函数组件每次渲染都会重新执行函数体，因此直接调用 `createForm()` 会在每次渲染时重建模型；而模块级单例会在所有挂载实例之间共享同一份状态，并在卸载后继续保留过期的值。`useState` 的惰性初始化在每个实例中只运行一次，`FormProvider` 会在卸载时销毁模型：
 
 <<< @/snippets/react/lazy-form.tsx
 
@@ -92,7 +92,7 @@ function createForm<T extends object = any>(options?: IFormProps<T>): Form<T>
 
 ### `SchemaField`
 
-渲染 schema 树。`components` 是扁平的 `name → component` 映射。`createSchemaField` 返回的 `SchemaField` 已预绑定组件，因此只有使用独立 `SchemaField` 时才需要传这个 prop。
+渲染 schema 树。`components` 是扁平的 `name → component` 映射。`SchemaField` 会读取 `OptionsProvider` 注入的组件与 `scope`，`props` 优先级更高；只有完全独立使用、不依赖注入时才需要自己传 `components`。
 
 | 属性                   | 类型                               | 说明                                              |
 | ---------------------- | ---------------------------------- | ------------------------------------------------- |
@@ -109,24 +109,28 @@ function createForm<T extends object = any>(options?: IFormProps<T>): Form<T>
 
 `hotReload` 对应 Vue 绑定中的 `watch(schema, { flush: 'pre' })`，但 React 不能在渲染期间销毁外部 store（在渲染中调度其他 observer 会触发跨组件 `setState` 警告）。因此差异比对放在 `useLayoutEffect` 中执行：在绘制前清理过期字段并保留取值，通过更换 `key` 整体重挂 `RecursionField` 子树。ref 守卫让该 effect 在 StrictMode 双次调用下保持幂等。
 
-### `createSchemaField`
+### `createSchemaOptions`
 
-`createSchemaField(options)` 返回一个双 key 对象：
+`createSchemaOptions(options)` 返回一个包含两个成员的对象：
 
-- `SchemaField` —— 已预绑定拍平后组件映射与 `scope` 的渲染组件，渲染时仍可传扁平 `components` prop 覆盖同名组件。
+- `OptionsProvider` —— 把工厂的组件映射与 `scope` 注入后代，`SchemaField` 读取并合并这两项；合并优先级由低到高为 `OptionsProvider` → `SchemaField` props。
 - `fragment` —— schema 构造器集合：基础构造器 `Field` / `Object` / `Array` / `Void` / `transform`，以及按组件名生成的快捷构造器（如 `Input`、`ArrayItems`）。
 
 `components` 是扁平的 `name → component` 映射，未声明分类的名字按 field 组件处理。`voidComponents` / `arrayComponents` 是归类布局组件与数组组件的**组件 map**，工厂会自动把它们合并进运行时组件映射，无需重复注册。所有类型都从 options 推断，无需传任何类型参数，也不用手写组件 map：
 
 <<< @/snippets/react/schema-field.tsx#full
 
-用预绑定的组件渲染，无需再传 `components` prop。表单在组件内部惰性创建，见 [`createForm`](#createform)：
+`OptionsProvider` 在应用最外层注入一次就够了，树下所有 `SchemaField` 共享同一份默认组件与 `scope`，不需要在每个渲染点重复包裹。表单在组件内部惰性创建，见 [`createForm`](#createform)：
 
 ```tsx
-<FormProvider form={form}>
-  <SchemaField schema={schema} />
-</FormProvider>
+<OptionsProvider>
+  <FormProvider form={form}>
+    <SchemaField schema={schema} />
+  </FormProvider>
+</OptionsProvider>
 ```
+
+`SchemaField` 的 `components` / `scope` props 仍可按实例覆盖同名项。
 
 | 选项               | 类型                         | 说明                                                                                         |
 | ------------------ | ---------------------------- | -------------------------------------------------------------------------------------------- |

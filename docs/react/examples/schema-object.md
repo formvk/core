@@ -26,7 +26,7 @@ const schema = createSchema({
 ```
 
 - `f.Object` 产出由 `ObjectField` 支撑的 `type: 'object'` 节点，其子节点相对于 `profile` 解析。
-- `f.Input` 与 `f.Select` 是根据传给 `createSchemaField` 的扁平组件映射生成的动态构造器。
+- `f.Input` 与 `f.Select` 是根据传给 `createSchemaOptions` 的扁平组件映射生成的动态构造器。
 - `defaultDecorator: 'FormItem'` 会包裹声明了 `title` 但未显式指定装饰器的字段。装饰器契约见[自定义组件](/react/custom-components#装饰器)。
 
 ## 值类型推导

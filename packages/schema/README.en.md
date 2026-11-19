@@ -56,7 +56,7 @@ const schema = createSchema({
 - Compiler — `compile`, `shallowCompile`, `registerCompiler`, `silent`.
 - Types — `FieldSchema`, `ObjectSchema`, `ArraySchema`, `VoidSchema`, `Fragment`, `SchemaCreator`.
 
-In Vue/React apps, `createSchemaField` from `@formvk/vue` / `@formvk/react` binds component maps to a fragment and renders the schema.
+In Vue/React apps, `createSchemaOptions` from `@formvk/vue` / `@formvk/react` binds component maps to a fragment and renders the schema.
 
 ## Documentation
 

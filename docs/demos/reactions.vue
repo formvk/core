@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { createForm, FormProvider, createSchema, createSchemaField } from '@formvk/vue'
+import { createForm, FormProvider, createSchema, createSchemaOptions, SchemaField } from '@formvk/vue'
 
 import { DemoArrayItems, demoComponents, FormItem } from './components'
 
@@ -14,7 +14,7 @@ const form = createForm({
   values: { plan: 'free', subscribe: false, email: '', company: '' },
 })
 
-const { SchemaField, fragment: f } = createSchemaField({
+const { OptionsProvider, fragment: f } = createSchemaOptions({
   components: demoComponents,
   voidComponents: { FormItem },
   arrayComponents: { ArrayItems: DemoArrayItems },
@@ -55,10 +55,12 @@ const schema = createSchema<SubscribeValues>({
 </script>
 
 <template>
-  <FormProvider :form="form">
-    <div class="dv-demo">
-      <SchemaField :schema="schema" />
-      <div class="dv-result">values: {{ JSON.stringify(form.values) }}</div>
-    </div>
-  </FormProvider>
+  <OptionsProvider>
+    <FormProvider :form="form">
+      <div class="dv-demo">
+        <SchemaField :schema="schema" />
+        <div class="dv-result">values: {{ JSON.stringify(form.values) }}</div>
+      </div>
+    </FormProvider>
+  </OptionsProvider>
 </template>

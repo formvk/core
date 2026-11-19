@@ -67,7 +67,7 @@ The component category is type-level information: at runtime the fragment is a P
 
 <<< @/snippets/schema/component-maps.ts#runtime-names
 
-Both bindings also offer `createSchemaField`, which takes a flat component map and infers all three component maps for you — see [Vue](/en/vue/#createschemafield) and [React](/en/react/#createschemafield).
+Both bindings also offer `createSchemaOptions`, which takes a flat component map and infers all three component maps for you — see [Vue](/en/vue/#createschemaoptions) and [React](/en/react/#createschemaoptions).
 
 ### Patches
 

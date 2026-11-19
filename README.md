@@ -46,7 +46,7 @@ pnpm add @formvk/core @formvk/schema @formvk/validator
 ### React
 
 ```tsx
-import { createForm, createSchema, createSchemaField, FormProvider } from '@formvk/react'
+import { createForm, createSchema, createSchemaOptions, FormProvider, SchemaField } from '@formvk/react'
 import { useState } from 'react'
 
 function Input(props: { value?: string; onChange?: (value: string) => void }) {
@@ -54,7 +54,7 @@ function Input(props: { value?: string; onChange?: (value: string) => void }) {
 }
 
 // schema 与组件工厂是静态的：在模块作用域构建一次
-const { SchemaField, fragment: f } = createSchemaField({ components: { Input } })
+const { OptionsProvider, fragment: f } = createSchemaOptions({ components: { Input } })
 
 const schema = createSchema({
   username: f.Input({
@@ -69,12 +69,14 @@ export default function App() {
   const [form] = useState(() => createForm({ values: { username: '' } }))
 
   return (
-    <FormProvider form={form}>
-      <SchemaField schema={schema} />
-      <button type="button" onClick={() => form.submit()}>
-        提交
-      </button>
-    </FormProvider>
+    <OptionsProvider>
+      <FormProvider form={form}>
+        <SchemaField schema={schema} />
+        <button type="button" onClick={() => form.submit()}>
+          提交
+        </button>
+      </FormProvider>
+    </OptionsProvider>
   )
 }
 ```
@@ -83,11 +85,11 @@ export default function App() {
 
 ```vue
 <script setup lang="ts">
-import { createForm, createSchema, createSchemaField, FormProvider } from '@formvk/vue'
+import { createForm, createSchema, createSchemaOptions, FormProvider, SchemaField } from '@formvk/vue'
 
 import MyInput from './MyInput.vue'
 
-const { SchemaField, fragment: f } = createSchemaField({
+const { OptionsProvider, fragment: f } = createSchemaOptions({
   components: { Input: MyInput },
 })
 
@@ -99,10 +101,12 @@ const form = createForm({ values: { username: '' } })
 </script>
 
 <template>
-  <FormProvider :form="form">
-    <SchemaField :schema="schema" />
-    <button type="button" @click="form.submit()">提交</button>
-  </FormProvider>
+  <OptionsProvider>
+    <FormProvider :form="form">
+      <SchemaField :schema="schema" />
+      <button type="button" @click="form.submit()">提交</button>
+    </FormProvider>
+  </OptionsProvider>
 </template>
 ```
 

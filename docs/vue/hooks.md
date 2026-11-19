@@ -63,5 +63,5 @@ Hooks 用于在 `SchemaField` / `RecursionField` 渲染的组件中读取当前�
 
 ## 下一步
 
-- [Vue 绑定](/vue/) —— `createForm`、`createSchemaField` 与渲染组件。
+- [Vue 绑定](/vue/) —— `createForm`、`createSchemaOptions` 与渲染组件。
 - [自定义组件](/vue/custom-components) —— 字段组件与数组组件契约。

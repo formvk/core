@@ -24,7 +24,7 @@ const schema = createSchema({
 ```
 
 - `f.Object` produces a `type: 'object'` node backed by an `ObjectField`; its children are resolved relative to `profile`.
-- `f.Input` and `f.Select` are dynamic creators generated from the flat component map passed to `createSchemaField`.
+- `f.Input` and `f.Select` are dynamic creators generated from the flat component map passed to `createSchemaOptions`.
 - `defaultDecorator: 'FormItem'` wraps fields that declare a `title` without an explicit decorator. See [Custom components](/en/vue/custom-components#decorators) for the decorator contract.
 
 ## Value inference

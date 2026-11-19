@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onFieldValueChange } from '@formvk/core'
-import { createForm, createSchema, createSchemaField, FormProvider } from '@formvk/vue'
+import { createForm, createSchema, createSchemaOptions, FormProvider, SchemaField } from '@formvk/vue'
 import { computed, ref } from 'vue'
 
 import { DemoArrayItems, demoComponents, FormItem } from './components'
@@ -69,7 +69,7 @@ const form = createForm<TeamInviteValues>({
   },
 })
 
-const { SchemaField, fragment: f } = createSchemaField({
+const { OptionsProvider, fragment: f } = createSchemaOptions({
   components: demoComponents,
   voidComponents: { FormItem },
   arrayComponents: { ArrayItems: DemoArrayItems },
@@ -236,23 +236,25 @@ function onReset() {
 </script>
 
 <template>
-  <FormProvider :form="form">
-    <div class="dv-demo">
-      <SchemaField :schema="schema" />
-      <div class="dv-actions">
-        <button type="button" class="dv-btn dv-btn--ghost" @click="assignMemberRoleToAll">
-          Set all roles to Member
-        </button>
-        <button type="button" class="dv-btn" :disabled="form.submitting" @click="onSubmit">
-          {{ form.submitting ? 'Creating…' : 'Create team' }}
-        </button>
-        <button type="button" class="dv-btn dv-btn--ghost" @click="onReset">Reset</button>
+  <OptionsProvider>
+    <FormProvider :form="form">
+      <div class="dv-demo">
+        <SchemaField :schema="schema" />
+        <div class="dv-actions">
+          <button type="button" class="dv-btn dv-btn--ghost" @click="assignMemberRoleToAll">
+            Set all roles to Member
+          </button>
+          <button type="button" class="dv-btn" :disabled="form.submitting" @click="onSubmit">
+            {{ form.submitting ? 'Creating…' : 'Create team' }}
+          </button>
+          <button type="button" class="dv-btn dv-btn--ghost" @click="onReset">Reset</button>
+        </div>
+        <div class="dv-result">{{ summary }}</div>
+        <div v-if="error" class="dv-result dv-result--error">{{ error }}</div>
+        <div v-if="submitted" class="dv-result">
+          <pre>{{ submitted }}</pre>
+        </div>
       </div>
-      <div class="dv-result">{{ summary }}</div>
-      <div v-if="error" class="dv-result dv-result--error">{{ error }}</div>
-      <div v-if="submitted" class="dv-result">
-        <pre>{{ submitted }}</pre>
-      </div>
-    </div>
-  </FormProvider>
+    </FormProvider>
+  </OptionsProvider>
 </template>

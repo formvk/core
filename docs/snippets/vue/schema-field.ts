@@ -1,4 +1,4 @@
-import { createSchema, createSchemaField } from '@formvk/vue'
+import { createSchema, createSchemaOptions } from '@formvk/vue'
 import { defineComponent } from 'vue'
 
 const Input = defineComponent({ props: { placeholder: String, value: String } })
@@ -12,7 +12,7 @@ const components = {
   Select,
 }
 
-const { SchemaField, fragment: f } = createSchemaField({
+const { OptionsProvider, fragment: f } = createSchemaOptions({
   components,
   voidComponents: { FormLayout },
   arrayComponents: { ArrayItems },
@@ -37,7 +37,7 @@ const schema = createSchema({
 // #endregion
 
 // #region inference
-const { fragment: g } = createSchemaField({ components: { Input } })
+const { fragment: g } = createSchemaOptions({ components: { Input } })
 
 const inferredSchema = createSchema({
   // Field needs no generic: its value type comes from the parent record
@@ -45,6 +45,6 @@ const inferredSchema = createSchema({
 })
 // #endregion
 
-void SchemaField
+void OptionsProvider
 void schema
 void inferredSchema

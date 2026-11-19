@@ -15,7 +15,7 @@ pnpm add @formvk/react react react-dom
 ## 使用
 
 ```tsx
-import { createForm, createSchema, createSchemaField, FormProvider } from '@formvk/react'
+import { createForm, createSchema, createSchemaOptions, FormProvider, SchemaField } from '@formvk/react'
 import { useState } from 'react'
 
 function Input(props: { value?: string }) {
@@ -23,7 +23,7 @@ function Input(props: { value?: string }) {
 }
 
 // schema 与组件工厂是静态的：在模块作用域构建一次
-const { SchemaField, fragment: f } = createSchemaField({
+const { OptionsProvider, fragment: f } = createSchemaOptions({
   components: { Input },
 })
 
@@ -36,16 +36,18 @@ export default function App() {
   const [form] = useState(() => createForm({ values: { name: '' } }))
 
   return (
-    <FormProvider form={form}>
-      <SchemaField schema={schema} />
-    </FormProvider>
+    <OptionsProvider>
+      <FormProvider form={form}>
+        <SchemaField schema={schema} />
+      </FormProvider>
+    </OptionsProvider>
   )
 }
 ```
 
 ## API
 
-- **组件** — `FormProvider`、`SchemaField`、`createSchemaField`、`RecursionField`、`ExpressionScope`、`FormConsumer`、`ReactiveField`。
+- **组件** — `FormProvider`、`SchemaField`、`OptionsProvider`、`createSchemaOptions`、`RecursionField`、`ExpressionScope`、`FormConsumer`、`ReactiveField`。
 - **Hooks** — `useForm`、`useField`、`useFieldSchema`、`useAttach`、`useFormEffects`、`useParentForm`。
 - **辅助函数** — `createForm`、`connect`、`mapProps`、`mapReadPretty`。
 - **Schema** — 重新导出 `@formvk/schema`（`createFragment`、`createSchema`、`ISchema`、表达式类型等）。

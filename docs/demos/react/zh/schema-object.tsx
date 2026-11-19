@@ -1,10 +1,10 @@
-import { createForm, createSchema, createSchemaField, FormProvider } from '@formvk/react'
+import { createForm, createSchema, createSchemaOptions, FormProvider, SchemaField } from '@formvk/react'
 import { observer } from '@formvk/reactive-react'
 import { useState } from 'react'
 
 import { DemoArrayItems, demoComponents, FormItem } from '../components'
 
-const { SchemaField, fragment: f } = createSchemaField({
+const { OptionsProvider, fragment: f } = createSchemaOptions({
   components: demoComponents,
   voidComponents: { FormItem },
   arrayComponents: { ArrayItems: DemoArrayItems },
@@ -30,11 +30,13 @@ export default observer(function SchemaObjectDemo() {
   const [form] = useState(() => createForm({ values: { profile: { name: 'Alice', role: 'developer' } } }))
 
   return (
-    <div className="dr-demo">
-      <FormProvider form={form}>
-        <SchemaField schema={schema} />
-        <div className="dr-result">values: {JSON.stringify(form.values)}</div>
-      </FormProvider>
-    </div>
+    <OptionsProvider>
+      <div className="dr-demo">
+        <FormProvider form={form}>
+          <SchemaField schema={schema} />
+          <div className="dr-result">values: {JSON.stringify(form.values)}</div>
+        </FormProvider>
+      </div>
+    </OptionsProvider>
   )
 })

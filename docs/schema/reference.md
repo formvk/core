@@ -51,7 +51,7 @@ const schema = createSchema<InviteValues>({
 
 在推导模式下，所有汇总的键都是必选的：字段能否缺省由其值类型表达（非 `required` 字段贡献 `T | undefined`），而不是靠可选修饰符。这样，推导出的对象构造器可以提取成变量，并在显式标注类型的父级下复用 —— 取值形态匹配时 `f.Object<FormValues>({ address })` 会被接受，不匹配则报错。对象取值的键只检查值槽位，因为容器构造器自身的 record 是它的内容类型，而不是根 record。`f.Void` 与推导模式的 `createSchema` 遵循同样的汇总规则。
 
-> Vue 用户完全可以跳过手写组件 map：`@formvk/vue` 的 `createSchemaField` 接收扁平组件映射与可选的 `voidComponents` / `arrayComponents`，返回 `{ SchemaField, fragment }`，并在无需类型参数的情况下推断组件 map、作用域与值类型。见 [Vue 绑定](/vue/#schemafield)。
+> Vue 用户完全可以跳过手写组件 map：`@formvk/vue` 的 `createSchemaOptions` 接收扁平组件映射与可选的 `voidComponents` / `arrayComponents`，返回 `{ OptionsProvider, fragment }`，并在无需类型参数的情况下推断组件 map、作用域与值类型。见 [Vue 绑定](/vue/#schemafield)。
 
 ## `createFragment`
 

@@ -10,11 +10,11 @@ schema 与工厂放模块级，form 在组件内惰性创建：
 
 ```ts
 // schema.ts
-import { createSchema, createSchemaField } from '@formvk/react'
+import { createSchema, createSchemaOptions } from '@formvk/react'
 
 import { Input } from './components/Input'
 
-export const { SchemaField, fragment: f } = createSchemaField({
+export const { OptionsProvider, fragment: f } = createSchemaOptions({
   components: { Input },
 })
 
@@ -26,23 +26,27 @@ export const schema = createSchema({
 
 ```tsx
 // App.tsx
-import { createForm, FormProvider } from '@formvk/react'
+import { createForm, FormProvider, SchemaField } from '@formvk/react'
 import { useState } from 'react'
 
-import { SchemaField, schema } from './schema'
+import { OptionsProvider, schema } from './schema'
 
 export function App() {
   const [form] = useState(() => createForm({ values: { name: '' } }))
   return (
-    <FormProvider form={form}>
-      <SchemaField schema={schema} />
-    </FormProvider>
+    <OptionsProvider>
+      <FormProvider form={form}>
+        <SchemaField schema={schema} />
+      </FormProvider>
+    </OptionsProvider>
   )
 }
 ```
 
+- `OptionsProvider` 在应用最外层注入一次即可，页面内多个表单、弹窗里的 `SchemaField` 共享同一份默认组件，不要重复包裹。
+
 - 不要在渲染期直接 `createForm`，每次渲染都会重建字段图。
-- schema / `createSchemaField` 引用保持稳定；`hotReload` 只在开发环境开启。
+- schema / `createSchemaOptions` 结果引用保持稳定；`hotReload` 只在开发环境开启。
 
 ## 自定义字段控件
 

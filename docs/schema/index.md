@@ -67,7 +67,7 @@ Schema 使用小驼峰命名：Formily 的 `x-component` 对应 `component`，`x
 
 <<< @/snippets/schema/component-maps.ts#runtime-names
 
-两个绑定包都提供 `createSchemaField`：它接收扁平组件映射，自动推断三份组件 map —— 见 [Vue](/vue/#createschemafield) 与 [React](/react/#createschemafield)。
+两个绑定包都提供 `createSchemaOptions`：它接收扁平组件映射，自动推断三份组件 map —— 见 [Vue](/vue/#createschemaoptions) 与 [React](/react/#createschemaoptions)。
 
 ### Patches
 

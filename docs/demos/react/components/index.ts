@@ -8,7 +8,7 @@ import { DemoTextarea } from './DemoTextarea'
 import { FormItem } from './FormItem'
 
 /**
- * Flat name → component map: passed to createSchemaField for fragment type
+ * Flat name → component map: passed to createSchemaOptions for fragment type
  * inference. Unclassified components default to field components; ArrayItems
  * and FormItem are array / void (decorator) components, classified separately
  * via the factory's arrayComponents / voidComponents maps and merged into the

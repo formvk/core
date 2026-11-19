@@ -1,4 +1,4 @@
-import { createFragment, createSchemaField } from '@formvk/react'
+import { createFragment, createSchemaOptions } from '@formvk/react'
 
 function MyInput(props: { placeholder?: string }) {
   return <input {...props} />
@@ -40,7 +40,7 @@ const f2 = createFragment<FieldMap, VoidMap, ArrayMap>({
 // #endregion
 
 // #region inference
-const { fragment: g } = createSchemaField({
+const { fragment: g } = createSchemaOptions({
   components: { Input: MyInput },
   arrayComponents: { ArrayItems: MyArrayItems },
 })

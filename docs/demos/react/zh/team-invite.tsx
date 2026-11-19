@@ -1,5 +1,5 @@
 import { onFieldValueChange } from '@formvk/core'
-import { createForm, createSchema, createSchemaField, FormProvider } from '@formvk/react'
+import { createForm, createSchema, createSchemaOptions, FormProvider, SchemaField } from '@formvk/react'
 import { observer } from '@formvk/reactive-react'
 import { useState } from 'react'
 
@@ -35,7 +35,7 @@ async function ensureEmailAvailable(value: unknown) {
 }
 
 // schema 与组件工厂是静态的，放在模块级只执行一次。
-const { SchemaField, fragment: f } = createSchemaField({
+const { OptionsProvider, fragment: f } = createSchemaOptions({
   components: demoComponents,
   voidComponents: { FormItem },
   arrayComponents: { ArrayItems: DemoArrayItems },
@@ -235,28 +235,30 @@ export default observer(function TeamInviteDemo() {
   }
 
   return (
-    <FormProvider form={form}>
-      <div className="dr-demo">
-        <SchemaField schema={schema} />
-        <div className="dr-actions">
-          <button type="button" className="dr-btn dr-btn--ghost" onClick={assignMemberRoleToAll}>
-            全部设为「成员」
-          </button>
-          <button type="button" className="dr-btn" disabled={form.submitting} onClick={onSubmit}>
-            {form.submitting ? '创建中…' : '创建团队'}
-          </button>
-          <button type="button" className="dr-btn dr-btn--ghost" onClick={onReset}>
-            重置
-          </button>
-        </div>
-        <div className="dr-result">{summary}</div>
-        {error ? <div className="dr-result">{error}</div> : null}
-        {submitted ? (
-          <div className="dr-result">
-            <pre>{submitted}</pre>
+    <OptionsProvider>
+      <FormProvider form={form}>
+        <div className="dr-demo">
+          <SchemaField schema={schema} />
+          <div className="dr-actions">
+            <button type="button" className="dr-btn dr-btn--ghost" onClick={assignMemberRoleToAll}>
+              全部设为「成员」
+            </button>
+            <button type="button" className="dr-btn" disabled={form.submitting} onClick={onSubmit}>
+              {form.submitting ? '创建中…' : '创建团队'}
+            </button>
+            <button type="button" className="dr-btn dr-btn--ghost" onClick={onReset}>
+              重置
+            </button>
           </div>
-        ) : null}
-      </div>
-    </FormProvider>
+          <div className="dr-result">{summary}</div>
+          {error ? <div className="dr-result">{error}</div> : null}
+          {submitted ? (
+            <div className="dr-result">
+              <pre>{submitted}</pre>
+            </div>
+          ) : null}
+        </div>
+      </FormProvider>
+    </OptionsProvider>
   )
 })

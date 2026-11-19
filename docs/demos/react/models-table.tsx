@@ -1,5 +1,5 @@
 import { TableModel } from '@formvk/models'
-import { createSchema, createSchemaField } from '@formvk/react'
+import { createSchema, createSchemaOptions } from '@formvk/react'
 import { observer } from '@formvk/reactive-react'
 import { useEffect, useState } from 'react'
 
@@ -29,7 +29,7 @@ const columns = [
   { key: 'role', title: '角色' },
 ]
 
-const { fragment: f } = createSchemaField({
+const { fragment: f } = createSchemaOptions({
   components: demoComponents,
   voidComponents: { FormItem },
   arrayComponents: { ArrayItems: DemoArrayItems },

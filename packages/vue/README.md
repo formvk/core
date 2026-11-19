@@ -34,23 +34,33 @@ const schema = createSchema({
 </template>
 ```
 
-也可以用 `createSchemaField` 预绑定组件：
+也可以用 `createSchemaOptions` 生成组件工厂，并通过 `OptionsProvider` 注入默认组件：
 
-```ts
-import { createSchema, createSchemaField } from '@formvk/vue'
+```vue
+<script setup lang="ts">
+import { createSchema, createSchemaOptions, FormProvider, SchemaField } from '@formvk/vue'
 
-const { SchemaField, fragment: f } = createSchemaField({
+const { OptionsProvider, fragment: f } = createSchemaOptions({
   components: { Input: MyInput },
 })
 
 const schema = createSchema({
   name: f.Input({ title: 'Name' }),
 })
+</script>
+
+<template>
+  <OptionsProvider>
+    <FormProvider :form="form">
+      <SchemaField :schema="schema" />
+    </FormProvider>
+  </OptionsProvider>
+</template>
 ```
 
 ## API
 
-- **组件** — `FormProvider`、`SchemaField`、`createSchemaField`、`RecursionField`、`ExpressionScope`、`FormConsumer`。
+- **组件** — `FormProvider`、`SchemaField`、`OptionsProvider`、`createSchemaOptions`、`RecursionField`、`ExpressionScope`、`FormConsumer`。
 - **Hooks** — `useForm`、`useField`、`useFieldSchema`、`useAttach`、`useFormEffects`、`useInjectionCleaner`、`useParentForm`。
 - **辅助函数** — `createForm`、`connect`、`mapProps`、`mapReadPretty`。
 - **Schema** — 重新导出 `@formvk/schema`（`createFragment`、`createSchema`、`ISchema`、表达式类型等）。

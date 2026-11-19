@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { createForm, FormProvider, createSchema, createSchemaField } from '@formvk/vue'
+import { createForm, FormProvider, createSchema, createSchemaOptions, SchemaField } from '@formvk/vue'
 import { ref } from 'vue'
 
 import { DemoArrayItems, demoComponents, FormItem } from '../components'
@@ -15,7 +15,7 @@ const form = createForm({
 
 const submitted = ref('')
 
-const { SchemaField, fragment: f } = createSchemaField({
+const { OptionsProvider, fragment: f } = createSchemaOptions({
   components: demoComponents,
   voidComponents: { FormItem },
   arrayComponents: { ArrayItems: DemoArrayItems },
@@ -69,18 +69,20 @@ function onReset() {
 </script>
 
 <template>
-  <FormProvider :form="form">
-    <div class="dv-demo">
-      <SchemaField :schema="schema" />
-      <div class="dv-actions">
-        <button class="dv-btn" :disabled="form.submitting" @click="onSubmit">
-          {{ form.submitting ? '提交中…' : '提交' }}
-        </button>
-        <button class="dv-btn dv-btn--ghost" @click="onReset">重置</button>
+  <OptionsProvider>
+    <FormProvider :form="form">
+      <div class="dv-demo">
+        <SchemaField :schema="schema" />
+        <div class="dv-actions">
+          <button class="dv-btn" :disabled="form.submitting" @click="onSubmit">
+            {{ form.submitting ? '提交中…' : '提交' }}
+          </button>
+          <button class="dv-btn dv-btn--ghost" @click="onReset">重置</button>
+        </div>
+        <div v-if="submitted" class="dv-result">
+          <pre>{{ submitted }}</pre>
+        </div>
       </div>
-      <div v-if="submitted" class="dv-result">
-        <pre>{{ submitted }}</pre>
-      </div>
-    </div>
-  </FormProvider>
+    </FormProvider>
+  </OptionsProvider>
 </template>

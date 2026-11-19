@@ -62,5 +62,5 @@ Composes both helpers:
 
 ## Next steps
 
-- [React bindings](/en/react/) — `createForm`, `createSchemaField` and the rendering components.
+- [React bindings](/en/react/) — `createForm`, `createSchemaOptions` and the rendering components.
 - [Custom components](/en/react/custom-components) — field and array component contracts.

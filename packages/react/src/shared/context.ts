@@ -13,3 +13,6 @@ export const SchemaContext = createContext<Schema | undefined>(undefined)
 export const SchemaExpressionScopeContext = createContext<Record<string, any> | undefined>(undefined)
 
 export const SchemaOptionsContext = createContext<ISchemaFieldRuntimeOptions | undefined>(undefined)
+
+/** createSchemaOptions 返回的 OptionsProvider 注入的选项，SchemaField 读取后与自身 props 合并。 */
+export const SchemaOptionsProviderContext = createContext<ISchemaFieldRuntimeOptions | undefined>(undefined)

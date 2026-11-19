@@ -1,4 +1,4 @@
-import { createForm, createSchema, createSchemaField, FormProvider } from '@formvk/react'
+import { createForm, createSchema, createSchemaOptions, FormProvider, SchemaField } from '@formvk/react'
 import { useState } from 'react'
 
 function Input(props: { value?: string }) {
@@ -6,7 +6,7 @@ function Input(props: { value?: string }) {
 }
 
 // The schema and component factory are static and built once at module level
-const { SchemaField, fragment: f } = createSchemaField({
+const { OptionsProvider, fragment: f } = createSchemaOptions({
   components: { Input },
 })
 
@@ -19,8 +19,10 @@ export default function App() {
   const [form] = useState(() => createForm({ values: { name: '' } }))
 
   return (
-    <FormProvider form={form}>
-      <SchemaField schema={schema} />
-    </FormProvider>
+    <OptionsProvider>
+      <FormProvider form={form}>
+        <SchemaField schema={schema} />
+      </FormProvider>
+    </OptionsProvider>
   )
 }

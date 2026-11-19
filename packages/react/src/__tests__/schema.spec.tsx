@@ -8,7 +8,7 @@ import {
   Schema,
   SchemaField,
   createForm,
-  createSchemaField,
+  createSchemaOptions,
   useField,
   useFieldSchema,
 } from '..'
@@ -453,17 +453,17 @@ const demoComponents = {
   Input: TypedInput,
 }
 
-describe('createSchemaField 返回 SchemaField + fragment', () => {
-  test('运行时：工厂返回 { SchemaField, fragment } 双 key', () => {
-    const built = createSchemaField({ components: { Input: TypedInput } })
+describe('createSchemaOptions 返回 OptionsProvider + fragment', () => {
+  test('运行时：工厂返回 { OptionsProvider, fragment } 两个 key', () => {
+    const built = createSchemaOptions({ components: { Input: TypedInput } })
 
-    expect(Object.keys(built).sort()).toEqual(['SchemaField', 'fragment'])
-    expect(built.SchemaField).toBeTruthy()
+    expect(Object.keys(built).sort()).toEqual(['OptionsProvider', 'fragment'])
+    expect(built.OptionsProvider).toBeTruthy()
     expect(typeof built.fragment.Field).toBe('function')
   })
 
   test('运行时：分类入参传组件 map，动态构造器按分类产出节点', () => {
-    const { fragment: f } = createSchemaField({
+    const { fragment: f } = createSchemaOptions({
       components: { Input: TypedInput },
       voidComponents: { Layout: TypedLayout },
       arrayComponents: { ArrayList: TypedArray },
@@ -490,43 +490,102 @@ describe('createSchemaField 返回 SchemaField + fragment', () => {
     ).toMatchObject({ type: 'object', properties: { name: { type: 'string', component: 'Input' } } })
   })
 
-  test('运行时：预绑定 SchemaField 无需再传 components 即可渲染 fragment 产出的 schema', () => {
-    const { SchemaField: BoundSchemaField, fragment: f } = createSchemaField({
+  test('运行时：OptionsProvider 注入组件后，SchemaField 无需再传 components 即可渲染 fragment 产出的 schema', () => {
+    const { OptionsProvider, fragment: f } = createSchemaOptions({
       components: { Input: TypedInput },
       arrayComponents: { ArrayList: TypedArray },
     })
     const schema = f.Object({ name: f.Input({ required: true }) })()
     const form = createForm()
 
-    const view = mountWithForm(form, <BoundSchemaField schema={schema} />)
+    const view = mountWithForm(
+      form,
+      <OptionsProvider>
+        <SchemaField schema={schema} />
+      </OptionsProvider>
+    )
 
     expect(view.container.querySelector('input')).toBeTruthy()
     expect(form.fields['name']).toBeTruthy()
   })
 
-  test('运行时：预绑定 SchemaField 支持 props 传扁平 map 覆盖同名组件', () => {
+  test('运行时：SchemaField props 可覆盖 OptionsProvider 注入的同名组件', () => {
     function OverrideInput() {
       return <input className="override-input" />
     }
-    const { SchemaField: BoundSchemaField, fragment: f } = createSchemaField({
+    const { OptionsProvider, fragment: f } = createSchemaOptions({
       components: { Input: TypedInput },
     })
     const schema = f.Object({ name: f.Input() })()
     const form = createForm()
 
-    const view = mountWithForm(form, <BoundSchemaField schema={schema} components={{ Input: OverrideInput }} />)
+    const view = mountWithForm(
+      form,
+      <OptionsProvider>
+        <SchemaField schema={schema} components={{ Input: OverrideInput }} />
+      </OptionsProvider>
+    )
 
     expect(view.container.querySelector('.override-input')).toBeTruthy()
   })
 
+  test('运行时：OptionsProvider 为直接使用的 SchemaField 提供 components 与 scope', () => {
+    function ScopeInput(props: any) {
+      return <input className="scope-input" placeholder={props.placeholder} />
+    }
+    const { OptionsProvider, fragment: f } = createSchemaOptions({
+      components: { Input: ScopeInput },
+      scope: { $label: 'provider' },
+    })
+    const schema = f.Object({ name: f.Input({ componentProps: { placeholder: '{{$label}}' } }) })()
+    const form = createForm()
+
+    const view = mountWithForm(
+      form,
+      <OptionsProvider>
+        <SchemaField schema={schema} />
+      </OptionsProvider>
+    )
+
+    expect(view.container.querySelector('.scope-input')).toBeTruthy()
+    expect(view.container.querySelector('input')?.getAttribute('placeholder')).toBe('provider')
+    expect(form.fields['name']).toBeTruthy()
+  })
+
+  test('运行时：直接使用的 SchemaField 用 props 覆盖 OptionsProvider 的同名组件与 scope', () => {
+    function ProviderInput() {
+      return <input className="provider-input" />
+    }
+    function LocalInput(props: any) {
+      return <input className="local-input" placeholder={props.placeholder} />
+    }
+    const { OptionsProvider, fragment: f } = createSchemaOptions({
+      components: { Input: ProviderInput },
+      scope: { $label: 'provider' },
+    })
+    const schema = f.Object({ name: f.Input({ componentProps: { placeholder: '{{$label}}' } }) })()
+    const form = createForm()
+
+    const view = mountWithForm(
+      form,
+      <OptionsProvider>
+        <SchemaField schema={schema} components={{ Input: LocalInput }} scope={{ $label: 'local' }} />
+      </OptionsProvider>
+    )
+
+    expect(view.container.querySelector('.local-input')).toBeTruthy()
+    expect(view.container.querySelector('.provider-input')).toBeNull()
+    expect(view.container.querySelector('input')?.getAttribute('placeholder')).toBe('local')
+  })
+
   test('运行时：无参调用仍可用，动态构造器运行时保持宽松', () => {
-    const { fragment: f } = createSchemaField()
+    const { fragment: f } = createSchemaOptions()
     expect(f.Field()()).toMatchObject({ type: 'string' })
     expect((f as any).Anything()()).toMatchObject({ type: 'string', component: 'Anything' })
   })
 
   test('类型：组件 props、父子值类型与 scope 全部由扁平 components 推断，无需手写泛型', () => {
-    const { fragment: f } = createSchemaField({
+    const { fragment: f } = createSchemaOptions({
       components: demoComponents,
       voidComponents: { Layout: TypedLayout },
       arrayComponents: { ArrayList: TypedArray },
@@ -534,7 +593,7 @@ describe('createSchemaField 返回 SchemaField + fragment', () => {
     })
 
     // @ts-expect-error 分类入参只接收组件 map，不再接收名字数组
-    createSchemaField({ components: demoComponents, arrayComponents: ['ArrayList'] })
+    createSchemaOptions({ components: demoComponents, arrayComponents: ['ArrayList'] })
 
     f.Input({ componentProps: { maxLength: 10, placeholder: 'name' } })
     // @ts-expect-error componentProps 由组件 props 推导，maxLength 必须是 number
@@ -585,7 +644,7 @@ describe('createSchemaField 返回 SchemaField + fragment', () => {
   })
 
   test('类型：defaultDecorator 推断后收窄 decoratorProps', () => {
-    const { fragment: f } = createSchemaField({
+    const { fragment: f } = createSchemaOptions({
       components: { Input: TypedInput },
       voidComponents: { Layout: TypedLayout },
       defaultDecorator: 'Layout',

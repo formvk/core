@@ -34,23 +34,33 @@ const schema = createSchema({
 </template>
 ```
 
-The schema field can also pre-bind components with `createSchemaField`:
+The component factory can also be generated with `createSchemaOptions`, with defaults injected through `OptionsProvider`:
 
-```ts
-import { createSchema, createSchemaField } from '@formvk/vue'
+```vue
+<script setup lang="ts">
+import { createSchema, createSchemaOptions, FormProvider, SchemaField } from '@formvk/vue'
 
-const { SchemaField, fragment: f } = createSchemaField({
+const { OptionsProvider, fragment: f } = createSchemaOptions({
   components: { Input: MyInput },
 })
 
 const schema = createSchema({
   name: f.Input({ title: 'Name' }),
 })
+</script>
+
+<template>
+  <OptionsProvider>
+    <FormProvider :form="form">
+      <SchemaField :schema="schema" />
+    </FormProvider>
+  </OptionsProvider>
+</template>
 ```
 
 ## API
 
-- **Components** — `FormProvider`, `SchemaField`, `createSchemaField`, `RecursionField`, `ExpressionScope`, `FormConsumer`.
+- **Components** — `FormProvider`, `SchemaField`, `OptionsProvider`, `createSchemaOptions`, `RecursionField`, `ExpressionScope`, `FormConsumer`.
 - **Hooks** — `useForm`, `useField`, `useFieldSchema`, `useAttach`, `useFormEffects`, `useInjectionCleaner`, `useParentForm`.
 - **Helpers** — `createForm`, `connect`, `mapProps`, `mapReadPretty`.
 - **Schema** — re-exports `@formvk/schema` (`createFragment`, `createSchema`, `ISchema`, expression types, ...).
