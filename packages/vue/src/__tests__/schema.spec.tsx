@@ -262,16 +262,16 @@ describe('SchemaField / RecursionField', () => {
   test('SchemaField 接受扁平 components，同名组件可在 props 层覆盖', () => {
     const InputA = defineComponent({
       name: 'InputA',
-      props: ['value'],
+      props: ['modelValue'],
       setup(props) {
-        return () => <input class="input-a" value={props.value} />
+        return () => <input class="input-a" value={props.modelValue} />
       },
     })
     const InputB = defineComponent({
       name: 'InputB',
-      props: ['value'],
+      props: ['modelValue'],
       setup(props) {
-        return () => <input class="input-b" value={props.value} />
+        return () => <input class="input-b" value={props.modelValue} />
       },
     })
 
@@ -496,7 +496,6 @@ describe('createSchemaOptions 返回 OptionsProvider + fragment', () => {
   test('运行时：SchemaField props 可覆盖 OptionsProvider 注入的同名组件', () => {
     const OverrideInput = defineComponent({
       name: 'OverrideInput',
-      props: ['value'],
       setup: () => () => <input class="override-input" />,
     })
     const { OptionsProvider, fragment: f } = createSchemaOptions({

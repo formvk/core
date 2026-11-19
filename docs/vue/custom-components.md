@@ -18,11 +18,14 @@ Formvk 本身不渲染任何东西。schema 只声明组件名（`component: 'In
 
 ### 用 `v-model` 接收字段值
 
-组件也可以直接声明 `modelValue` 并使用 `v-model`。适配层检测到组件声明了 `modelValue` prop（或 `update:modelValue` 事件）时，会改用 `modelValue` + `update:modelValue` 契约，取值与校验仍由字段驱动：
+Vue 侧的字段组件统一走 `v-model`：适配层注入 `modelValue` 并监听 `update:modelValue`，取值与校验仍由字段驱动。组件不调用 `useField()` 也能读写值，只有标题、错误等反馈信息才需要它：
 
 <<< @/snippets/vue/VModelInput.vue
 
-两种契约互斥：声明了 `modelValue` 的组件只接收 `modelValue` / `update:modelValue`，不再传 `value` / `onChange`；其余组件继续走 `value` + `onChange`。
+- 适配层不再注入 `value` / `onChange`。
+- 原生 `input` / `select` / `textarea` 走 `v-model` 指令；其余字符串标签（自定义元素等）没有 v-model 语义，仍按 `value` + `change` 注入以保持兼容。
+- `update:modelValue` 会写回字段并触发输入校验。
+- 迁移旧组件时，把 `props.value` 换成 `modelValue`，把 `emit('change', v)` 换成 `emit('update:modelValue', v)`。
 
 ## 注册组件
 

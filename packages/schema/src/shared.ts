@@ -1,5 +1,5 @@
 import { isObservable, untracked } from '@formvk/reactive'
-import { each, FormPath, isArr, isFn, isPlainObj, toArr } from '@formvk/shared'
+import { each, isArr, isFn, isNum, isPlainObj, toArr } from '@formvk/shared'
 
 import type { ISchema } from './types'
 
@@ -205,17 +205,43 @@ export function createDataSource(source: any[]) {
   })
 }
 
+/**
+ * 按原始 segments 写入状态，不经过 FormPath 的路径解析。
+ * 字段状态里会出现 `onUpdate:modelValue` 这类键：`:` 在路径语法中是语法字符，
+ * 经 path 解析会被截断成 `onUpdate`，因此这里直接按 segment 逐层赋值。
+ */
+export function setInSegments(source: any, segments: (string | number)[], value: any) {
+  let target = source
+  for (let i = 0; i < segments.length; i++) {
+    const key = segments[i]
+    if (target === undefined || target === null) return
+    if (typeof target !== 'object' && typeof target !== 'function') return
+    if (isArr(target) && !(typeof key === 'number' || /^\d+$/.test(String(key)))) return
+    if (target[key] === undefined || target[key] === null) {
+      if (value === undefined) {
+        if (target[key] === null) target[key] = value
+        return
+      }
+      if (i < segments.length - 1) {
+        target[key] = isNum(segments[i + 1]) ? [] : {}
+      }
+    }
+    if (i === segments.length - 1) {
+      target[key] = value
+    }
+    target = target[key]
+  }
+}
+
 export function patchStateFormSchema(targetState: any, pattern: any[], compiled: any) {
   untracked(() => {
-    const path = FormPath.parse(pattern)
-    const segments = path.segments
-    const key = segments[0]
+    const key = pattern[0]
     const isEnum = key === 'enum' && isArr(compiled)
     const schemaMapKey = SchemaStateMap[key]
     if (schemaMapKey) {
-      FormPath.setIn(
+      setInSegments(
         targetState,
-        ([schemaMapKey] as Array<string | number>).concat(segments.slice(1)),
+        ([schemaMapKey] as Array<string | number>).concat(pattern.slice(1)),
         isEnum ? createDataSource(compiled) : compiled
       )
     } else {

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-const model = defineModel<string>()
+const modelRef = defineModel<string>()
 </script>
 
 <template>
-  <input v-model="model" />
+  <input v-model="modelRef" />
 </template>

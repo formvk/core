@@ -18,11 +18,14 @@ In Vue `useField()` returns a ref: read it through `.value` in `<script setup>`,
 
 ### Receive the value with `v-model`
 
-A component can also declare `modelValue` and use `v-model`. When the adapter detects a `modelValue` prop (or an `update:modelValue` event), it switches to the `modelValue` + `update:modelValue` contract, while the value and validation stay driven by the field:
+Vue field components use `v-model` exclusively: the adapter injects `modelValue` and listens to `update:modelValue`, while the value and validation stay driven by the field. A component can read and write the value without `useField()`; the hook is only needed for feedback such as title and errors:
 
 <<< @/snippets/vue/VModelInput.vue
 
-The two contracts are mutually exclusive: components declaring `modelValue` only receive `modelValue` / `update:modelValue`, with no `value` / `onChange`; all other components keep receiving `value` + `onChange`.
+- The adapter no longer injects `value` / `onChange`.
+- Native `input` / `select` / `textarea` use the `v-model` directive; other string tags (such as custom elements) have no v-model semantics and still receive `value` + `change` for compatibility.
+- `update:modelValue` writes back to the field and runs input-triggered validation.
+- To migrate an old component, rename `props.value` to `modelValue` and `emit('change', v)` to `emit('update:modelValue', v)`.
 
 ## Register the component
 

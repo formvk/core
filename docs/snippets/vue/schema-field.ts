@@ -1,7 +1,7 @@
 import { createSchema, createSchemaOptions } from '@formvk/vue'
 import { defineComponent } from 'vue'
 
-const Input = defineComponent({ props: { placeholder: String, value: String } })
+const Input = defineComponent({ props: { placeholder: String, modelValue: String } })
 const Select = defineComponent({ props: { placeholder: String } })
 const FormLayout = defineComponent({ props: {} })
 const ArrayItems = defineComponent({ props: {} })

@@ -146,6 +146,23 @@ test('patchCompile', () => {
   })
 })
 
+test('patchCompile keeps state keys containing path syntax characters', () => {
+  const onChange = () => {}
+  const targetState: any = { componentProps: {} }
+  patchCompile(targetState, { componentProps: { 'onUpdate:modelValue': onChange } }, {})
+
+  expect(targetState.componentProps['onUpdate:modelValue']).toBe(onChange)
+  expect(targetState.componentProps).not.toHaveProperty('onUpdate')
+})
+
+test('patchCompile writes nested componentProps state', () => {
+  const targetState: any = { componentProps: {} }
+  patchCompile(targetState, { componentProps: { options: [{ label: '{{"a"}}' }] } }, {})
+
+  expect(Array.isArray(targetState.componentProps.options)).toBe(true)
+  expect(targetState.componentProps.options[0].label).toBe('a')
+})
+
 test('patchSchemaCompile', () => {
   const targetState = {
     title: '',

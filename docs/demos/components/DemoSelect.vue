@@ -9,7 +9,6 @@ interface Option {
 }
 
 const props = defineProps<{
-  value?: any
   options?: Option[]
   placeholder?: string
   disabled?: boolean
@@ -17,10 +16,12 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  change: [value: any]
   focus: [event: FocusEvent]
   blur: [event: FocusEvent]
 }>()
+
+// defineModel 展开为 modelValue prop + update:modelValue emit，与适配层的 v-model 契约一致
+const modelRef = defineModel<any>()
 
 const { field } = useDemoField()
 
@@ -41,18 +42,13 @@ const resolvedOptions = computed<Option[]>(() => {
   if (props.options?.length) return props.options
   return normalize((field.value as any)?.dataSource)
 })
-
-function onChange(event: Event) {
-  emit('change', (event.target as HTMLSelectElement).value)
-}
 </script>
 
 <template>
   <select
+    v-model="modelRef"
     class="dv-select"
-    :value="value ?? ''"
     :disabled="disabled"
-    @change="onChange"
     @focus="emit('focus', $event)"
     @blur="emit('blur', $event)"
   >

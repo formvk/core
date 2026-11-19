@@ -2,8 +2,21 @@ import { isVoidField } from '@formvk/core'
 import type { GeneralField, IFieldFactoryProps } from '@formvk/core'
 import { toJS } from '@formvk/reactive'
 import { FormPath, each, isFn, isStr } from '@formvk/shared'
-import { Fragment, computed, defineComponent, h, inject, isVNode, provide, ref, shallowRef, watch } from 'vue'
-import type { Ref, VNode } from 'vue'
+import {
+  Fragment,
+  computed,
+  defineComponent,
+  h,
+  inject,
+  isVNode,
+  provide,
+  ref,
+  shallowRef,
+  vModelDynamic,
+  watch,
+  withDirectives,
+} from 'vue'
+import type { Directive, Ref, VNode } from 'vue'
 
 import { useAttach } from '../hooks/useAttach'
 import { useField } from '../hooks/useField'
@@ -88,16 +101,17 @@ function toVueEventProps(events: Record<string, any>) {
   return props
 }
 
-// 支持 v-model 契约的组件：声明了 modelValue prop 或 update:modelValue 事件
-function supportsModelValue(Component: any): boolean {
-  if (!Component || isStr(Component)) return false
-  const props = Component.props
-  if (Array.isArray(props)) return props.includes('modelValue')
-  if (props && typeof props === 'object' && 'modelValue' in props) return true
-  const emits = Component.emits
-  if (Array.isArray(emits)) return emits.includes('update:modelValue')
-  if (emits && typeof emits === 'object' && 'update:modelValue' in emits) return true
-  return false
+// 原生标签没有组件的 props/emits，v-model 需要手动挂运行时指令，
+// 才能获得 IME 拼字、type=number 转换等与模板编译一致的行为。
+// vModelDynamic 会在运行时按元素标签与 type 选择对应的具体指令。
+const nativeModelTags = new Set(['input', 'select', 'textarea'])
+
+function resolveNativeModelDirective(tag: string, props: Record<string, any>): Directive | null {
+  const normalizedTag = tag.toLowerCase()
+  if (!nativeModelTags.has(normalizedTag)) return null
+  // file input 的 value 只读：Vue 编译器直接禁止 v-model，运行时挂指令会在赋值时抛错
+  if (normalizedTag === 'input' && props.type === 'file') return null
+  return vModelDynamic as Directive
 }
 
 export const ReactiveField = defineComponent({
@@ -163,6 +177,22 @@ export const ReactiveField = defineComponent({
     useAttach(currentFieldRef)
     provide(FieldSymbol, currentFieldRef)
 
+    // v-model 的读写统一收口在 setup 层，渲染函数只负责把当前 schema 声明的
+    // update:modelValue 处理器记录下来，供 setter 写回字段后继续调用。
+    let modelUpdateHandler: ((...args: any[]) => void) | undefined
+    const modelRef = computed({
+      get: () => {
+        const field = currentFieldRef.value
+        return field && !isVoidField(field) ? field.value : undefined
+      },
+      set: value => {
+        const field = currentFieldRef.value
+        if (!field || isVoidField(field)) return
+        field.onInput(value)
+        modelUpdateHandler?.(value)
+      },
+    })
+
     return () => {
       const field = currentFieldRef.value
       const options = optionsRef.value
@@ -175,13 +205,7 @@ export const ReactiveField = defineComponent({
         if (!field.decoratorType) return wrapFragment(children)
         const Decorator = getRawComponent(options?.components, field.decoratorType)
         const { props: decoratorProps, events } = normalizeProps(toJS((field.decorator as any)[1]) || {})
-        return h(
-          Decorator,
-          { ...decoratorProps, ...toVueEventProps(events) },
-          {
-            default: () => children,
-          }
-        )
+        return <Decorator {...decoratorProps} {...toVueEventProps(events)} v-slots={{ default: () => children }} />
       }
 
       function renderComponent() {
@@ -189,18 +213,10 @@ export const ReactiveField = defineComponent({
 
         const Component = getRawComponent(options?.components, field.componentType)
         const { props: originProps, events } = normalizeProps(toJS((field.component as any)[1]) || {})
-        // 声明 modelValue 的组件走 v-model 契约，未声明的继续走 value / onChange，两者互斥
-        const modelValueEnabled = !isVoidField(field) && supportsModelValue(Component)
-        const originChange = events.change
+        // Vue 侧统一使用 v-model 契约：modelValue + update:modelValue
         const originFocus = events.focus
         const originBlur = events.blur
 
-        if (!modelValueEnabled) {
-          events.change = (...args: any[]) => {
-            if (!isVoidField(field)) field.onInput(...args)
-            originChange?.(...args)
-          }
-        }
         events.focus = (...args: any[]) => {
           if (!isVoidField(field)) field.onFocus(...args)
           originFocus?.(...args)
@@ -210,13 +226,9 @@ export const ReactiveField = defineComponent({
           originBlur?.(...args)
         }
 
-        if (modelValueEnabled) {
-          const originModelUpdate = events['update:modelValue']
-          events['update:modelValue'] = (...args: any[]) => {
-            if (!isVoidField(field)) field.onInput(...args)
-            originModelUpdate?.(...args)
-          }
-        }
+        // 写回统一走 v-model 的 setter；schema 里声明的 update:modelValue 也在 setter 中触发
+        const originModelUpdate = events['update:modelValue']
+        delete events['update:modelValue']
 
         const componentProps: Record<string, any> = {
           ...(isVoidField(field)
@@ -226,18 +238,46 @@ export const ReactiveField = defineComponent({
                 readOnly: field.pattern === 'readOnly',
               }),
           ...originProps,
-          ...(isVoidField(field) ? {} : modelValueEnabled ? { modelValue: field.value } : { value: field.value }),
           ...toVueEventProps(events),
         }
 
-        if (isStr(Component)) {
-          return h(
-            Component,
-            componentProps,
-            Object.keys(mergedSlots).map(name => mergedSlots[name]())
-          )
+        const children = Object.keys(mergedSlots).map(name => mergedSlots[name]?.())
+
+        // void 字段不绑定值，只保留 schema 声明的处理器
+        if (isVoidField(field)) {
+          if (originModelUpdate) componentProps['onUpdate:modelValue'] = originModelUpdate
+          if (isStr(Component)) return h(Component, componentProps, children)
+          return <Component {...componentProps} v-slots={mergedSlots} />
         }
-        return h(Component, componentProps, mergedSlots)
+
+        // 渲染只记录当前字段的处理器，读写统一走 setup 层的 modelRef
+        modelUpdateHandler = originModelUpdate
+
+        if (isStr(Component)) {
+          // 原生标签手动挂 v-model 指令，与模板编译产物保持一致
+          const directive = resolveNativeModelDirective(Component, componentProps)
+          if (directive) {
+            const nativeProps = {
+              ...componentProps,
+              'onUpdate:modelValue': (value: any) => {
+                modelRef.value = value
+              },
+            }
+            return withDirectives(h(Component, nativeProps, children), [[directive, modelRef.value]])
+          }
+          // file input 的 value 只读，不注入值也不写回
+          if (Component.toLowerCase() === 'input') return h(Component, componentProps, children)
+          // 其余字符串标签（自定义元素等）没有 v-model 语义，保留 value + change 兼容契约
+          const originChange = componentProps.onChange
+          componentProps.value = modelRef.value
+          componentProps.onChange = (event: any) => {
+            modelRef.value = event
+            originChange?.(event)
+          }
+          return h(Component, componentProps, children)
+        }
+
+        return <Component {...componentProps} v-model={modelRef.value} v-slots={mergedSlots} />
       }
 
       return renderDecorator(renderComponent())

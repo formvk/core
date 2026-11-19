@@ -1,8 +1,8 @@
 import type { IGeneralFieldState } from '@formvk/core'
 import { untracked } from '@formvk/reactive'
-import { FormPath, isArr, isFn, isPlainObj, isStr, reduce } from '@formvk/shared'
+import { isArr, isFn, isPlainObj, isStr, reduce } from '@formvk/shared'
 
-import { isNoNeedCompileObject, patchStateFormSchema, traverse, traverseSchema } from './shared'
+import { isNoNeedCompileObject, patchStateFormSchema, setInSegments, traverse, traverseSchema } from './shared'
 import type { ISchema } from './types'
 
 const ExpRE = /^\s*\{\{([\s\S]*)\}\}\s*$/
@@ -95,11 +95,11 @@ export function patchCompile(targetState: IGeneralFieldState, sourceState: any, 
   traverse(sourceState, (value, pattern) => {
     const compiled = compile(value, scope)
     if (compiled === undefined) return
-    const path = FormPath.parse(pattern)
-    const key = path.segments[0]
+    const key = pattern[0]
     // 字段状态的 title/description 等是原型链上的 accessor，因此用 in 而不是 hasOwnProperty
     if (key in targetState) {
-      untracked(() => FormPath.setIn(targetState as any, path, compiled))
+      // 按原始 segments 写入，避免 `onUpdate:modelValue` 等键被路径语法截断
+      untracked(() => setInSegments(targetState as any, pattern, compiled))
     }
   })
 }

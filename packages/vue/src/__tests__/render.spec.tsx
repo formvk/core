@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, test, vi } from 'vitest'
-import { defineComponent, h, nextTick } from 'vue'
+import { computed, defineComponent, h, nextTick } from 'vue'
 
 import {
   FormProvider,
@@ -177,7 +177,7 @@ describe('schema 驱动的字段渲染', () => {
     expect(input.element.value).toBe('remote')
   })
 
-  test('componentProps 中 onChange / @change 都驱动字段，@change 优先', async () => {
+  test('componentProps 中 onUpdate:modelValue / @update:modelValue 都驱动字段，后者优先', async () => {
     const onChange = vi.fn()
     const atChange = vi.fn()
     const form = createForm<{ username?: string; nickname?: string }>()
@@ -190,12 +190,12 @@ describe('schema 驱动的字段渲染', () => {
             username: {
               type: 'string',
               component: 'Input',
-              componentProps: { onChange },
+              componentProps: { 'onUpdate:modelValue': onChange },
             },
             nickname: {
               type: 'string',
               component: 'Input',
-              componentProps: { onChange, '@change': atChange },
+              componentProps: { 'onUpdate:modelValue': onChange, '@update:modelValue': atChange },
             },
           },
         }}
@@ -210,9 +210,11 @@ describe('schema 驱动的字段渲染', () => {
     await inputs[1].setValue('b')
     expect(form.values.nickname).toBe('b')
     expect(atChange).toHaveBeenCalled()
+    // @update:modelValue 覆盖 onUpdate:modelValue，后者不重复触发
+    expect(onChange).toHaveBeenCalledTimes(1)
   })
 
-  test('组件声明 modelValue 时支持 v-model', async () => {
+  test('组件通过 v-model 读写字段值', async () => {
     let receivedProps: Record<string, any> = {}
     let receivedAttrs: Record<string, any> = {}
     const ModelInput = defineComponent({
@@ -222,13 +224,12 @@ describe('schema 驱动的字段渲染', () => {
       setup(props, { attrs, emit }) {
         receivedProps = props as Record<string, any>
         receivedAttrs = attrs
-        return () => (
-          <input
-            class="model-input"
-            value={props.modelValue}
-            onInput={(event: Event) => emit('update:modelValue', (event.target as HTMLInputElement).value)}
-          />
-        )
+        // 组件内直接用 JSX v-model：写值经 setter emit 回适配层
+        const model = computed({
+          get: () => props.modelValue,
+          set: value => emit('update:modelValue', value),
+        })
+        return () => <input class="model-input" v-model={model.value} />
       },
     })
     const form = createForm<{ username?: string }>()
@@ -247,7 +248,7 @@ describe('schema 驱动的字段渲染', () => {
       />
     ))
 
-    // v-model 契约与 value / onChange 互斥
+    // v-model 契约：不再注入 value / onChange
     expect('value' in receivedProps).toBe(false)
     expect('onChange' in receivedAttrs).toBe(false)
 
@@ -261,6 +262,244 @@ describe('schema 驱动的字段渲染', () => {
     await nextTick()
     expect(receivedProps.modelValue).toBe('remote')
     expect((input.element as HTMLInputElement).value).toBe('remote')
+  })
+
+  test('组件可通过 props 直接调用 onUpdate:modelValue 写回字段', async () => {
+    const DirectModelInput = defineComponent({
+      name: 'DirectModelInput',
+      props: {
+        modelValue: String,
+        'onUpdate:modelValue': Function,
+      },
+      setup(props) {
+        return () => (
+          <button type="button" class="direct-model" onClick={() => props['onUpdate:modelValue']?.('direct')}>
+            {props.modelValue ?? ''}
+          </button>
+        )
+      },
+    })
+    const form = createForm<{ username?: string }>()
+    const wrapper = mountWithForm(form, () => (
+      <SchemaField
+        components={{ ...components, DirectModelInput }}
+        schema={{
+          type: 'object',
+          properties: {
+            username: {
+              type: 'string',
+              component: 'DirectModelInput',
+            },
+          },
+        }}
+      />
+    ))
+
+    const button = wrapper.find('button')
+    expect(button.text()).toBe('')
+    await button.trigger('click')
+    await nextTick()
+    expect(form.values.username).toBe('direct')
+    expect(button.text()).toBe('direct')
+  })
+
+  test('无冒号的 onUpdateModelValue 不属于 v-model 契约，不会写回字段', async () => {
+    let receivedProps: Record<string, any> = {}
+    const LegacyModelInput = defineComponent({
+      name: 'LegacyModelInput',
+      props: {
+        modelValue: String,
+        onUpdateModelValue: Function,
+      },
+      setup(props) {
+        receivedProps = props as Record<string, any>
+        return () => (
+          <button type="button" class="legacy-model" onClick={() => props.onUpdateModelValue?.('legacy')}>
+            {props.modelValue ?? ''}
+          </button>
+        )
+      },
+    })
+    const form = createForm<{ username?: string }>()
+    const wrapper = mountWithForm(form, () => (
+      <SchemaField
+        components={{ ...components, LegacyModelInput }}
+        schema={{
+          type: 'object',
+          properties: {
+            username: {
+              type: 'string',
+              component: 'LegacyModelInput',
+            },
+          },
+        }}
+      />
+    ))
+
+    // 适配层只注入带冒号的 onUpdate:modelValue，不会传 onUpdateModelValue
+    expect(receivedProps.onUpdateModelValue).toBeUndefined()
+
+    const button = wrapper.find('button')
+    await button.trigger('click')
+    await nextTick()
+    expect(form.values.username).toBeUndefined()
+    expect(button.text()).toBe('')
+  })
+
+  test('原生 input 标签通过 v-model 指令读写字段值', async () => {
+    const form = createForm<{ username?: string }>({ values: { username: 'init' } })
+    const wrapper = mountWithForm(form, () => (
+      <SchemaField
+        components={components}
+        schema={{
+          type: 'object',
+          properties: {
+            username: { type: 'string', component: 'input' },
+          },
+        }}
+      />
+    ))
+
+    const input = wrapper.find('input')
+    expect((input.element as HTMLInputElement).value).toBe('init')
+
+    await input.setValue('native')
+    expect(form.values.username).toBe('native')
+
+    form.setValuesIn('username', 'remote')
+    await nextTick()
+    expect((input.element as HTMLInputElement).value).toBe('remote')
+
+    // 原生元素走 vModelText 指令：IME 拼字期间不写回，compositionend 后同步
+    const element = input.element as HTMLInputElement
+    element.dispatchEvent(new Event('compositionstart'))
+    element.value = '拼'
+    element.dispatchEvent(new Event('input'))
+    await nextTick()
+    expect(form.values.username).toBe('remote')
+
+    element.dispatchEvent(new Event('compositionend'))
+    await nextTick()
+    expect(form.values.username).toBe('拼')
+  })
+
+  test('原生 checkbox 通过 v-model 指令读写布尔值', async () => {
+    const form = createForm<{ agree?: boolean }>({ values: { agree: false } })
+    const wrapper = mountWithForm(form, () => (
+      <SchemaField
+        components={components}
+        schema={{
+          type: 'object',
+          properties: {
+            agree: {
+              type: 'boolean',
+              component: 'input',
+              componentProps: { type: 'checkbox' },
+            },
+          },
+        }}
+      />
+    ))
+
+    const checkbox = wrapper.find('input')
+    expect((checkbox.element as HTMLInputElement).checked).toBe(false)
+
+    await checkbox.setValue(true)
+    expect(form.values.agree).toBe(true)
+  })
+
+  test('原生 select 通过 v-model 指令读写字段值', async () => {
+    const form = createForm<{ city?: string }>({ values: { city: 'sh' } })
+    const wrapper = mountWithForm(form, () => (
+      <SchemaField
+        components={components}
+        schema={{
+          type: 'object',
+          properties: {
+            city: {
+              type: 'string',
+              component: 'select',
+              componentProps: {
+                innerHTML: '<option value="sh">上海</option><option value="bj">北京</option>',
+              },
+            },
+          },
+        }}
+      />
+    ))
+
+    const select = wrapper.find('select')
+    expect((select.element as HTMLSelectElement).value).toBe('sh')
+
+    await select.setValue('bj')
+    expect(form.values.city).toBe('bj')
+
+    form.setValuesIn('city', 'sh')
+    await nextTick()
+    expect((select.element as HTMLSelectElement).value).toBe('sh')
+  })
+
+  test('无 v-model 语义的字符串标签保留 value + change 写回', async () => {
+    const onChange = vi.fn()
+    const form = createForm<{ code?: string }>({ values: { code: 'init' } })
+    const wrapper = mountWithForm(form, () => (
+      <SchemaField
+        components={components}
+        schema={{
+          type: 'object',
+          properties: {
+            code: {
+              type: 'string',
+              component: 'my-input',
+              componentProps: { onChange },
+            },
+          },
+        }}
+      />
+    ))
+
+    const custom = wrapper.find('my-input')
+    expect(custom.attributes('value')).toBe('init')
+
+    const element = custom.element as any
+    // 自定义元素没有 value 反射，手动补一个属性以模拟控件行为
+    element.value = 'changed'
+    await custom.trigger('change')
+    expect(form.values.code).toBe('changed')
+    expect(onChange).toHaveBeenCalledTimes(1)
+
+    form.setValuesIn('code', 'remote')
+    await nextTick()
+    // 元素上已有 value 属性后，Vue 会以 DOM property 方式更新
+    expect(element.value).toBe('remote')
+  })
+
+  test('原生 file input 不挂 v-model 指令，避免给只读 value 赋值', async () => {
+    const form = createForm<{ file?: string }>({ values: { file: 'picked.txt' } })
+    const wrapper = mountWithForm(form, () => (
+      <SchemaField
+        components={components}
+        schema={{
+          type: 'object',
+          properties: {
+            file: {
+              type: 'string',
+              component: 'input',
+              componentProps: { type: 'file' },
+            },
+          },
+        }}
+      />
+    ))
+
+    const input = wrapper.find('input')
+    expect((input.element as HTMLInputElement).type).toBe('file')
+    expect((input.element as HTMLInputElement).value).toBe('')
+
+    // 字段值变化不会尝试写入 file input 的只读 value
+    form.setValuesIn('file', 'next.txt')
+    await nextTick()
+    expect((input.element as HTMLInputElement).value).toBe('')
   })
 
   test('onFocus / onBlur 触发字段 focus / blur', async () => {
@@ -637,7 +876,7 @@ describe('边界与降级渲染', () => {
             v: {
               type: 'void',
               component: 'Input',
-              componentProps: { onChange, onFocus, onBlur },
+              componentProps: { 'onUpdate:modelValue': onChange, onFocus, onBlur },
             },
           },
         }}

@@ -48,16 +48,16 @@ packages/<ui>/
 
 `ReactiveField` 渲染组件时自动注入：
 
-| Prop                | 含义                                                                                                    |
-| ------------------- | ------------------------------------------------------------------------------------------------------- |
-| `value`             | 字段当前值，void 字段不注入                                                                             |
-| `modelValue`        | Vue 专用：组件声明 `modelValue` prop 或 `update:modelValue` 事件时注入，同时不再传 `value` / `onChange` |
-| `disabled`          | `pattern === 'disabled'` 或 `readPretty`                                                                |
-| `readOnly`          | `pattern === 'readOnly'`                                                                                |
-| `onChange` 等事件   | 已接好 `field.onInput` / `onFocus` / `onBlur`，并保留 schema 声明                                       |
-| `...componentProps` | schema 的 `componentProps`，与插槽同名时优先                                                            |
+| Prop                               | 含义                                                                                                                             |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `value`                            | React：字段当前值，void 字段不注入                                                                                               |
+| `modelValue`                       | Vue：字段当前值（v-model），void 字段不注入                                                                                      |
+| `disabled`                         | `pattern === 'disabled'` 或 `readPretty`                                                                                         |
+| `readOnly`                         | `pattern === 'readOnly'`                                                                                                         |
+| `onChange` / `onUpdate:modelValue` | React 注入 `onChange`，Vue 注入 `update:modelValue`，均已接好 `field.onInput`；`onFocus` / `onBlur` 同样注入，并保留 schema 声明 |
+| `...componentProps`                | schema 的 `componentProps`，与插槽同名时优先                                                                                     |
 
-- 纯受控控件直接接 `value` + `onChange`；Vue 控件也可直接声明 `modelValue` 用 `v-model`，此时适配层只注入 `modelValue` 并监听 `update:modelValue` 写回字段，两种契约互斥。
+- React 控件接 `value` + `onChange`；Vue 控件统一用 `v-model`（`modelValue` + `update:modelValue`），适配层不再注入 `value` / `onChange`。
 - 要显示错误、标题、必填标记时再调 `useField()`。
 - `disabled` / `readOnly` 已按 pattern 算好；只读展示优先用 `mapReadPretty`，不要用 `disabled` 模拟。
 - React 中读取字段的组件必须用 `observer` 包裹；Vue 不需要。
@@ -71,7 +71,7 @@ packages/<ui>/
   - 函数 mapper：`(props, field) => props`，用来加事件或转换值类型。
   - 多个 mapper 依次执行，后面的覆盖前面的结果。
   - 字段值有效时写入 props；字段值无效时保留调用方传入的有效 prop。
-  - `{ value: 'modelValue' }` 这类重命名会自动删掉原 `props.value`。
+  - `{ value: 'modelValue' }` 这类重命名会自动删掉原 `props.value`；Vue 已内置 v-model，无需再映射值。
   - 无字段上下文时原样透传，桥接组件可脱离表单单独使用。
 - `mapReadPretty(component, props?): (target) => target`
   - 字段 `pattern === 'readPretty'` 时渲染 `component`，否则渲染原组件。
@@ -88,7 +88,7 @@ schema 用 `enum` 声明数据源，运行时落在 `field.dataSource`；多数 
 ```ts
 export const Select = connect(
   BaseSelect, // 原控件，接收 options
-  mapProps({ dataSource: 'options', value: true, disabled: 'disabled' })
+  mapProps({ dataSource: 'options' })
 )
 ```
 
@@ -174,15 +174,15 @@ export const createMyFragment = () =>
 
 ## Vue 与 React 差异
 
-| 事项                | Vue                                | React                         |
-| ------------------- | ---------------------------------- | ----------------------------- |
-| `useField()` 返回   | `Ref`，模板自动解包                | 裸值或 `undefined`            |
-| 响应式              | 自动                               | 必须 `observer`               |
-| `connect` 结果      | `markRaw(defineComponent(...))`    | 普通组件，提升静态成员        |
-| `mapProps` 处理对象 | `attrs`（`inheritAttrs: false`）   | 全部 props                    |
-| 默认内容            | 默认插槽                           | `children`                    |
-| 具名插槽            | slot 函数 map                      | 同名 props（无 `slots` 聚合） |
-| 双向绑定            | 映射到 `modelValue` + `onUpdate:*` | `value` + `onChange`          |
+| 事项                | Vue                                                  | React                         |
+| ------------------- | ---------------------------------------------------- | ----------------------------- |
+| `useField()` 返回   | `Ref`，模板自动解包                                  | 裸值或 `undefined`            |
+| 响应式              | 自动                                                 | 必须 `observer`               |
+| `connect` 结果      | `markRaw(defineComponent(...))`                      | 普通组件，提升静态成员        |
+| `mapProps` 处理对象 | `attrs`（`inheritAttrs: false`）                     | 全部 props                    |
+| 默认内容            | 默认插槽                                             | `children`                    |
+| 具名插槽            | slot 函数 map                                        | 同名 props（无 `slots` 聚合） |
+| 双向绑定            | `modelValue` + `update:modelValue`（只支持 v-model） | `value` + `onChange`          |
 
 ## 测试
 
@@ -204,9 +204,9 @@ vitest + happy-dom。至少覆盖：
 ## 常见坑
 
 - React 组件读了字段却漏掉 `observer`，值变化不会重渲染。
-- 把 UI 库的 `modelValue` / `onUpdate:modelValue` 协议直接交给 formvk，字段不会更新，必须映射。
-- Select 组件只映射了 `value`，漏掉 `dataSource: 'options'`，下拉会永远是空的。
-- `mapProps` 重命名 `value` 后会删掉原 `value`，原生元素需要 `readonly` 时额外映射 `readOnly: 'readonly'`。
+- 把 UI 库的 `modelValue` 协议再手动映射成 `value`，Vue 控件字段不会更新；Vue 直接用 `v-model` 即可，React 才用 `value` + `onChange`。
+- Select 组件漏掉 `dataSource: 'options'` 映射，下拉会永远是空的。
+- `mapProps` 重命名 `value` 后会删掉原 `value`（React 场景）；Vue 的值走 `modelValue`，无需映射。原生元素需要只读时额外映射 `readOnly: 'readonly'`。
 - Vue 包装组件声明了目标 prop 后，`mapProps` 拿不到它（只处理 attrs），应保持包装层不声明这些 props。
 - 用 `disabled` 模拟只读展示，错误信息与格式化都会丢；使用 `mapReadPretty`。
 - 装饰器里把 React props 整体展开到原生元素，具名插槽会变成非法属性。

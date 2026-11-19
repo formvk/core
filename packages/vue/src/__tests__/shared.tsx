@@ -1,20 +1,25 @@
 import type { Form } from '@formvk/core'
 import { mount } from '@vue/test-utils'
-import { defineComponent } from 'vue'
+import { computed, defineComponent } from 'vue'
 
 import { FormProvider, useField } from '..'
 
 export const Input = defineComponent({
   name: 'Input',
-  props: ['value'],
-  setup(props, { attrs }) {
+  props: ['modelValue'],
+  emits: ['update:modelValue'],
+  setup(props, { attrs, emit }) {
     const fieldRef = useField()
+    // v-model 在 JSX 中会编译成 onUpdate:modelValue 赋值，setter 里把新值 emit 回适配层
+    const model = computed({
+      get: () => props.modelValue ?? '',
+      set: value => emit('update:modelValue', value),
+    })
     return () => (
       <input
         class="input"
         data-testid={fieldRef.value?.path?.toString()}
-        value={props.value}
-        onInput={(event: Event) => (attrs.onChange as any)?.(event)}
+        v-model={model.value}
         onFocus={(event: Event) => (attrs.onFocus as any)?.(event)}
         onBlur={(event: Event) => (attrs.onBlur as any)?.(event)}
       />

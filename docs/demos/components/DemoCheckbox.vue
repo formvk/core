@@ -1,28 +1,24 @@
 <script setup lang="ts">
+// defineModel 展开为 modelValue prop + update:modelValue emit，与适配层的 v-model 契约一致
+const modelRef = defineModel<boolean>()
+
 defineProps<{
-  value?: any
   disabled?: boolean
   readOnly?: boolean
 }>()
 
 const emit = defineEmits<{
-  change: [value: boolean]
   focus: [event: FocusEvent]
   blur: [event: FocusEvent]
 }>()
-
-function onChange(event: Event) {
-  emit('change', (event.target as HTMLInputElement).checked)
-}
 </script>
 
 <template>
   <input
+    v-model="modelRef"
     class="dv-checkbox"
     type="checkbox"
-    :checked="!!value"
     :disabled="disabled || readOnly"
-    @change="onChange"
     @focus="emit('focus', $event)"
     @blur="emit('blur', $event)"
   />

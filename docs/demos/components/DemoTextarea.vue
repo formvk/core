@@ -1,6 +1,8 @@
 <script setup lang="ts">
+// defineModel 展开为 modelValue prop + update:modelValue emit，与适配层的 v-model 契约一致
+const modelRef = defineModel<string>()
+
 defineProps<{
-  value?: any
   placeholder?: string
   rows?: number
   disabled?: boolean
@@ -8,25 +10,19 @@ defineProps<{
 }>()
 
 const emit = defineEmits<{
-  change: [value: string]
   focus: [event: FocusEvent]
   blur: [event: FocusEvent]
 }>()
-
-function onInput(event: Event) {
-  emit('change', (event.target as HTMLTextAreaElement).value)
-}
 </script>
 
 <template>
   <textarea
+    v-model="modelRef"
     class="dv-textarea"
-    :value="value ?? ''"
     :rows="rows ?? 3"
     :placeholder="placeholder"
     :disabled="disabled"
     :readonly="readOnly"
-    @input="onInput"
     @focus="emit('focus', $event)"
     @blur="emit('blur', $event)"
   />

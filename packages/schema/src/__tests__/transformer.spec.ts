@@ -135,6 +135,20 @@ test('baseReaction compiles expressions in componentProps / decoratorProps / val
   expect(field1.validator).toContainEqual({ maxLength: 6 })
 })
 
+test('baseReaction keeps componentProps keys containing path syntax characters', () => {
+  const onChange = () => {}
+  const { field1 } = getFormAndFields({
+    component: 'Input',
+    componentProps: {
+      // ':' 是路径语法字符，写入字段状态时不能被截断成 onUpdate
+      'onUpdate:modelValue': onChange,
+    },
+  })
+
+  expect(field1.componentProps['onUpdate:modelValue']).toBe(onChange)
+  expect(field1.componentProps).not.toHaveProperty('onUpdate')
+})
+
 test('baseReaction maps index to field order', () => {
   const schema = new Schema({
     type: 'object',
@@ -221,6 +235,24 @@ test('userReactions without target(state)', () => {
   })
 
   expect(field1.title).toBe(field1Title)
+})
+
+test('userReactions without target(state) keeps keys containing path syntax characters', () => {
+  const onChange = () => {}
+  const { field1 } = getFormAndFields({
+    reactions: {
+      fulfill: {
+        state: {
+          componentProps: {
+            'onUpdate:modelValue': onChange,
+          },
+        },
+      },
+    },
+  })
+
+  expect(field1.componentProps['onUpdate:modelValue']).toBe(onChange)
+  expect(field1.componentProps).not.toHaveProperty('onUpdate')
 })
 
 test('userReactions without target(schema)', () => {

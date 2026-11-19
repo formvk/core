@@ -198,7 +198,7 @@ const schema = createSchema({
 - 写：DOM 事件用 `field.onInput(event)`；原始值用 `field.setValue(value)`。
 - 反馈：`field.selfErrors`、`field.validateStatus`、`field.required`、`field.title`、`field.description`。
 - React 的 `ReactiveField` 还会注入 `onChange`，同时接受 DOM 事件或原始值。
-- Vue 的 `ReactiveField` 检测到组件声明 `modelValue`（或 `update:modelValue` 事件）时改走 v-model 契约：只注入 `modelValue` + `update:modelValue`，不再传 `value` / `onChange`；未声明的组件继续走 `value` + `onChange`，两者互斥。
+- Vue 的 `ReactiveField` 统一使用 v-model 契约：只注入 `modelValue` + `update:modelValue`，不再传 `value` / `onChange`。
 - React 组件必须用 `observer` 包裹；Vue 的 `useField()` 返回 `Ref`。
 
 完整控件代码见 [Vue 速查](references/vue.md#自定义字段控件) 与 [React 速查](references/react.md#自定义字段控件)。
