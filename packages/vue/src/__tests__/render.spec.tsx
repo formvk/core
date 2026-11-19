@@ -212,6 +212,57 @@ describe('schema 驱动的字段渲染', () => {
     expect(atChange).toHaveBeenCalled()
   })
 
+  test('组件声明 modelValue 时支持 v-model', async () => {
+    let receivedProps: Record<string, any> = {}
+    let receivedAttrs: Record<string, any> = {}
+    const ModelInput = defineComponent({
+      name: 'ModelInput',
+      props: { modelValue: String },
+      emits: ['update:modelValue'],
+      setup(props, { attrs, emit }) {
+        receivedProps = props as Record<string, any>
+        receivedAttrs = attrs
+        return () => (
+          <input
+            class="model-input"
+            value={props.modelValue}
+            onInput={(event: Event) => emit('update:modelValue', (event.target as HTMLInputElement).value)}
+          />
+        )
+      },
+    })
+    const form = createForm<{ username?: string }>()
+    const wrapper = mountWithForm(form, () => (
+      <SchemaField
+        components={{ ...components, ModelInput }}
+        schema={{
+          type: 'object',
+          properties: {
+            username: {
+              type: 'string',
+              component: 'ModelInput',
+            },
+          },
+        }}
+      />
+    ))
+
+    // v-model 契约与 value / onChange 互斥
+    expect('value' in receivedProps).toBe(false)
+    expect('onChange' in receivedAttrs).toBe(false)
+
+    const input = wrapper.find('input')
+    await input.setValue('v-model')
+    await nextTick()
+    expect(form.values.username).toBe('v-model')
+    expect(receivedProps.modelValue).toBe('v-model')
+
+    form.setValuesIn('username', 'remote')
+    await nextTick()
+    expect(receivedProps.modelValue).toBe('remote')
+    expect((input.element as HTMLInputElement).value).toBe('remote')
+  })
+
   test('onFocus / onBlur 触发字段 focus / blur', async () => {
     const form = createForm()
     const wrapper = mountWithForm(form, () => (

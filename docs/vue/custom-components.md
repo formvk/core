@@ -16,6 +16,14 @@ Formvk 本身不渲染任何东西。schema 只声明组件名（`component: 'In
 
 在 Vue 中 `useField()` 返回 ref：在 `<script setup>` 里通过 `.value` 读取，模板中会自动解包。
 
+### 用 `v-model` 接收字段值
+
+组件也可以直接声明 `modelValue` 并使用 `v-model`。适配层检测到组件声明了 `modelValue` prop（或 `update:modelValue` 事件）时，会改用 `modelValue` + `update:modelValue` 契约，取值与校验仍由字段驱动：
+
+<<< @/snippets/vue/VModelInput.vue
+
+两种契约互斥：声明了 `modelValue` 的组件只接收 `modelValue` / `update:modelValue`，不再传 `value` / `onChange`；其余组件继续走 `value` + `onChange`。
+
 ## 注册组件
 
 在 `SchemaField` 上一次性注册组件（或用 `createSchemaOptions` + `OptionsProvider` 注入默认组件）。映射的键就是 `component` 中使用的名字：

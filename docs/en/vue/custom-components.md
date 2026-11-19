@@ -16,6 +16,14 @@ Three things make a component work as a field control:
 
 In Vue `useField()` returns a ref: read it through `.value` in `<script setup>`, while templates unwrap it automatically.
 
+### Receive the value with `v-model`
+
+A component can also declare `modelValue` and use `v-model`. When the adapter detects a `modelValue` prop (or an `update:modelValue` event), it switches to the `modelValue` + `update:modelValue` contract, while the value and validation stay driven by the field:
+
+<<< @/snippets/vue/VModelInput.vue
+
+The two contracts are mutually exclusive: components declaring `modelValue` only receive `modelValue` / `update:modelValue`, with no `value` / `onChange`; all other components keep receiving `value` + `onChange`.
+
 ## Register the component
 
 Register components once on `SchemaField` (or inject defaults with `createSchemaOptions` + `OptionsProvider`). The map keys are the names used in `component`:

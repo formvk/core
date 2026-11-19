@@ -48,15 +48,16 @@ packages/<ui>/
 
 `ReactiveField` 渲染组件时自动注入：
 
-| Prop                | 含义                                                              |
-| ------------------- | ----------------------------------------------------------------- |
-| `value`             | 字段当前值，void 字段不注入                                       |
-| `disabled`          | `pattern === 'disabled'` 或 `readPretty`                          |
-| `readOnly`          | `pattern === 'readOnly'`                                          |
-| `onChange` 等事件   | 已接好 `field.onInput` / `onFocus` / `onBlur`，并保留 schema 声明 |
-| `...componentProps` | schema 的 `componentProps`，与插槽同名时优先                      |
+| Prop                | 含义                                                                                                    |
+| ------------------- | ------------------------------------------------------------------------------------------------------- |
+| `value`             | 字段当前值，void 字段不注入                                                                             |
+| `modelValue`        | Vue 专用：组件声明 `modelValue` prop 或 `update:modelValue` 事件时注入，同时不再传 `value` / `onChange` |
+| `disabled`          | `pattern === 'disabled'` 或 `readPretty`                                                                |
+| `readOnly`          | `pattern === 'readOnly'`                                                                                |
+| `onChange` 等事件   | 已接好 `field.onInput` / `onFocus` / `onBlur`，并保留 schema 声明                                       |
+| `...componentProps` | schema 的 `componentProps`，与插槽同名时优先                                                            |
 
-- 纯受控控件直接接 `value` + `onChange`，容器负责写回字段。
+- 纯受控控件直接接 `value` + `onChange`；Vue 控件也可直接声明 `modelValue` 用 `v-model`，此时适配层只注入 `modelValue` 并监听 `update:modelValue` 写回字段，两种契约互斥。
 - 要显示错误、标题、必填标记时再调 `useField()`。
 - `disabled` / `readOnly` 已按 pattern 算好；只读展示优先用 `mapReadPretty`，不要用 `disabled` 模拟。
 - React 中读取字段的组件必须用 `observer` 包裹；Vue 不需要。

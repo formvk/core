@@ -51,6 +51,7 @@ export const Input = connect(
 ```
 
 - Vue 的 `mapProps` 只处理 `attrs`（包装组件 `inheritAttrs: false`），包装层不要再把这些 prop 声明成自己的 props。
+- 目标组件自己声明了 `modelValue` prop（或 `update:modelValue` 事件）时，`ReactiveField` 会改走 v-model 契约（`modelValue` + `update:modelValue`，不再传 `value` / `onChange`），mapper 里无需再重命名 `value`；只保留 `disabled` / `readOnly` / `dataSource` 等差异。
 - 日期等需要值转换的控件，在函数 mapper 里转换字段值，变更时再转回表单存储的格式。
 - 只读展示组件从透传 props 里拿 `value`，必要时合并 `readPrettyProps`。
 

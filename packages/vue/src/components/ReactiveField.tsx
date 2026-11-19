@@ -88,6 +88,18 @@ function toVueEventProps(events: Record<string, any>) {
   return props
 }
 
+// 支持 v-model 契约的组件：声明了 modelValue prop 或 update:modelValue 事件
+function supportsModelValue(Component: any): boolean {
+  if (!Component || isStr(Component)) return false
+  const props = Component.props
+  if (Array.isArray(props)) return props.includes('modelValue')
+  if (props && typeof props === 'object' && 'modelValue' in props) return true
+  const emits = Component.emits
+  if (Array.isArray(emits)) return emits.includes('update:modelValue')
+  if (emits && typeof emits === 'object' && 'update:modelValue' in emits) return true
+  return false
+}
+
 export const ReactiveField = defineComponent({
   name: 'ReactiveField',
   inheritAttrs: false,
@@ -177,13 +189,17 @@ export const ReactiveField = defineComponent({
 
         const Component = getRawComponent(options?.components, field.componentType)
         const { props: originProps, events } = normalizeProps(toJS((field.component as any)[1]) || {})
+        // 声明 modelValue 的组件走 v-model 契约，未声明的继续走 value / onChange，两者互斥
+        const modelValueEnabled = !isVoidField(field) && supportsModelValue(Component)
         const originChange = events.change
         const originFocus = events.focus
         const originBlur = events.blur
 
-        events.change = (...args: any[]) => {
-          if (!isVoidField(field)) field.onInput(...args)
-          originChange?.(...args)
+        if (!modelValueEnabled) {
+          events.change = (...args: any[]) => {
+            if (!isVoidField(field)) field.onInput(...args)
+            originChange?.(...args)
+          }
         }
         events.focus = (...args: any[]) => {
           if (!isVoidField(field)) field.onFocus(...args)
@@ -194,6 +210,14 @@ export const ReactiveField = defineComponent({
           originBlur?.(...args)
         }
 
+        if (modelValueEnabled) {
+          const originModelUpdate = events['update:modelValue']
+          events['update:modelValue'] = (...args: any[]) => {
+            if (!isVoidField(field)) field.onInput(...args)
+            originModelUpdate?.(...args)
+          }
+        }
+
         const componentProps: Record<string, any> = {
           ...(isVoidField(field)
             ? {}
@@ -202,7 +226,7 @@ export const ReactiveField = defineComponent({
                 readOnly: field.pattern === 'readOnly',
               }),
           ...originProps,
-          ...(isVoidField(field) ? {} : { value: field.value }),
+          ...(isVoidField(field) ? {} : modelValueEnabled ? { modelValue: field.value } : { value: field.value }),
           ...toVueEventProps(events),
         }
 
