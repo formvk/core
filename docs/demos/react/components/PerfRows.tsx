@@ -2,9 +2,9 @@ import type { ArrayField } from '@formvk/core'
 import { RecursionField, useField, useFieldSchema } from '@formvk/react'
 import { observer } from '@formvk/reactive-react'
 
-import { DemoRowMemo } from './DemoRowMemo'
+import { RowMemo } from './RowMemo'
 
-export const DemoPerfRows = observer(() => {
+export const PerfRows = observer(() => {
   const field = useField<ArrayField>()
   const schema = useFieldSchema()
 
@@ -21,7 +21,7 @@ export const DemoPerfRows = observer(() => {
             #{index} · {String(item?.id ?? '')}
           </span>
           {/* 纯内部状态控件，不写回表单；用来观察组件实例是否随数据行移动 */}
-          <DemoRowMemo seed={String(item?.id ?? '')} />
+          <RowMemo seed={String(item?.id ?? '')} />
           {itemSchema && !Array.isArray(itemSchema) ? <RecursionField schema={itemSchema} name={index} /> : null}
         </div>
       ))}
@@ -29,4 +29,4 @@ export const DemoPerfRows = observer(() => {
   )
 })
 
-DemoPerfRows.displayName = 'DemoPerfRows'
+PerfRows.displayName = 'PerfRows'

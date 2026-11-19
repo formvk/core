@@ -1,7 +1,7 @@
 import { observer } from '@formvk/reactive-react'
 import type { ChangeEvent, FocusEvent } from 'react'
 
-export interface DemoTextareaProps {
+export interface TextareaProps {
   value?: unknown
   placeholder?: string
   rows?: number
@@ -12,7 +12,7 @@ export interface DemoTextareaProps {
   onBlur?: (event: FocusEvent<HTMLTextAreaElement>) => void
 }
 
-export const DemoTextarea = observer((props: DemoTextareaProps) => {
+export const Textarea = observer((props: TextareaProps) => {
   const { value, placeholder, rows, disabled, readOnly, onChange, onFocus, onBlur, ...rest } = props
 
   function handleChange(event: ChangeEvent<HTMLTextAreaElement>) {
@@ -35,4 +35,4 @@ export const DemoTextarea = observer((props: DemoTextareaProps) => {
   )
 })
 
-DemoTextarea.displayName = 'DemoTextarea'
+Textarea.displayName = 'Textarea'

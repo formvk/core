@@ -6,7 +6,7 @@
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background-color: rgb(0 0 0 / 45%);
+  background-color: var(--dr-demo-backdrop, rgb(0 0 0 / 45%));
 }
 
 .dr-popup__body {
@@ -15,10 +15,16 @@
   gap: 10px;
   width: min(360px, 100%);
   padding: 20px;
-  color: var(--vp-c-text-1, #1e293b);
-  background-color: var(--vp-c-bg, #fff);
+  color: var(--dr-demo-text-1, #1e293b);
+  background-color: var(--dr-demo-bg, #fff);
   border-radius: 12px;
   box-shadow: 0 12px 32px rgb(0 0 0 / 20%);
+}
+
+/* Dark mode: deepen the shadow and add a border so the panel separates from the mask */
+.dark .dr-popup__body {
+  border: 1px solid var(--dr-demo-divider, #2e2e32);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 60%);
 }
 
 .dr-popup__title {
@@ -41,13 +47,13 @@
   font-size: 13px;
   font-weight: 500;
   line-height: 1.4;
-  color: var(--vp-c-text-1, #1e293b);
+  color: var(--dr-demo-text-1, #1e293b);
 }
 
 .dr-popup .dr-field__required {
   margin-left: 2px;
   font-style: normal;
-  color: #e5484d;
+  color: var(--dr-demo-danger, #e5484d);
 }
 
 .dr-popup .dr-field__control {
@@ -59,12 +65,12 @@
 
 .dr-popup .dr-field__description {
   font-size: 12px;
-  color: var(--vp-c-text-2, #64748b);
+  color: var(--dr-demo-text-2, #64748b);
 }
 
 .dr-popup .dr-field__error {
   font-size: 12px;
-  color: #e5484d;
+  color: var(--dr-demo-danger, #e5484d);
 }
 
 .dr-popup .dr-input,
@@ -72,19 +78,19 @@
   box-sizing: border-box;
   width: 100%;
   padding: 7px 12px;
-  border: 1px solid var(--vp-c-divider, #e2e8f0);
+  border: 1px solid var(--dr-demo-divider, #e2e8f0);
   border-radius: 8px;
   font-size: 14px;
   line-height: 1.5;
-  color: var(--vp-c-text-1, #1e293b);
-  background-color: var(--vp-c-bg, #fff);
+  color: var(--dr-demo-text-1, #1e293b);
+  background-color: var(--dr-demo-bg, #fff);
   outline: none;
 }
 
 .dr-popup .dr-input:focus,
 .dr-popup .dr-select:focus {
-  border-color: var(--vp-c-brand-1, #2563eb);
-  box-shadow: 0 0 0 3px var(--vp-c-brand-soft, rgb(37 99 235 / 14%));
+  border-color: var(--dr-demo-brand, #2563eb);
+  box-shadow: 0 0 0 3px var(--dr-demo-brand-soft, rgb(37 99 235 / 14%));
 }
 
 .dr-popup__actions {
@@ -100,9 +106,9 @@
   font-size: 14px;
   font-weight: 500;
   line-height: 1.4;
-  color: #fff;
+  color: var(--dr-demo-on-brand, #fff);
   cursor: pointer;
-  background-color: var(--vp-c-brand-1, #2563eb);
+  background-color: var(--dr-demo-brand, #2563eb);
   transition:
     opacity 0.2s,
     border-color 0.2s,
@@ -114,7 +120,7 @@
 }
 
 .dr-popup__btn--ghost {
-  color: var(--vp-c-text-1, #1e293b);
+  color: var(--dr-demo-text-1, #1e293b);
   background-color: transparent;
-  border-color: var(--vp-c-divider, #e2e8f0);
+  border-color: var(--dr-demo-divider, #e2e8f0);
 }

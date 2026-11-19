@@ -3,7 +3,7 @@ import type { ArrayField } from '@formvk/core'
 import { RecursionField, useField, useFieldSchema } from '@formvk/vue'
 import { computed } from 'vue'
 
-import DemoRowMemo from './DemoRowMemo.vue'
+import RowMemo from './RowMemo.vue'
 
 const field = useField<ArrayField>()
 const schema = useFieldSchema()
@@ -27,7 +27,7 @@ function getItemKey(index: number): string | number {
       <!-- 位置与数据 id 一起显示：删除首行后可以直观看出内部状态挂在哪份数据上 -->
       <span class="dv-perf-array__index">#{{ index }} · {{ item?.id }}</span>
       <!-- 纯内部状态控件，不写回表单；用来观察组件实例是否随数据行移动 -->
-      <DemoRowMemo :seed="String(item?.id ?? '')" />
+      <RowMemo :seed="String(item?.id ?? '')" />
       <RecursionField :schema="itemSchema" :name="index" />
     </div>
   </div>

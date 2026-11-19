@@ -2,7 +2,7 @@
 import type { PopupModel } from '@formvk/models'
 import { createSchemaOptions, FormProvider, type ISchema, SchemaField } from '@formvk/vue'
 
-import { DemoArrayItems, demoComponents, FormItem } from './index'
+import { ArrayItems, components, FormItem } from './index'
 
 const props = withDefaults(
   defineProps<{
@@ -16,9 +16,9 @@ const props = withDefaults(
 )
 
 const { OptionsProvider } = createSchemaOptions({
-  components: demoComponents,
+  components,
   voidComponents: { FormItem },
-  arrayComponents: { ArrayItems: DemoArrayItems },
+  arrayComponents: { ArrayItems },
   defaultDecorator: 'FormItem',
 })
 
@@ -57,7 +57,7 @@ async function onSubmit() {
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background-color: rgb(0 0 0 / 45%);
+  background-color: var(--dv-demo-backdrop, rgb(0 0 0 / 45%));
 }
 
 .dv-popup__body {
@@ -66,10 +66,16 @@ async function onSubmit() {
   gap: 10px;
   width: min(360px, 100%);
   padding: 20px;
-  color: var(--vp-c-text-1, #1e293b);
-  background-color: var(--vp-c-bg, #fff);
+  color: var(--dv-demo-text-1, #1e293b);
+  background-color: var(--dv-demo-bg, #fff);
   border-radius: 12px;
   box-shadow: 0 12px 32px rgb(0 0 0 / 20%);
+}
+
+/* 暗色下加深投影并补一条边框，避免面板与遮罩糊在一起 */
+.dark .dv-popup__body {
+  border: 1px solid var(--dv-demo-divider, #2e2e32);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 60%);
 }
 
 .dv-popup__title {
@@ -91,13 +97,13 @@ async function onSubmit() {
   font-size: 13px;
   font-weight: 500;
   line-height: 1.4;
-  color: var(--vp-c-text-1, #1e293b);
+  color: var(--dv-demo-text-1, #1e293b);
 }
 
 .dv-popup .dv-field__required {
   margin-left: 2px;
   font-style: normal;
-  color: #e5484d;
+  color: var(--dv-demo-danger, #e5484d);
 }
 
 .dv-popup .dv-field__control {
@@ -109,12 +115,12 @@ async function onSubmit() {
 
 .dv-popup .dv-field__description {
   font-size: 12px;
-  color: var(--vp-c-text-2, #64748b);
+  color: var(--dv-demo-text-2, #64748b);
 }
 
 .dv-popup .dv-field__error {
   font-size: 12px;
-  color: #e5484d;
+  color: var(--dv-demo-danger, #e5484d);
 }
 
 .dv-popup .dv-input,
@@ -122,19 +128,19 @@ async function onSubmit() {
   box-sizing: border-box;
   width: 100%;
   padding: 7px 12px;
-  border: 1px solid var(--vp-c-divider, #e2e8f0);
+  border: 1px solid var(--dv-demo-divider, #e2e8f0);
   border-radius: 8px;
   font-size: 14px;
   line-height: 1.5;
-  color: var(--vp-c-text-1, #1e293b);
-  background-color: var(--vp-c-bg, #fff);
+  color: var(--dv-demo-text-1, #1e293b);
+  background-color: var(--dv-demo-bg, #fff);
   outline: none;
 }
 
 .dv-popup .dv-input:focus,
 .dv-popup .dv-select:focus {
-  border-color: var(--vp-c-brand-1, #2563eb);
-  box-shadow: 0 0 0 3px var(--vp-c-brand-soft, rgb(37 99 235 / 14%));
+  border-color: var(--dv-demo-brand, #2563eb);
+  box-shadow: 0 0 0 3px var(--dv-demo-brand-soft, rgb(37 99 235 / 14%));
 }
 
 .dv-popup__actions {
@@ -150,9 +156,9 @@ async function onSubmit() {
   font-size: 14px;
   font-weight: 500;
   line-height: 1.4;
-  color: #fff;
+  color: var(--dv-demo-on-brand, #fff);
   cursor: pointer;
-  background-color: var(--vp-c-brand-1, #2563eb);
+  background-color: var(--dv-demo-brand, #2563eb);
   transition:
     opacity 0.2s,
     border-color 0.2s,
@@ -164,8 +170,8 @@ async function onSubmit() {
 }
 
 .dv-popup__btn--ghost {
-  color: var(--vp-c-text-1, #1e293b);
+  color: var(--dv-demo-text-1, #1e293b);
   background-color: transparent;
-  border-color: var(--vp-c-divider, #e2e8f0);
+  border-color: var(--dv-demo-divider, #e2e8f0);
 }
 </style>

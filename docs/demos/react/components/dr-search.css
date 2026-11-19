@@ -23,7 +23,7 @@
   font-size: 14px;
   font-weight: 500;
   line-height: 1.4;
-  color: var(--vp-c-text-1, #1e293b);
+  color: var(--dr-demo-text-1, #1e293b);
   white-space: nowrap;
 }
 
@@ -36,25 +36,25 @@
 
 .dr-search .dr-field__error {
   font-size: 12px;
-  color: #e5484d;
+  color: var(--dr-demo-danger, #e5484d);
 }
 
 .dr-search .dr-input {
   box-sizing: border-box;
   width: 100%;
   padding: 7px 12px;
-  border: 1px solid var(--vp-c-divider, #e2e8f0);
+  border: 1px solid var(--dr-demo-divider, #e2e8f0);
   border-radius: 8px;
   font-size: 14px;
   line-height: 1.5;
-  color: var(--vp-c-text-1, #1e293b);
-  background-color: var(--vp-c-bg, #fff);
+  color: var(--dr-demo-text-1, #1e293b);
+  background-color: var(--dr-demo-bg, #fff);
   outline: none;
 }
 
 .dr-search .dr-input:focus {
-  border-color: var(--vp-c-brand-1, #2563eb);
-  box-shadow: 0 0 0 3px var(--vp-c-brand-soft, rgb(37 99 235 / 14%));
+  border-color: var(--dr-demo-brand, #2563eb);
+  box-shadow: 0 0 0 3px var(--dr-demo-brand-soft, rgb(37 99 235 / 14%));
 }
 
 .dr-search__btn {
@@ -64,9 +64,9 @@
   font-size: 14px;
   font-weight: 500;
   line-height: 1.4;
-  color: #fff;
+  color: var(--dr-demo-on-brand, #fff);
   cursor: pointer;
-  background-color: var(--vp-c-brand-1, #2563eb);
+  background-color: var(--dr-demo-brand, #2563eb);
   transition:
     opacity 0.2s,
     border-color 0.2s,
@@ -78,7 +78,7 @@
 }
 
 .dr-search__btn--ghost {
-  color: var(--vp-c-text-1, #1e293b);
+  color: var(--dr-demo-text-1, #1e293b);
   background-color: transparent;
-  border-color: var(--vp-c-divider, #e2e8f0);
+  border-color: var(--dr-demo-divider, #e2e8f0);
 }

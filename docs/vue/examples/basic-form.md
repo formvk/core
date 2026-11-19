@@ -10,7 +10,7 @@
 <script setup lang="ts">
 import { createForm, FormProvider, createSchema, createSchemaOptions, SchemaField } from '@formvk/vue'
 
-import { DemoArrayItems, demoComponents, FormItem } from '../demos/components'
+import { ArrayItems, components, FormItem } from '../demos/components'
 
 const form = createForm({
   values: { username: '', role: '', subscribe: false, bio: '' },
@@ -18,9 +18,9 @@ const form = createForm({
 
 // 扁平组件映射驱动全部类型推断：无需泛型参数
 const { OptionsProvider, fragment: f } = createSchemaOptions({
-  components: demoComponents,
+  components,
   voidComponents: { FormItem },
-  arrayComponents: { ArrayItems: DemoArrayItems },
+  arrayComponents: { ArrayItems },
   defaultDecorator: 'FormItem',
 })
 const schema = createSchema({

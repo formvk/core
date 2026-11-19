@@ -48,9 +48,9 @@ React 函数组件每次渲染都会重新执行函数体，因此两类状态�
 ```tsx
 // static: built once for the whole module
 const { OptionsProvider, fragment: f } = createSchemaOptions({
-  components: demoComponents,
+  components,
   voidComponents: { FormItem },
-  arrayComponents: { ArrayItems: DemoArrayItems },
+  arrayComponents: { ArrayItems },
   defaultDecorator: 'FormItem',
 })
 

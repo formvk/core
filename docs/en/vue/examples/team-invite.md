@@ -59,9 +59,9 @@ const form = createForm<TeamInviteValues>({
 
 ```ts
 const { fragment: f } = createSchemaOptions({
-  components: demoComponents, // Input, NumberInput, Select, Checkbox, Textarea
+  components, // Input, NumberInput, Select, Checkbox, Textarea
   voidComponents: { FormItem },
-  arrayComponents: { ArrayItems: DemoArrayItems },
+  arrayComponents: { ArrayItems },
   defaultDecorator: 'FormItem',
 })
 ```

@@ -1,7 +1,6 @@
 <script setup lang="ts">
+import { useField } from '@formvk/vue'
 import { computed } from 'vue'
-
-import { useDemoField } from './useDemoField'
 
 interface Option {
   label: string
@@ -23,7 +22,7 @@ const emit = defineEmits<{
 // defineModel 展开为 modelValue prop + update:modelValue emit，与适配层的 v-model 契约一致
 const modelRef = defineModel<any>()
 
-const { field } = useDemoField()
+const field = useField()
 
 function normalize(source: any): Option[] {
   if (!Array.isArray(source)) return []

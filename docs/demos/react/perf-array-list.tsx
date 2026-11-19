@@ -6,7 +6,7 @@ import type { ISchema } from '@formvk/schema'
 import { useEffect, useRef, useState } from 'react'
 
 import { countMismatchedLocalState } from '../components/localStateStats'
-import { DemoPerfRows, FormItem, demoComponents } from './components'
+import { PerfRows, FormItem, components } from './components'
 
 type Mode = 'index' | 'recordKey'
 type Metric = 'validateErrors' | 'mismatched' | 'remount'
@@ -26,9 +26,9 @@ const modeOptions: Array<{ value: Mode; label: string }> = [
 ]
 
 const { OptionsProvider, fragment: f } = createSchemaOptions({
-  components: demoComponents,
+  components,
   voidComponents: { FormItem },
-  arrayComponents: { Rows: DemoPerfRows },
+  arrayComponents: { Rows: PerfRows },
 })
 
 const selectOptions = ['A', 'B', 'C'].map(value => ({ label: value, value }))

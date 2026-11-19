@@ -3,7 +3,7 @@ import { createForm, createSchema, createSchemaOptions, FormProvider, SchemaFiel
 import { observer } from '@formvk/reactive-react'
 import { useState } from 'react'
 
-import { DemoArrayItems, demoComponents, FormItem } from '../components'
+import { ArrayItems, components, FormItem } from '../components'
 
 type Plan = 'free' | 'pro' | 'enterprise'
 
@@ -36,9 +36,9 @@ async function ensureEmailAvailable(value: unknown) {
 
 // schema 与组件工厂是静态的，放在模块级只执行一次。
 const { OptionsProvider, fragment: f } = createSchemaOptions({
-  components: demoComponents,
+  components,
   voidComponents: { FormItem },
-  arrayComponents: { ArrayItems: DemoArrayItems },
+  arrayComponents: { ArrayItems },
   defaultDecorator: 'FormItem',
 })
 

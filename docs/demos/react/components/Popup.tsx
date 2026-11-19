@@ -2,18 +2,18 @@ import type { PopupModel } from '@formvk/models'
 import { createSchemaOptions, FormProvider, type ISchema, SchemaField } from '@formvk/react'
 import { observer } from '@formvk/reactive-react'
 
-import { DemoArrayItems, demoComponents, FormItem } from './index'
+import { ArrayItems, components, FormItem } from './index'
 
 import './dr-popup.css'
 
 const { OptionsProvider } = createSchemaOptions({
-  components: demoComponents,
+  components,
   voidComponents: { FormItem },
-  arrayComponents: { ArrayItems: DemoArrayItems },
+  arrayComponents: { ArrayItems },
   defaultDecorator: 'FormItem',
 })
 
-export interface DemoPopupProps {
+export interface PopupProps {
   model: PopupModel<any>
   schema: ISchema
   title?: string
@@ -21,7 +21,7 @@ export interface DemoPopupProps {
   cancelText?: string
 }
 
-export const DemoPopup = observer(({ model, schema, title, okText = '保存', cancelText = '取消' }: DemoPopupProps) => {
+export const Popup = observer(({ model, schema, title, okText = '保存', cancelText = '取消' }: PopupProps) => {
   if (!model.visible) return null
 
   async function onSubmit() {
@@ -54,4 +54,4 @@ export const DemoPopup = observer(({ model, schema, title, okText = '保存', ca
   )
 })
 
-DemoPopup.displayName = 'DemoPopup'
+Popup.displayName = 'Popup'

@@ -2,14 +2,14 @@ import { createForm, createSchema, createSchemaOptions, FormProvider, SchemaFiel
 import { observer } from '@formvk/reactive-react'
 import { useState } from 'react'
 
-import { DemoArrayItems, demoComponents, FormItem } from './components'
+import { ArrayItems, components, FormItem } from './components'
 
 // The schema and component factory are static and built once at module level;
 // the form is created lazily inside the component and follows the instance lifecycle
 const { OptionsProvider, fragment: f } = createSchemaOptions({
-  components: demoComponents,
+  components,
   voidComponents: { FormItem },
-  arrayComponents: { ArrayItems: DemoArrayItems },
+  arrayComponents: { ArrayItems },
   defaultDecorator: 'FormItem',
 })
 

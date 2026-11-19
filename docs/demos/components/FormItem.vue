@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { useDemoField } from './useDemoField'
+import { useField } from '@formvk/vue'
+import { computed } from 'vue'
 
 const props = withDefaults(
   defineProps<{
@@ -12,12 +13,12 @@ const props = withDefaults(
   { required: undefined }
 )
 
-const {
-  title: fieldTitle,
-  description: fieldDescription,
-  required: fieldRequired,
-  errors: fieldErrors,
-} = useDemoField()
+const field = useField()
+
+const fieldTitle = computed(() => (field.value as any)?.title as string | undefined)
+const fieldDescription = computed(() => (field.value as any)?.description as string | undefined)
+const fieldRequired = computed(() => !!(field.value as any)?.required)
+const fieldErrors = computed(() => ((field.value as any)?.selfErrors ?? []) as string[])
 </script>
 
 <template>

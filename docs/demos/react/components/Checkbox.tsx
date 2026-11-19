@@ -1,7 +1,7 @@
 import { observer } from '@formvk/reactive-react'
 import type { ChangeEvent, FocusEvent } from 'react'
 
-export interface DemoCheckboxProps {
+export interface CheckboxProps {
   value?: unknown
   disabled?: boolean
   readOnly?: boolean
@@ -10,7 +10,7 @@ export interface DemoCheckboxProps {
   onBlur?: (event: FocusEvent<HTMLInputElement>) => void
 }
 
-export const DemoCheckbox = observer((props: DemoCheckboxProps) => {
+export const Checkbox = observer((props: CheckboxProps) => {
   const { value, disabled, readOnly, onChange, onFocus, onBlur, ...rest } = props
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
@@ -31,4 +31,4 @@ export const DemoCheckbox = observer((props: DemoCheckboxProps) => {
   )
 })
 
-DemoCheckbox.displayName = 'DemoCheckbox'
+Checkbox.displayName = 'Checkbox'

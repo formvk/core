@@ -1,16 +1,16 @@
+import type { Field } from '@formvk/core'
+import { useField } from '@formvk/react'
 import { observer } from '@formvk/reactive-react'
 import type { ChangeEvent, FocusEvent } from 'react'
 
-import { useDemoField } from './useDemoField'
-
-export interface DemoOption {
+export interface SelectOption {
   label: string
   value: unknown
 }
 
-export interface DemoSelectProps {
+export interface SelectProps {
   value?: unknown
-  options?: DemoOption[]
+  options?: SelectOption[]
   placeholder?: string
   disabled?: boolean
   readOnly?: boolean
@@ -19,7 +19,7 @@ export interface DemoSelectProps {
   onBlur?: (event: FocusEvent<HTMLSelectElement>) => void
 }
 
-function normalize(source: unknown): DemoOption[] {
+function normalize(source: unknown): SelectOption[] {
   if (!Array.isArray(source)) return []
   return source.map(item => {
     if (item && typeof item === 'object') {
@@ -33,8 +33,8 @@ function normalize(source: unknown): DemoOption[] {
   })
 }
 
-export const DemoSelect = observer((props: DemoSelectProps) => {
-  const field = useDemoField()
+export const Select = observer((props: SelectProps) => {
+  const field = useField<Field>()
   const { value, options, placeholder, disabled, onChange, onFocus, onBlur, ...rest } = props
 
   const resolvedOptions = options?.length ? options : normalize(field?.dataSource)
@@ -65,4 +65,4 @@ export const DemoSelect = observer((props: DemoSelectProps) => {
   )
 })
 
-DemoSelect.displayName = 'DemoSelect'
+Select.displayName = 'Select'

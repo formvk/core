@@ -3,12 +3,47 @@
  * 主题层的 custom.css 只保留站点级样式，不再承载 demo 组件样式。
  */
 
+/*
+ * Demo palette: self-contained so demos keep their colors when opened in an
+ * online sandbox without the VitePress theme. Light by default; `.dark`
+ * overrides for the docs site dark theme.
+ */
+:root {
+  --dr-demo-bg: #fff;
+  --dr-demo-bg-soft: #f6f6f7;
+  --dr-demo-text-1: #3c3c43;
+  --dr-demo-text-2: #67676c;
+  --dr-demo-text-3: #929295;
+  --dr-demo-divider: #e2e2e3;
+  --dr-demo-brand: #2563eb;
+  --dr-demo-brand-soft: rgb(37 99 235 / 14%);
+  --dr-demo-on-brand: #fff;
+  --dr-demo-danger: #e5484d;
+  --dr-demo-default-soft: rgb(142 150 170 / 14%);
+  --dr-demo-backdrop: rgb(0 0 0 / 45%);
+}
+
+.dark {
+  --dr-demo-bg: #1b1b1f;
+  --dr-demo-bg-soft: #202127;
+  --dr-demo-text-1: #dfdfd6;
+  --dr-demo-text-2: #98989f;
+  --dr-demo-text-3: #6a6a71;
+  --dr-demo-divider: #2e2e32;
+  --dr-demo-brand: #60a5fa;
+  --dr-demo-brand-soft: rgb(96 165 250 / 16%);
+  --dr-demo-on-brand: #000;
+  --dr-demo-danger: #f66f81;
+  --dr-demo-default-soft: rgb(101 117 133 / 16%);
+  --dr-demo-backdrop: rgb(0 0 0 / 60%);
+}
+
 .dr-demo {
   margin: 20px 0;
   padding: 20px 24px;
-  border: 1px solid var(--vp-c-divider);
+  border: 1px solid var(--dr-demo-divider);
   border-radius: 12px;
-  background-color: var(--vp-c-bg-soft);
+  background-color: var(--dr-demo-bg-soft);
 }
 
 .dr-field {
@@ -24,13 +59,13 @@
   font-size: 14px;
   font-weight: 500;
   line-height: 1.4;
-  color: var(--vp-c-text-1);
+  color: var(--dr-demo-text-1);
 }
 
 .dr-field__required {
   margin-left: 2px;
   font-style: normal;
-  color: #e5484d;
+  color: var(--dr-demo-danger);
 }
 
 .dr-field__control {
@@ -42,12 +77,12 @@
 
 .dr-field__description {
   font-size: 12px;
-  color: var(--vp-c-text-2);
+  color: var(--dr-demo-text-2);
 }
 
 .dr-field__error {
   font-size: 12px;
-  color: #e5484d;
+  color: var(--dr-demo-danger);
 }
 
 .dr-input,
@@ -56,12 +91,12 @@
   box-sizing: border-box;
   width: 100%;
   padding: 7px 12px;
-  border: 1px solid var(--vp-c-divider);
+  border: 1px solid var(--dr-demo-divider);
   border-radius: 8px;
   font-size: 14px;
   line-height: 1.5;
-  color: var(--vp-c-text-1);
-  background-color: var(--vp-c-bg);
+  color: var(--dr-demo-text-1);
+  background-color: var(--dr-demo-bg);
   outline: none;
   transition:
     border-color 0.2s,
@@ -71,8 +106,8 @@
 .dr-input:focus,
 .dr-select:focus,
 .dr-textarea:focus {
-  border-color: var(--vp-c-brand-1);
-  box-shadow: 0 0 0 3px var(--vp-c-brand-soft);
+  border-color: var(--dr-demo-brand);
+  box-shadow: 0 0 0 3px var(--dr-demo-brand-soft);
 }
 
 .dr-input:disabled,
@@ -91,7 +126,7 @@
   width: 16px;
   height: 16px;
   margin: 8px 0 0;
-  accent-color: var(--vp-c-brand-1);
+  accent-color: var(--dr-demo-brand);
 }
 
 .dr-actions {
@@ -108,9 +143,10 @@
   font-size: 14px;
   font-weight: 500;
   line-height: 1.4;
-  color: #fff;
+  /* 亮色主题品牌色较深配白字，暗色主题品牌色为浅蓝需配深字 */
+  color: var(--dr-demo-on-brand);
   cursor: pointer;
-  background-color: var(--vp-c-brand-1);
+  background-color: var(--dr-demo-brand);
   transition:
     opacity 0.2s,
     background-color 0.2s;
@@ -121,18 +157,18 @@
 }
 
 .dr-btn--ghost {
-  color: var(--vp-c-text-1);
+  color: var(--dr-demo-text-1);
   background-color: transparent;
-  border-color: var(--vp-c-divider);
+  border-color: var(--dr-demo-divider);
 }
 
 .dr-btn--ghost:hover {
-  border-color: var(--vp-c-brand-1);
-  color: var(--vp-c-brand-1);
+  border-color: var(--dr-demo-brand);
+  color: var(--dr-demo-brand);
 }
 
 .dr-btn--danger {
-  color: #e5484d;
+  color: var(--dr-demo-danger);
   background-color: transparent;
   border-color: transparent;
 }
@@ -140,17 +176,17 @@
 .dr-result {
   margin-top: 16px;
   padding: 12px 16px;
-  border-left: 3px solid var(--vp-c-brand-1);
+  border-left: 3px solid var(--dr-demo-brand);
   border-radius: 6px;
   font-size: 13px;
   line-height: 1.6;
-  background-color: var(--vp-c-bg);
+  background-color: var(--dr-demo-bg);
 }
 
 .dr-result pre {
   margin: 0;
   overflow-x: auto;
-  font-family: var(--vp-font-family-mono);
+  font-family: var(--vp-font-family-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
 }
 
 .dr-array {
@@ -162,7 +198,7 @@
 .dr-array__item {
   padding: 12px 16px;
   margin-bottom: 12px;
-  border: 1px dashed var(--vp-c-divider);
+  border: 1px dashed var(--dr-demo-divider);
   border-radius: 10px;
 }
 
@@ -172,7 +208,7 @@
   justify-content: space-between;
   margin-bottom: 10px;
   font-size: 13px;
-  color: var(--vp-c-text-2);
+  color: var(--dr-demo-text-2);
 }
 
 .dr-perf-toolbar {
@@ -185,7 +221,7 @@
 
 .dr-perf-hint {
   font-size: 13px;
-  color: var(--vp-c-text-2);
+  color: var(--dr-demo-text-2);
 }
 
 .dr-perf-table {
@@ -199,7 +235,7 @@
 .dr-perf-table td {
   padding: 6px 8px;
   text-align: right;
-  border-bottom: 1px solid var(--vp-c-divider);
+  border-bottom: 1px solid var(--dr-demo-divider);
 }
 
 .dr-perf-table th:first-child,
@@ -208,7 +244,7 @@
 }
 
 .dr-perf-table td strong {
-  color: var(--vp-c-brand-1);
+  color: var(--dr-demo-brand);
 }
 
 .dr-perf-array {
@@ -219,7 +255,7 @@
   padding: 8px;
   margin-top: 16px;
   overflow: auto;
-  border: 1px solid var(--vp-c-divider);
+  border: 1px solid var(--dr-demo-divider);
   border-radius: 8px;
 }
 
@@ -231,9 +267,9 @@
   gap: 6px;
   align-items: center;
   padding: 30px 10px 10px;
-  border: 1px solid var(--vp-c-divider);
+  border: 1px solid var(--dr-demo-divider);
   border-radius: 10px;
-  background: var(--vp-c-bg-soft);
+  background: var(--dr-demo-bg-soft);
 }
 
 .dr-perf-array__row .dr-input,
@@ -262,8 +298,8 @@
   padding: 1px 6px;
   font-size: 11px;
   font-variant-numeric: tabular-nums;
-  color: var(--vp-c-text-3);
-  background: var(--vp-c-default-soft);
+  color: var(--dr-demo-text-3);
+  background: var(--dr-demo-default-soft);
   border-radius: 999px;
 }
 
@@ -274,7 +310,7 @@
   gap: 6px;
   align-items: center;
   font-size: 11px;
-  color: var(--vp-c-text-3);
+  color: var(--dr-demo-text-3);
 }
 
 .dr-perf-array__memo .dr-input {
@@ -287,7 +323,7 @@
   margin-top: 12px;
   font-size: 13px;
   line-height: 1.6;
-  color: var(--vp-c-text-2);
+  color: var(--dr-demo-text-2);
 }
 
 @media (width <= 640px) {

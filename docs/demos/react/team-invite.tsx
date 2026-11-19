@@ -3,7 +3,7 @@ import { createForm, createSchema, createSchemaOptions, FormProvider, SchemaFiel
 import { observer } from '@formvk/reactive-react'
 import { useState } from 'react'
 
-import { DemoArrayItems, demoComponents, FormItem } from './components'
+import { ArrayItems, components, FormItem } from './components'
 
 type Plan = 'free' | 'pro' | 'enterprise'
 
@@ -37,9 +37,9 @@ async function ensureEmailAvailable(value: unknown) {
 
 // The schema and the component factory are static, so they stay at module level.
 const { OptionsProvider, fragment: f } = createSchemaOptions({
-  components: demoComponents,
+  components,
   voidComponents: { FormItem },
-  arrayComponents: { ArrayItems: DemoArrayItems },
+  arrayComponents: { ArrayItems },
   defaultDecorator: 'FormItem',
 })
 

@@ -3,10 +3,10 @@ import { createSchema, createSchemaOptions } from '@formvk/react'
 import { observer } from '@formvk/reactive-react'
 import { useEffect, useState } from 'react'
 
-import { DemoArrayItems, demoComponents, FormItem } from './components'
-import { DemoPopup } from './components/DemoPopup'
-import { DemoSearch } from './components/DemoSearch'
-import { DemoTable } from './components/DemoTable'
+import { ArrayItems, components, FormItem } from './components'
+import { Popup } from './components/Popup'
+import { Search } from './components/Search'
+import { Table } from './components/Table'
 
 interface UserRecord {
   id: number
@@ -30,9 +30,9 @@ const columns = [
 ]
 
 const { fragment: f } = createSchemaOptions({
-  components: demoComponents,
+  components,
   voidComponents: { FormItem },
-  arrayComponents: { ArrayItems: DemoArrayItems },
+  arrayComponents: { ArrayItems },
   defaultDecorator: 'FormItem',
 })
 
@@ -113,7 +113,7 @@ export default observer(function ModelsTableDemo() {
 
   return (
     <div className="dr-demo">
-      <DemoTable
+      <Table
         columns={columns}
         records={table.records}
         actions={actions}
@@ -121,12 +121,12 @@ export default observer(function ModelsTableDemo() {
         createText="新增"
         onCreate={() => table.addPopup.open()}
         onPageChange={current => table.onSearch({ ...table.pagination, current })}
-        toolbar={<DemoSearch model={table} schema={searchSchema} />}
+        toolbar={<Search model={table} schema={searchSchema} />}
       />
 
-      <DemoPopup model={table.addPopup} schema={userSchema} title="新增用户" />
+      <Popup model={table.addPopup} schema={userSchema} title="新增用户" />
 
-      <DemoPopup model={table.editPopup} schema={userSchema} title="编辑用户" />
+      <Popup model={table.editPopup} schema={userSchema} title="编辑用户" />
     </div>
   )
 })

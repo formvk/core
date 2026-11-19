@@ -2,14 +2,14 @@ import type { ArrayField } from '@formvk/core'
 import { RecursionField, useField, useFieldSchema } from '@formvk/react'
 import { observer } from '@formvk/reactive-react'
 
-export interface DemoArrayItemsProps {
+export interface ArrayItemsProps {
   addText?: string
   removeText?: string
   /** 新增数组项；配合 schema 的 recordKey 生成稳定键 */
   createItem?: () => any
 }
 
-export const DemoArrayItems = observer((props: DemoArrayItemsProps) => {
+export const ArrayItems = observer((props: ArrayItemsProps) => {
   const field = useField<ArrayField>()
   const schema = useFieldSchema()
 
@@ -48,4 +48,4 @@ export const DemoArrayItems = observer((props: DemoArrayItemsProps) => {
   )
 })
 
-DemoArrayItems.displayName = 'DemoArrayItems'
+ArrayItems.displayName = 'ArrayItems'

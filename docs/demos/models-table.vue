@@ -3,10 +3,10 @@ import { TableModel } from '@formvk/models'
 import { createSchema, createSchemaOptions } from '@formvk/vue'
 import { onMounted } from 'vue'
 
-import { DemoArrayItems, demoComponents, FormItem } from './components'
-import DemoPopup from './components/DemoPopup.vue'
-import DemoSearch from './components/DemoSearch.vue'
-import DemoTable from './components/DemoTable.vue'
+import { ArrayItems, components, FormItem } from './components'
+import Popup from './components/Popup.vue'
+import Search from './components/Search.vue'
+import Table from './components/Table.vue'
 
 interface UserRecord {
   id: number
@@ -59,9 +59,9 @@ const columns = [
 ]
 
 const { fragment: f } = createSchemaOptions({
-  components: demoComponents,
+  components,
   voidComponents: { FormItem },
-  arrayComponents: { ArrayItems: DemoArrayItems },
+  arrayComponents: { ArrayItems },
   defaultDecorator: 'FormItem',
 })
 
@@ -109,7 +109,7 @@ onMounted(() => table.onMount())
 
 <template>
   <div class="dv-demo">
-    <DemoTable
+    <Table
       :columns="columns"
       :records="table.records"
       :actions="actions"
@@ -119,12 +119,12 @@ onMounted(() => table.onMount())
       @page-change="onPageChange"
     >
       <template #toolbar>
-        <DemoSearch :model="table" :schema="searchSchema" />
+        <Search :model="table" :schema="searchSchema" />
       </template>
-    </DemoTable>
+    </Table>
 
-    <DemoPopup :model="table.addPopup" :schema="userSchema" title="新增用户" />
+    <Popup :model="table.addPopup" :schema="userSchema" title="新增用户" />
 
-    <DemoPopup :model="table.editPopup" :schema="userSchema" title="编辑用户" />
+    <Popup :model="table.editPopup" :schema="userSchema" title="编辑用户" />
   </div>
 </template>

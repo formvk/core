@@ -2,7 +2,7 @@
 import type { TableModel } from '@formvk/models'
 import { createSchemaOptions, FormProvider, type ISchema, SchemaField } from '@formvk/vue'
 
-import { DemoArrayItems, demoComponents, FormItem } from './index'
+import { ArrayItems, components, FormItem } from './index'
 
 const props = defineProps<{
   model: TableModel
@@ -10,9 +10,9 @@ const props = defineProps<{
 }>()
 
 const { OptionsProvider } = createSchemaOptions({
-  components: demoComponents,
+  components,
   voidComponents: { FormItem },
-  arrayComponents: { ArrayItems: DemoArrayItems },
+  arrayComponents: { ArrayItems },
   defaultDecorator: 'FormItem',
 })
 
@@ -59,7 +59,7 @@ async function onReset() {
   font-size: 14px;
   font-weight: 500;
   line-height: 1.4;
-  color: var(--vp-c-text-1, #1e293b);
+  color: var(--dv-demo-text-1, #1e293b);
   white-space: nowrap;
 }
 
@@ -72,25 +72,25 @@ async function onReset() {
 
 .dv-search .dv-field__error {
   font-size: 12px;
-  color: #e5484d;
+  color: var(--dv-demo-danger, #e5484d);
 }
 
 .dv-search .dv-input {
   box-sizing: border-box;
   width: 100%;
   padding: 7px 12px;
-  border: 1px solid var(--vp-c-divider, #e2e8f0);
+  border: 1px solid var(--dv-demo-divider, #e2e8f0);
   border-radius: 8px;
   font-size: 14px;
   line-height: 1.5;
-  color: var(--vp-c-text-1, #1e293b);
-  background-color: var(--vp-c-bg, #fff);
+  color: var(--dv-demo-text-1, #1e293b);
+  background-color: var(--dv-demo-bg, #fff);
   outline: none;
 }
 
 .dv-search .dv-input:focus {
-  border-color: var(--vp-c-brand-1, #2563eb);
-  box-shadow: 0 0 0 3px var(--vp-c-brand-soft, rgb(37 99 235 / 14%));
+  border-color: var(--dv-demo-brand, #2563eb);
+  box-shadow: 0 0 0 3px var(--dv-demo-brand-soft, rgb(37 99 235 / 14%));
 }
 
 .dv-search__btn {
@@ -100,9 +100,9 @@ async function onReset() {
   font-size: 14px;
   font-weight: 500;
   line-height: 1.4;
-  color: #fff;
+  color: var(--dv-demo-on-brand, #fff);
   cursor: pointer;
-  background-color: var(--vp-c-brand-1, #2563eb);
+  background-color: var(--dv-demo-brand, #2563eb);
   transition:
     opacity 0.2s,
     border-color 0.2s,
@@ -114,8 +114,8 @@ async function onReset() {
 }
 
 .dv-search__btn--ghost {
-  color: var(--vp-c-text-1, #1e293b);
+  color: var(--dv-demo-text-1, #1e293b);
   background-color: transparent;
-  border-color: var(--vp-c-divider, #e2e8f0);
+  border-color: var(--dv-demo-divider, #e2e8f0);
 }
 </style>

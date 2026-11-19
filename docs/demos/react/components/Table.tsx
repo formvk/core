@@ -2,28 +2,28 @@ import type { ReactNode } from 'react'
 
 import './dr-table.css'
 
-export interface DemoTableColumn {
+export interface TableColumn {
   key: string
   title: string
 }
 
-export interface DemoTableAction {
+export interface TableAction {
   label: string
   danger?: boolean
   onClick: (record: any) => void
 }
 
-export interface DemoTablePagination {
+export interface TablePagination {
   current: number
   pageSize: number
   total: number
 }
 
-export interface DemoTableProps {
-  columns: DemoTableColumn[]
+export interface TableProps {
+  columns: TableColumn[]
   records: Record<string, any>[]
-  actions?: DemoTableAction[]
-  pagination?: DemoTablePagination
+  actions?: TableAction[]
+  pagination?: TablePagination
   empty?: string
   createText?: string
   toolbar?: ReactNode
@@ -31,7 +31,7 @@ export interface DemoTableProps {
   onCreate?: () => void
 }
 
-export function DemoTable({
+export function Table({
   columns,
   records,
   actions,
@@ -41,7 +41,7 @@ export function DemoTable({
   toolbar,
   onPageChange,
   onCreate,
-}: DemoTableProps) {
+}: TableProps) {
   const pageCount = pagination ? Math.max(1, Math.ceil(pagination.total / pagination.pageSize)) : 1
 
   return (

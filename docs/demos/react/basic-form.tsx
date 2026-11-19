@@ -2,12 +2,12 @@ import { createForm, createSchema, createSchemaOptions, FormProvider, SchemaFiel
 import { observer } from '@formvk/reactive-react'
 import { useState } from 'react'
 
-import { DemoArrayItems, demoComponents, FormItem } from './components'
+import { ArrayItems, components, FormItem } from './components'
 
 const { OptionsProvider, fragment: f } = createSchemaOptions({
-  components: demoComponents,
+  components,
   voidComponents: { FormItem },
-  arrayComponents: { ArrayItems: DemoArrayItems },
+  arrayComponents: { ArrayItems },
   defaultDecorator: 'FormItem',
 })
 

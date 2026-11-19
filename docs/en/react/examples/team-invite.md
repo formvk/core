@@ -48,9 +48,9 @@ React function components re-run their body on every render, so the two kinds of
 ```tsx
 // static: built once for the whole module
 const { OptionsProvider, fragment: f } = createSchemaOptions({
-  components: demoComponents,
+  components,
   voidComponents: { FormItem },
-  arrayComponents: { ArrayItems: DemoArrayItems },
+  arrayComponents: { ArrayItems },
   defaultDecorator: 'FormItem',
 })
 

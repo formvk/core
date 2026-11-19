@@ -100,7 +100,7 @@ const pageCount = computed(() =>
 .dv-table {
   margin-top: 16px;
   font-size: 14px;
-  color: var(--vp-c-text-1, #1e293b);
+  color: var(--dv-demo-text-1, #1e293b);
 }
 
 .dv-table__toolbar {
@@ -120,12 +120,12 @@ const pageCount = computed(() =>
 .dv-table__table td {
   padding: 8px 12px;
   text-align: left;
-  border-bottom: 1px solid var(--vp-c-divider, #e2e8f0);
+  border-bottom: 1px solid var(--dv-demo-divider, #e2e8f0);
 }
 
 .dv-table__table th {
   font-weight: 500;
-  color: var(--vp-c-text-2, #64748b);
+  color: var(--dv-demo-text-2, #64748b);
 }
 
 .dv-table__actions {
@@ -133,7 +133,7 @@ const pageCount = computed(() =>
 }
 
 .dv-table__empty {
-  color: var(--vp-c-text-2, #64748b);
+  color: var(--dv-demo-text-2, #64748b);
 }
 
 .dv-table__footer {
@@ -143,7 +143,7 @@ const pageCount = computed(() =>
   align-items: center;
   margin-top: 14px;
   font-size: 13px;
-  color: var(--vp-c-text-2, #64748b);
+  color: var(--dv-demo-text-2, #64748b);
 }
 
 .dv-table__btn {
@@ -153,9 +153,9 @@ const pageCount = computed(() =>
   font-size: 14px;
   font-weight: 500;
   line-height: 1.4;
-  color: #fff;
+  color: var(--dv-demo-on-brand, #fff);
   cursor: pointer;
-  background-color: var(--vp-c-brand-1, #2563eb);
+  background-color: var(--dv-demo-brand, #2563eb);
   transition:
     opacity 0.2s,
     border-color 0.2s,
@@ -172,13 +172,13 @@ const pageCount = computed(() =>
 }
 
 .dv-table__btn--ghost {
-  color: var(--vp-c-text-1, #1e293b);
+  color: var(--dv-demo-text-1, #1e293b);
   background-color: transparent;
-  border-color: var(--vp-c-divider, #e2e8f0);
+  border-color: var(--dv-demo-divider, #e2e8f0);
 }
 
 .dv-table__btn--danger {
-  color: #e5484d;
+  color: var(--dv-demo-danger, #e5484d);
   background-color: transparent;
 }
 

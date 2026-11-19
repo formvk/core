@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-export interface DemoRowMemoProps {
+export interface RowMemoProps {
   seed: string
 }
 
@@ -8,7 +8,7 @@ export interface DemoRowMemoProps {
  * 内部状态控件：初始值来自行数据，之后完全由组件自己持有，不回写表单。
  * 用来观察 index key 按下标复用组件实例时，内部状态是否还停在原来的位置。
  */
-export function DemoRowMemo(props: DemoRowMemoProps) {
+export function RowMemo(props: RowMemoProps) {
   const [draft, setDraft] = useState(() => props.seed)
 
   return (

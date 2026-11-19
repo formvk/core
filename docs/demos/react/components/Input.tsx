@@ -1,7 +1,7 @@
 import { observer } from '@formvk/reactive-react'
 import type { ChangeEvent, FocusEvent } from 'react'
 
-export interface DemoInputProps {
+export interface InputProps {
   value?: unknown
   type?: string
   placeholder?: string
@@ -12,7 +12,7 @@ export interface DemoInputProps {
   onBlur?: (event: FocusEvent<HTMLInputElement>) => void
 }
 
-export const DemoInput = observer((props: DemoInputProps) => {
+export const Input = observer((props: InputProps) => {
   const { value, type, placeholder, disabled, readOnly, onChange, onFocus, onBlur, ...rest } = props
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
@@ -36,4 +36,4 @@ export const DemoInput = observer((props: DemoInputProps) => {
   )
 })
 
-DemoInput.displayName = 'DemoInput'
+Input.displayName = 'Input'

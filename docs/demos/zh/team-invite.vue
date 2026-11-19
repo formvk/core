@@ -3,7 +3,7 @@ import { onFieldValueChange } from '@formvk/core'
 import { createForm, createSchema, createSchemaOptions, FormProvider, SchemaField } from '@formvk/vue'
 import { computed, ref } from 'vue'
 
-import { DemoArrayItems, demoComponents, FormItem } from '../components'
+import { ArrayItems, components, FormItem } from '../components'
 
 type Plan = 'free' | 'pro' | 'enterprise'
 
@@ -69,9 +69,9 @@ const form = createForm<TeamInviteValues>({
 })
 
 const { OptionsProvider, fragment: f } = createSchemaOptions({
-  components: demoComponents,
+  components,
   voidComponents: { FormItem },
-  arrayComponents: { ArrayItems: DemoArrayItems },
+  arrayComponents: { ArrayItems },
   defaultDecorator: 'FormItem',
 })
 

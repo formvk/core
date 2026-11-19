@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { createForm, FormProvider, createSchema, createSchemaOptions, SchemaField } from '@formvk/vue'
 
-import { DemoArrayItems, demoComponents, FormItem } from './components'
+import { ArrayItems, components, FormItem } from './components'
 
 interface SubscribeValues {
   plan?: string
@@ -15,9 +15,9 @@ const form = createForm({
 })
 
 const { OptionsProvider, fragment: f } = createSchemaOptions({
-  components: demoComponents,
+  components,
   voidComponents: { FormItem },
-  arrayComponents: { ArrayItems: DemoArrayItems },
+  arrayComponents: { ArrayItems },
   defaultDecorator: 'FormItem',
 })
 const schema = createSchema<SubscribeValues>({

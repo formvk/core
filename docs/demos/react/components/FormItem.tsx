@@ -1,7 +1,7 @@
+import type { Field } from '@formvk/core'
+import { useField } from '@formvk/react'
 import { observer } from '@formvk/reactive-react'
 import type { ReactNode } from 'react'
-
-import { useDemoField } from './useDemoField'
 
 export interface FormItemProps {
   label?: string
@@ -17,7 +17,7 @@ export interface FormItemProps {
  * Explicit props win over the surrounding field state.
  */
 export const FormItem = observer(function FormItem(props: FormItemProps) {
-  const field = useDemoField()
+  const field = useField<Field>()
   const { label, description, required, errors, children } = props
 
   const title = label ?? (field?.title as string | undefined)

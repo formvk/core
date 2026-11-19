@@ -2,23 +2,23 @@ import type { TableModel } from '@formvk/models'
 import { createSchemaOptions, FormProvider, type ISchema, SchemaField } from '@formvk/react'
 import { observer } from '@formvk/reactive-react'
 
-import { DemoArrayItems, demoComponents, FormItem } from './index'
+import { ArrayItems, components, FormItem } from './index'
 
 import './dr-search.css'
 
 const { OptionsProvider } = createSchemaOptions({
-  components: demoComponents,
+  components,
   voidComponents: { FormItem },
-  arrayComponents: { ArrayItems: DemoArrayItems },
+  arrayComponents: { ArrayItems },
   defaultDecorator: 'FormItem',
 })
 
-export interface DemoSearchProps {
+export interface SearchProps {
   model: TableModel
   schema: ISchema
 }
 
-export const DemoSearch = observer(function DemoSearch({ model, schema }: DemoSearchProps) {
+export const Search = observer(function Search({ model, schema }: SearchProps) {
   async function onReset() {
     await model.form.reset()
     await model.resetSearch()
@@ -41,4 +41,4 @@ export const DemoSearch = observer(function DemoSearch({ model, schema }: DemoSe
   )
 })
 
-DemoSearch.displayName = 'DemoSearch'
+Search.displayName = 'Search'
