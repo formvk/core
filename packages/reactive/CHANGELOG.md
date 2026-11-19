@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.2.0-beta.2](https://github.com/formvk/core/compare/v1.2.0-beta.1...v1.2.0-beta.2) (2026-11-19)
+
+**Note:** Version bump only for package @formvk/reactive
+
 # [1.2.0-beta.1](https://github.com/formvk/core/compare/v1.2.0-beta.0...v1.2.0-beta.1) (2026-11-18)
 
 ### Bug Fixes
