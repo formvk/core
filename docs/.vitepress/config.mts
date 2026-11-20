@@ -142,6 +142,12 @@ export default defineConfig({
                 target: '_blank',
                 rel: 'noreferrer',
               },
+              {
+                text: 'Element Plus',
+                link: 'https://formvk.github.io/element-plus/',
+                target: '_blank',
+                rel: 'noreferrer',
+              },
             ],
           },
         ],
@@ -158,11 +164,17 @@ export default defineConfig({
       { text: '模型', link: '/models/', activeMatch: '^/models/' },
       {
         text: '组件生态',
-        // 后续新增组件库（如 Arco、Element Plus）时在这里追加，统一走下拉菜单
+        // 后续新增组件库（如 Arco）时在这里追加，统一走下拉菜单
         items: [
           {
             text: 'Ant Design',
             link: 'https://formvk.github.io/antd/',
+            target: '_blank',
+            rel: 'noreferrer',
+          },
+          {
+            text: 'Element Plus',
+            link: 'https://formvk.github.io/element-plus/',
             target: '_blank',
             rel: 'noreferrer',
           },
