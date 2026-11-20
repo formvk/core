@@ -31,6 +31,13 @@ export interface FragmentOptions<
 /** 支持 `{ pre: true, patch }` 形式的 patch，pre 会提前执行 */
 export type SchemaPatchInput = SchemaPatch | { pre?: boolean; patch: SchemaPatch }
 
+/**
+ * 组件 map 的字符串键集合，用于泛型默认值与约束。
+ * 必须先用 `[Map] extends [never]` 拦掉 never：`keyof never` 是 `string | number | symbol`，
+ * 直接写 `keyof Map & string` 会得到 `string`；若把它用作映射类型的键，map 会退化为
+ * 字符串索引签名，任意组件名都能通过检查。never 是类型推断失败 / 泛型组合时的空值哨兵。
+ * `& string` 收窄掉数字与 symbol 键，组件名只允许字符串。
+ */
 type ComponentName<Map> = [Map] extends [never] ? never : keyof Map & string
 
 /**
@@ -541,31 +548,60 @@ export interface ArrayFragmentItem<
   ): SchemaCreator<Item[], FieldScope, Record, IValues>
 }
 
+/**
+ * 三个动态构造器映射刻意写成 `[K in keyof Map as ...]` 的同态形态：
+ * 同态映射会保留组件 map 中属性符号的链接，编辑器对 `f.Input` 的“跳转定义”
+ * 才能落到组件映射的声明处；若改成 `[K in ComponentName<Map>]`，属性会退化为
+ * 合成符号，跳转只能落到本文件的类型定义。外层 conditional 仅用于把 never 收敛为空映射。
+ */
 export type FieldFragmentMapping<
   F extends FragmentComponentMap,
   V extends FragmentComponentMap,
   Scope extends object = {},
   DefaultDecorator extends AnyComponent<V> = ComponentName<V>,
-> = {
-  [K in ComponentName<F>]: FieldFragmentItem<F, V, K, Scope, DefaultDecorator>
-}
+> = [F] extends [never]
+  ? {}
+  : {
+      [K in keyof F as K extends string ? K : never]-?: FieldFragmentItem<
+        F,
+        V,
+        K & ComponentName<F>,
+        Scope,
+        DefaultDecorator
+      >
+    }
 
 export type VoidFragmentMapping<
   V extends FragmentComponentMap,
   Scope extends object = {},
   DefaultDecorator extends AnyComponent<V> = ComponentName<V>,
-> = {
-  [K in ComponentName<V>]: VoidFragmentItem<V, K, Scope, DefaultDecorator>
-}
+> = [V] extends [never]
+  ? {}
+  : {
+      [K in keyof V as K extends string ? K : never]-?: VoidFragmentItem<
+        V,
+        K & ComponentName<V>,
+        Scope,
+        DefaultDecorator
+      >
+    }
 
 export type ArrayFragmentMapping<
   A extends FragmentComponentMap,
   V extends FragmentComponentMap,
   Scope extends object = {},
   DefaultDecorator extends AnyComponent<V> = ComponentName<V>,
-> = {
-  [K in ComponentName<A>]: ArrayFragmentItem<A, V, K, Scope, DefaultDecorator>
-}
+> = [A] extends [never]
+  ? {}
+  : {
+      [K in keyof A as K extends string ? K : never]-?: ArrayFragmentItem<
+        A,
+        V,
+        K & ComponentName<A>,
+        Scope,
+        DefaultDecorator
+      >
+    }
 
 export type Fragment<
   F extends FragmentComponentMap = {},

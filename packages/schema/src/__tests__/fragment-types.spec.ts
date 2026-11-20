@@ -570,6 +570,17 @@ describe('fragment types', () => {
     plain.Input()
   })
 
+  test('never component map degrades to an empty mapping', () => {
+    // never 是类型层的空值哨兵：三个 mapping 的 [Map] extends [never] 守卫保证它收敛为空映射。
+    // 若映射退化为 keyof Map & string，keyof never & string 会得到 string，
+    // 每个 mapping 都会变成字符串索引签名，任意组件名都会被当成合法的动态构造器。
+    const empty = createFragment<never, never, never>()
+    // @ts-expect-error never 组件映射下不存在任何具名构造器
+    empty.Input()
+    // 静态构造器不受影响，仍可作为空 fragment 使用
+    empty.Field()
+  })
+
   test('object creator value', () => {
     const result = f.Object({
       name: f.Field({ required: true }),
