@@ -155,6 +155,7 @@ export default defineConfig({
     },
   },
   themeConfig: {
+    socialLinks: [{ icon: 'github', link: 'https://github.com/formvk/core' }],
     nav: [
       { text: '指南', link: '/guide/', activeMatch: '^/guide/' },
       { text: '核心', link: '/core/', activeMatch: '^/core/' },
