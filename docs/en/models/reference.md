@@ -74,7 +74,7 @@ Returning an array derives `total` from its length; returning `false` or `void` 
 
 ## `PopupModel`
 
-The popup form model. It rebuilds the form on `open` and closes automatically when the submit callback returns a truthy value.
+The popup form model. It rebuilds the form on `open` and closes automatically when the submit callback returns a truthy value. It only manages form state and visibility and renders no container — `Dialog` / `Drawer` come from your UI library; mount the model inside the container.
 
 ### `PopupOptions`
 

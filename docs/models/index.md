@@ -62,6 +62,10 @@ await popup.onSubmit() // 提交成功（返回真值）后自动关闭
 
 `open(values?, initialValues?)` 会重建内部表单，因此每次打开都是干净的状态；`close()` 只控制可见性，不销毁表单。
 
+## 不提供弹窗组件
+
+本包只提供模型，不提供 `FormDialog` / `FormDrawer` 这类开箱即用的容器组件。弹窗与抽屉交给具体 UI 库（如 Ant Design `Modal`、Element Plus `el-dialog` / `el-drawer`），把 `PopupModel` 放进容器里更合适：容器负责可见性、动画与挂载位置，模型负责表单生命周期与提交流程，二者解耦后同一份模型可以复用到任意容器。
+
 ## 与 schema 表达式集成
 
 `TableModel.compile` 编译表格列配置，并注入 `$table`（模型实例）与 `$state`（`state` 字段）：

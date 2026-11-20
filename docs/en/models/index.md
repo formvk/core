@@ -62,6 +62,10 @@ await popup.onSubmit() // closes automatically when the submit callback returns 
 
 `open(values?, initialValues?)` rebuilds the internal form, so every open starts from a clean state; `close()` only toggles visibility and keeps the form alive.
 
+## No dialog components
+
+This package ships models only — it does not provide ready-made `FormDialog` / `FormDrawer` containers. Dialogs and drawers belong to your UI library (Ant Design `Modal`, Element Plus `el-dialog` / `el-drawer`); embedding `PopupModel` in the container is the better fit: the container owns visibility, animation and the mount point, while the model owns the form lifecycle and submit flow, so the same model works with any container.
+
 ## Schema expression integration
 
 `TableModel.compile` compiles table column definitions and injects `$table` (the model instance) and `$state` (the `state` field):
