@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.2.0-beta.4](https://github.com/formvk/core/compare/v1.2.0-beta.3...v1.2.0-beta.4) (2026-11-20)
+
+### Features
+
+- **schema:** 添加 never 组件映射的类型安全降级处理 ([547c195](https://github.com/formvk/core/commit/547c195ac872ab1a27dca176741ffccff02e5069))
+
 # [1.2.0-beta.3](https://github.com/formvk/core/compare/v1.2.0-beta.2...v1.2.0-beta.3) (2026-11-19)
 
 ### Features
