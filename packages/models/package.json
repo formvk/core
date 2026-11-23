@@ -28,6 +28,5 @@
     "@formvk/schema": "workspace:~",
     "@formvk/shared": "workspace:~",
     "@swc/helpers": "^0.5.24"
-  },
-  "devDependencies": {}
+  }
 }

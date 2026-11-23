@@ -26,6 +26,5 @@
     "@formvk/core": "workspace:~",
     "@formvk/reactive": "workspace:~",
     "@formvk/shared": "workspace:~"
-  },
-  "devDependencies": {}
+  }
 }

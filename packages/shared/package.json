@@ -24,6 +24,5 @@
   },
   "dependencies": {
     "@formvk/path": "workspace:~"
-  },
-  "devDependencies": {}
+  }
 }
