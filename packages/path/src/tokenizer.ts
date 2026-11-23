@@ -54,7 +54,7 @@ function getError(message?: string, props?: any) {
 function slice(string: string, start: number, end: number) {
   let str = ''
   for (let i = start; i < end; i++) {
-    const ch = string.charAt(i)
+    const ch = string.slice(i, i + 1)
     if (ch !== '\\') {
       str += ch
     }

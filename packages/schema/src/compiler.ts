@@ -69,8 +69,7 @@ export function compile<Source = any, Scope = any>(source: Source, scope?: Scope
       return source.map((value: any) => compile(value))
     } else if (isPlainObj(source)) {
       if (isNoNeedCompileObject(source)) return source
-      const seenIndex = seenObjects.indexOf(source)
-      if (seenIndex > -1) {
+      if (seenObjects.includes(source)) {
         return source
       }
       const addIndex = seenObjects.length

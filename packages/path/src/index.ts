@@ -35,13 +35,13 @@ interface ParsedPattern {
 
 function isSimplePath(val: string) {
   return (
-    val.indexOf('*') === -1 &&
-    val.indexOf('~') === -1 &&
-    val.indexOf('[') === -1 &&
-    val.indexOf(']') === -1 &&
-    val.indexOf(',') === -1 &&
-    val.indexOf(':') === -1 &&
-    val.indexOf(' ') === -1 &&
+    !val.includes('*') &&
+    !val.includes('~') &&
+    !val.includes('[') &&
+    !val.includes(']') &&
+    !val.includes(',') &&
+    !val.includes(':') &&
+    !val.includes(' ') &&
     val[0] !== '.'
   )
 }

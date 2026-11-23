@@ -33,6 +33,6 @@ export function pascalCase(input: string) {
   return input
     .split(/[-_\s]+/)
     .filter(Boolean)
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .map(word => word.slice(0, 1).toUpperCase() + word.slice(1))
     .join('')
 }

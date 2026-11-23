@@ -169,7 +169,7 @@ export class Schema implements ISchema {
 
   findDefinitions = (ref: string) => {
     if (!ref || !this.root || !isStr(ref)) return
-    if (ref.indexOf('#/') !== 0) return
+    if (!ref.startsWith('#/')) return
     return FormPath.getIn(this.root, ref.substring(2).split('/'))
   }
 
@@ -279,7 +279,7 @@ export class Schema implements ISchema {
     for (const key in schema[propertiesName]) {
       const item: any = (schema[propertiesName] as any)[key]
       const index = item?.['index']
-      if (!isNaN(index)) {
+      if (!Number.isNaN(Number(index))) {
         orderProperties[index] = { schema: item, key }
       } else {
         unorderProperties.push({ schema: item, key })

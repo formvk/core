@@ -95,8 +95,7 @@ export function traverse(target: any, visitor: (value: any, path: Array<string |
   const root = target
   function traverse(target: any, path: Array<string | number> = []) {
     if (isPlainObj(target)) {
-      const seenIndex = seenObjects.indexOf(target)
-      if (seenIndex > -1) {
+      if (seenObjects.includes(target)) {
         return
       }
       const addIndex = seenObjects.length
@@ -132,7 +131,7 @@ export function traverseSchema(schema: ISchema, visitor: (value: any, path: any[
       return
     if (isFn(target) && !isFunctionKey(String(path[0]))) return
     if (SchemaNestedMap[path[0]]) return
-    if ((schema['compileOmitted']?.indexOf(path[0]) ?? -1) > -1) {
+    if (schema['compileOmitted']?.includes(path[0]) ?? false) {
       visitor(target, path, true)
       return
     }
@@ -141,8 +140,7 @@ export function traverseSchema(schema: ISchema, visitor: (value: any, path: any[
         visitor(target, path)
         return
       }
-      const seenIndex = seenObjects.indexOf(target)
-      if (seenIndex > -1) {
+      if (seenObjects.includes(target)) {
         return
       }
       const addIndex = seenObjects.length

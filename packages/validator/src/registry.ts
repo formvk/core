@@ -40,7 +40,7 @@ function getISOCode(language: string) {
   const lang = lowerCase(language)
   each(registry.locales.messages, (messages: IRegistryLocaleMessages, key: string) => {
     const target = lowerCase(key)
-    if (target.indexOf(lang) > -1 || lang.indexOf(target) > -1) {
+    if (target.includes(lang) || lang.includes(target)) {
       isoCode = key
       return false
     }

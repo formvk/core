@@ -36,7 +36,7 @@ export function isReactElement(obj: any): boolean {
   return obj && obj['$$typeof'] && obj['_owner']
 }
 export function isHTMLElement(target: any): target is EventTarget {
-  return Object.prototype.toString.call(target).indexOf('HTML') > -1
+  return Object.prototype.toString.call(target).includes('HTML')
 }
 
 export type Subscriber<S> = (payload: S) => void

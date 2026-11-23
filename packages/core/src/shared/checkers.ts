@@ -54,7 +54,7 @@ export function isFieldState(state: any): state is IFieldState {
 
 export function isGeneralFieldState(node: any): node is IGeneralFieldState {
   if (isFn(node?.initialize)) return false
-  return node?.displayName?.indexOf('Field') > -1
+  return node?.displayName?.includes('Field') ?? false
 }
 
 export function isArrayFieldState(state: any): state is IFieldState {

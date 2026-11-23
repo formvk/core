@@ -314,7 +314,7 @@ export function spliceArrayState(field: ArrayField<any>, props?: ISpliceArraySta
   const fieldPatches: INodePatch<GeneralField>[] = []
   const offset = insertCount - deleteCount
   function isArrayChildren(identifier: string) {
-    return identifier.indexOf(address) === 0 && identifier.length > addrLength
+    return identifier.startsWith(address) && identifier.length > addrLength
   }
   function isAfterNode(identifier: string) {
     const afterStr = identifier.substring(addrLength)
@@ -384,7 +384,7 @@ export function exchangeArrayState(field: ArrayField<any>, props: IExchangeArray
   const addrLength = address.length
   const fieldPatches: INodePatch<GeneralField>[] = []
   function isArrayChildren(identifier: string) {
-    return identifier.indexOf(address) === 0 && identifier.length > addrLength
+    return identifier.startsWith(address) && identifier.length > addrLength
   }
 
   const isDown = fromIndex < toIndex
@@ -450,7 +450,7 @@ export function cleanupArrayChildren(field: ArrayField<any>, start: number) {
   const fields = field.form.fields
 
   function isArrayChildren(identifier: string) {
-    return identifier.indexOf(address) === 0 && identifier.length > address.length
+    return identifier.startsWith(address) && identifier.length > address.length
   }
 
   function isNeedCleanup(identifier: string) {
@@ -476,7 +476,7 @@ export function cleanupObjectChildren(field: ObjectField<any>, keys: string[]) {
   const fields = field.form.fields
 
   function isObjectChildren(identifier: string) {
-    return identifier.indexOf(address) === 0 && identifier.length > address.length
+    return identifier.startsWith(address) && identifier.length > address.length
   }
 
   function isNeedCleanup(identifier: string) {
@@ -572,7 +572,7 @@ function getSerializableKeys(model: any) {
     proto = Object.getPrototypeOf(proto)
   ) {
     for (const key of Object.getOwnPropertyNames(proto)) {
-      if (keys.indexOf(key) > -1) continue
+      if (keys.includes(key)) continue
       const descriptor = Object.getOwnPropertyDescriptor(proto, key)
       if (descriptor && (descriptor.get || descriptor.set)) keys.push(key)
     }
@@ -603,7 +603,7 @@ export function createChildrenFeedbackFilter(field: Field) {
   const identifier = field.address?.toString()
   return ({ address }: IFormFeedback) => {
     if (!address) return false
-    return address === identifier || address.indexOf(identifier + '.') === 0
+    return address === identifier || address.startsWith(identifier + '.')
   }
 }
 
@@ -822,7 +822,7 @@ export const validateSelf = batch.bound(async (target: Field, triggerType?: Vali
   start()
   if (!triggerType) {
     const allTriggerTypes = parseValidatorDescriptions(target.validator).reduce(
-      (types, desc) => (types.indexOf(desc.triggerType) > -1 ? types : types.concat(desc.triggerType)),
+      (types, desc) => (types.includes(desc.triggerType) ? types : types.concat(desc.triggerType)),
       []
     )
     const results: Record<string, any> = {}

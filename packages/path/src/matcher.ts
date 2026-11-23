@@ -110,7 +110,7 @@ export class Matcher {
     const current = this.take(pos)
     let matched = false
     if (isExpandOperator(node.after)) {
-      if (current.indexOf(node.value) === 0) {
+      if (current.startsWith(node.value)) {
         this.shot()
         matched = true
       }

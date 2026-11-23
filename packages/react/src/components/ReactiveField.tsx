@@ -70,7 +70,7 @@ function normalizeProps(origin: Record<string, any>) {
 function toReactEventProps(events: Record<string, any>) {
   const props: Record<string, any> = {}
   each(events, (handler, name) => {
-    props[`on${name.charAt(0).toUpperCase()}${name.slice(1)}`] = handler
+    props[`on${name.slice(0, 1).toUpperCase()}${name.slice(1)}`] = handler
   })
   return props
 }

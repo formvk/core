@@ -101,7 +101,7 @@ const RULES: IRegistryRules = {
   enum(value, rule) {
     if (isValidateEmpty(value)) return ''
     const enums = toArr(rule.enum)
-    return enums.indexOf(value) === -1 ? rule.message : ''
+    return enums.includes(value) ? '' : rule.message
   },
   const(value, rule) {
     if (isValidateEmpty(value)) return ''
