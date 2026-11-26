@@ -1,0 +1,60 @@
+name: Test
+
+# 同一份代码分别安装 Vue 3.5 与 3.6 后执行测试；
+# 版本差异由测试内部的版本条件处理（见 packages/core/src/__tests__/shared.ts）
+on:
+  push:
+    branches:
+      - main
+      - feat/reactive
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Vue ${{ matrix.vue.label }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        vue:
+          - version: '^3.5.0'
+            label: '3.5'
+          # 3.6 正式版发布后把 version 改为 ^3.6.0，并同步更新 label
+          - version: '3.6.0-rc.15'
+            label: '3.6 RC'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.18.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # @formvk/reactive 自身声明了 @vue/reactivity ^3.5.0，
+      # 只改根依赖会留下另一份 3.5.x；用 overrides 把整张依赖图固定到矩阵版本
+      - name: Pin Vue version
+        run: |
+          printf '\noverrides:\n  vue: "%s"\n  "@vue/reactivity": "%s"\n' '${{ matrix.vue.version }}' '${{ matrix.vue.version }}' >> pnpm-workspace.yaml
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Run tests
+        run: pnpm exec vitest run
+        env:
+          LC_ALL: en_US.UTF-8

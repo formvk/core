@@ -2,6 +2,57 @@
 
 `@formvk/reactive` 是构建在 `@vue/reactivity` 之上的轻量封装层，为表单模型提供动力，也可以单独使用。
 
+## 安装与单一响应式实例
+
+```bash
+pnpm add @formvk/reactive
+```
+
+`@formvk/reactive` 基于 `@vue/reactivity` 3.5 构建，并兼容 3.6。它与 `vue` 共享同一套响应式内核：如果项目里出现两份 `@vue/reactivity`，`observable` 的写入只会通知与它同包的那份运行时，Vue 组件的渲染 effect 读不到变化，表现为模型已更新但界面不刷新。
+
+因此，同时使用 Vue 的应用需要让构建器把 `vue` 与 `@vue/reactivity` 都解析到项目根目录的同一份实例。
+
+### Vite
+
+```ts
+// vite.config.ts
+import { defineConfig } from 'vite'
+
+export default defineConfig({
+  resolve: {
+    dedupe: ['vue', '@vue/reactivity'],
+  },
+  optimizeDeps: {
+    // 开发阶段让 @vue/reactivity 也参与预构建，避免它和 vue 各拿一份运行时
+    include: ['@vue/reactivity'],
+  },
+})
+```
+
+### Rsbuild
+
+```ts
+// rsbuild.config.ts
+import { defineConfig } from '@rsbuild/core'
+
+export default defineConfig({
+  resolve: {
+    dedupe: ['vue', '@vue/reactivity'],
+  },
+})
+```
+
+### 其他构建器与插件
+
+| 构建器                  | 配置                                                       |
+| ----------------------- | ---------------------------------------------------------- |
+| webpack / Rspack        | `resolve.dedupe: ['vue', '@vue/reactivity']`               |
+| Rollup                  | `nodeResolve({ dedupe: ['vue', '@vue/reactivity'] })`      |
+| esbuild                 | `dedupe: ['vue', '@vue/reactivity']`                       |
+| Nuxt 等封装 Vite 的框架 | 把同样的数组写入底层 Vite 配置，例如 `vite.resolve.dedupe` |
+
+`@vitejs/plugin-vue`、`@rsbuild/plugin-vue` 这类插件只负责编译 SFC，不会改变模块解析，dedupe 仍需按上表配置。SSR 或直接在 Node 中运行、不经过构建器时，则通过包管理器的 overrides / resolutions 把 `@vue/reactivity` 固定为与 `vue` 相同的版本。
+
 ## 可观察状态
 
 <<< @/snippets/reactive/observable.ts

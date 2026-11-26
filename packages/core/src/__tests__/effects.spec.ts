@@ -52,7 +52,7 @@ import {
   onFormValuesChange,
 } from '..'
 import { runEffects } from '../shared/effective'
-import { attach, sleep } from './shared'
+import { attach, isVue35, sleep } from './shared'
 
 test('onFormInit/onFormMount/onFormUnmount', () => {
   const init = vi.fn()
@@ -340,7 +340,9 @@ test('onFieldChange', async () => {
   field.setPattern('disabled')
   expect(fieldChange).toHaveBeenCalledTimes(5)
   field.setDisplay('none')
-  expect(fieldChange).toHaveBeenCalledTimes(6)
+  // setDisplay('none') 会同时改动 visible 与 value：3.5 各调度一次，
+  // 3.6 会把同一批次内的变化合并为一次，两种结果都符合预期
+  expect(fieldChange).toHaveBeenCalledTimes(isVue35 ? 7 : 6)
   form.onUnmount()
 
   expect(valueChange).toHaveBeenCalledTimes(4)

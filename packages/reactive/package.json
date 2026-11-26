@@ -24,6 +24,6 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@vue/reactivity": "^3.6.0-rc.15"
+    "@vue/reactivity": "^3.5.0"
   }
 }

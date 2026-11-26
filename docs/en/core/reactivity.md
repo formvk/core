@@ -2,6 +2,57 @@
 
 `@formvk/reactive` is a thin layer on top of `@vue/reactivity`. It powers the form models and is also useful on its own.
 
+## Install and a single reactivity instance
+
+```bash
+pnpm add @formvk/reactive
+```
+
+`@formvk/reactive` is built on `@vue/reactivity` 3.5 and also supports 3.6. It shares the same reactivity runtime as `vue`: if the project ends up with two copies of `@vue/reactivity`, writes to an `observable` only notify the copy that created it, while Vue render effects come from the other copy — the model updates but the UI does not re-render.
+
+Applications that also use Vue must make the bundler resolve `vue` and `@vue/reactivity` to the same copy from the project root.
+
+### Vite
+
+```ts
+// vite.config.ts
+import { defineConfig } from 'vite'
+
+export default defineConfig({
+  resolve: {
+    dedupe: ['vue', '@vue/reactivity'],
+  },
+  optimizeDeps: {
+    // Prebundle @vue/reactivity in dev so it does not get a separate runtime from vue
+    include: ['@vue/reactivity'],
+  },
+})
+```
+
+### Rsbuild
+
+```ts
+// rsbuild.config.ts
+import { defineConfig } from '@rsbuild/core'
+
+export default defineConfig({
+  resolve: {
+    dedupe: ['vue', '@vue/reactivity'],
+  },
+})
+```
+
+### Other bundlers and plugins
+
+| Bundler                      | Configuration                                                                 |
+| ---------------------------- | ----------------------------------------------------------------------------- |
+| webpack / Rspack             | `resolve.dedupe: ['vue', '@vue/reactivity']`                                  |
+| Rollup                       | `nodeResolve({ dedupe: ['vue', '@vue/reactivity'] })`                         |
+| esbuild                      | `dedupe: ['vue', '@vue/reactivity']`                                          |
+| Nuxt and other Vite wrappers | Pass the same array to the underlying Vite config, e.g. `vite.resolve.dedupe` |
+
+Plugins such as `@vitejs/plugin-vue` and `@rsbuild/plugin-vue` only compile SFCs and do not change module resolution, so dedupe still belongs in the bundler configuration above. For SSR or plain Node without a bundler, pin `@vue/reactivity` to the same version as `vue` through your package manager's overrides / resolutions.
+
 ## Observable state
 
 <<< @/snippets/reactive/observable.ts

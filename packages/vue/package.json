@@ -30,7 +30,7 @@
     "@formvk/shared": "workspace:~"
   },
   "devDependencies": {
-    "vue": "^3.6.0-rc.15"
+    "vue": "^3.5.0"
   },
   "peerDependencies": {
     "vue": "^3.5.0"
