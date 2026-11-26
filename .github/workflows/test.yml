@@ -54,6 +54,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
+      # 测试通过包名引用 @formvk/*，全新检出时各包入口指向的 dist/ 尚不存在
+      - name: Build workspace packages
+        run: pnpm -r build
+
       - name: Run tests
         run: pnpm exec vitest run
         env:
